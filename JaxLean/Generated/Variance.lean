@@ -9,17 +9,17 @@ namespace «JaxLean».«Generated»
 
 def «variance2» {R : Type} [Field R] (x0 : Tensor R [2]) : Tensor R [] :=
   -- reduce_sum
-  let v0 : Tensor R [] := fun i => ∑ k0 : Fin 2, (x0 (k0, ()))
+  let v0 : Tensor R [] := Tensor.sumFirst x0
   -- div
-  let v1 : Tensor R [] := fun i => (v0 ()) / ((Tensor.scalar (2 : R)) ())
+  let v1 : Tensor R [] := Tensor.scalar ((v0 ()) / ((Tensor.scalar (2 : R)) ()))
   -- sub
-  let v2 : Tensor R [2] := fun i => (x0 (i.1, ())) - (v1 ())
+  let v2 : Tensor R [2] := Tensor.map (fun a0 => a0 - (v1 ())) x0
   -- mul
-  let v3 : Tensor R [2] := fun i => (v2 (i.1, ())) * (v2 (i.1, ()))
+  let v3 : Tensor R [2] := Tensor.map₂ (fun a0 a1 => a0 * a1) v2 v2
   -- reduce_sum
-  let v4 : Tensor R [] := fun i => ∑ k0 : Fin 2, (v3 (k0, ()))
+  let v4 : Tensor R [] := Tensor.sumFirst v3
   -- div
-  let v5 : Tensor R [] := fun i => (v4 ()) / ((Tensor.scalar (2 : R)) ())
+  let v5 : Tensor R [] := Tensor.scalar ((v4 ()) / ((Tensor.scalar (2 : R)) ()))
   v5
 
 end «JaxLean».«Generated»

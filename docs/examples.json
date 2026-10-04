@@ -1,0 +1,268 @@
+{
+  "pages": [
+    {
+      "slug": "puzzles",
+      "title": "Tensor puzzles",
+      "layout": "code-only",
+      "cards": [
+        {
+          "title": "sum",
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_sum"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Pseudocode",
+              "name": "JaxLean.Pseudocode.sum",
+              "section": "Pseudocode"
+            },
+            {
+              "module": "JaxLean.TensorPuzzleProofs",
+              "name": "JaxLean.PuzzleJax.sum_matches_pseudocode",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.TensorPuzzleProofs",
+              "name": "JaxLean.PuzzleJax.certified_sum",
+              "section": "Certificate"
+            }
+          ]
+        },
+        {
+          "title": "outer",
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_outer"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Pseudocode",
+              "name": "JaxLean.Pseudocode.outer",
+              "section": "Pseudocode"
+            },
+            {
+              "module": "JaxLean.TensorPuzzleProofs",
+              "name": "JaxLean.PuzzleJax.outer_matches_pseudocode",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.TensorPuzzleProofs",
+              "name": "JaxLean.PuzzleJax.certified_outer",
+              "section": "Certificate"
+            }
+          ]
+        },
+        {
+          "title": "flip",
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_flip"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Pseudocode",
+              "name": "JaxLean.Pseudocode.flip",
+              "section": "Pseudocode"
+            },
+            {
+              "module": "JaxLean.TensorPuzzleProofs",
+              "name": "JaxLean.PuzzleJax.flip_matches_pseudocode",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.TensorPuzzleProofs",
+              "name": "JaxLean.PuzzleJax.certified_flip",
+              "section": "Certificate"
+            }
+          ]
+        },
+        {
+          "title": "flatten",
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_flatten"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Pseudocode",
+              "name": "JaxLean.Pseudocode.flatten",
+              "section": "Pseudocode"
+            },
+            {
+              "module": "JaxLean.TensorPuzzleProofs",
+              "name": "JaxLean.PuzzleJax.flatten_matches_pseudocode",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.TensorPuzzleProofs",
+              "name": "JaxLean.PuzzleJax.certified_flatten",
+              "section": "Certificate"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "sampling",
+      "title": "Monte Carlo",
+      "cards": [
+        {
+          "title": "Average sixteen die rolls",
+          "description": "In the ideal independent uniform model, averaging preserves the mean and divides the variance by sixteen.",
+          "python": [
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "die_draw"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "die_estimate"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "mc_die_16"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_die_mean"
+            },
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_die_variance_reduction"
+            },
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_die_variance"
+            },
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_die_boundary",
+              "detail": "Sampling function boundary"
+            },
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.certified_die_variance",
+              "detail": "Estimator Jaxpr variance certificate"
+            }
+          ]
+        },
+        {
+          "title": "A nonlinear discrete estimator",
+          "description": "Square the sampled grid coordinates, then average eight independent values. The expectation is for this finite grid, not a continuous integral.",
+          "python": [
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "grid_index"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "grid_square"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "grid_estimate"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "mc_grid_square_8"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_grid_mean"
+            },
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_grid_variance_reduction"
+            },
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_grid_variance"
+            },
+            {
+              "module": "JaxLean.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.certified_grid_variance",
+              "detail": "Estimator Jaxpr variance certificate"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "transformer",
+      "title": "Transformer",
+      "cards": [
+        {
+          "title": "Normalization and attention",
+          "description": "Positive row normalization sums to one. Attention commutes with permutations of the sequence positions.",
+          "python": [
+            {
+              "file": "examples/transformer.py",
+              "name": "normalize"
+            },
+            {
+              "file": "examples/transformer.py",
+              "name": "attention"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.TransformerProofs",
+              "name": "JaxLean.TransformerJax.normalize_sum_one"
+            },
+            {
+              "module": "JaxLean.TransformerProofs",
+              "name": "JaxLean.TransformerJax.attention_permute"
+            },
+            {
+              "module": "JaxLean.TransformerProofs",
+              "name": "JaxLean.TransformerJax.attention_spec",
+              "detail": "Attention specification"
+            }
+          ]
+        },
+        {
+          "title": "A theorem at the network boundary",
+          "description": "The two-block network inherits permutation equivariance from its component functions. Its final certificate connects the theorem to the Jaxpr evaluator.",
+          "python": [
+            {
+              "file": "examples/transformer.py",
+              "name": "transformer_block"
+            },
+            {
+              "file": "examples/transformer.py",
+              "name": "transformer"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.TransformerProofs",
+              "name": "JaxLean.TransformerJax.transformer_block_permute"
+            },
+            {
+              "module": "JaxLean.TransformerProofs",
+              "name": "JaxLean.TransformerJax.transformer_permute"
+            },
+            {
+              "module": "JaxLean.TransformerProofs",
+              "name": "JaxLean.TransformerJax.certified_transformer_permute",
+              "detail": "Jaxpr evaluation certificate"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

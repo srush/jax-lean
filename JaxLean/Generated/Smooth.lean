@@ -11,7 +11,7 @@ def «smooth» {R : Type} [Field R] [RealOps R] (x0 : Tensor R [3]) : Tensor R [
   -- neg
   let v0 : Tensor R [3] := Tensor.map (fun x => -x) x0
   -- mul
-  let v1 : Tensor R [3] := fun i => (v0 (i.1, ())) * (x0 (i.1, ()))
+  let v1 : Tensor R [3] := Tensor.map₂ (fun a0 a1 => a0 * a1) v0 x0
   -- exp
   let v2 : Tensor R [3] := Tensor.map (RealOps.exp) v1
   v2

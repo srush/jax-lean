@@ -12,29 +12,29 @@ def «prefixSum» {R : Type} [Field R] (x0 : Tensor R [3]) : Tensor R [] × Tens
   -- convert_element_type
   let v0 : Tensor R [] := (Tensor.scalar (0 : R))
   -- add
-  let v1 : Tensor R [] := fun i => (v0 ()) + ((fun i => x0 (0, i)) ())
+  let v1 : Tensor R [] := Tensor.scalar ((v0 ()) + ((fun i => x0 (0, i)) ()))
   -- convert_element_type
   let v2 : Tensor R [] := (Tensor.scalar (0 : R))
   -- add
-  let v3 : Tensor R [] := fun i => (v2 ()) + ((fun i => x0 (0, i)) ())
+  let v3 : Tensor R [] := Tensor.scalar ((v2 ()) + ((fun i => x0 (0, i)) ()))
   -- scan step 1
   -- convert_element_type
   let v4 : Tensor R [] := v1
   -- add
-  let v5 : Tensor R [] := fun i => (v4 ()) + ((fun i => x0 (1, i)) ())
+  let v5 : Tensor R [] := Tensor.scalar ((v4 ()) + ((fun i => x0 (1, i)) ()))
   -- convert_element_type
   let v6 : Tensor R [] := v1
   -- add
-  let v7 : Tensor R [] := fun i => (v6 ()) + ((fun i => x0 (1, i)) ())
+  let v7 : Tensor R [] := Tensor.scalar ((v6 ()) + ((fun i => x0 (1, i)) ()))
   -- scan step 2
   -- convert_element_type
   let v8 : Tensor R [] := v5
   -- add
-  let v9 : Tensor R [] := fun i => (v8 ()) + ((fun i => x0 (2, i)) ())
+  let v9 : Tensor R [] := Tensor.scalar ((v8 ()) + ((fun i => x0 (2, i)) ()))
   -- convert_element_type
   let v10 : Tensor R [] := v5
   -- add
-  let v11 : Tensor R [] := fun i => (v10 ()) + ((fun i => x0 (2, i)) ())
+  let v11 : Tensor R [] := Tensor.scalar ((v10 ()) + ((fun i => x0 (2, i)) ()))
   -- scan stack
   let v12 : Tensor R [3] := Tensor.stack #[v3, v7, v11] (by rfl)
   (v9, v12)

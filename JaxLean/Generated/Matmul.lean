@@ -9,7 +9,7 @@ namespace «JaxLean».«Generated»
 
 def «matmul» {R : Type} [Field R] (x0 : Tensor R [2, 3]) (x1 : Tensor R [3, 2]) : Tensor R [2, 2] :=
   -- dot_general
-  let v0 : Tensor R [2, 2] := fun i => ∑ k0 : Fin 3, (x0 (i.1, k0, ())) * (x1 (k0, i.2.1, ()))
+  let v0 : Tensor R [2, 2] := Tensor.matmul x0 x1
   v0
 
 end «JaxLean».«Generated»

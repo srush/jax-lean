@@ -9,9 +9,9 @@ namespace «JaxLean».«Generated»
 
 def «mean2» {R : Type} [Field R] (x0 : Tensor R [2]) : Tensor R [] :=
   -- reduce_sum
-  let v0 : Tensor R [] := fun i => ∑ k0 : Fin 2, (x0 (k0, ()))
+  let v0 : Tensor R [] := Tensor.sumFirst x0
   -- div
-  let v1 : Tensor R [] := fun i => (v0 ()) / ((Tensor.scalar (2 : R)) ())
+  let v1 : Tensor R [] := Tensor.scalar ((v0 ()) / ((Tensor.scalar (2 : R)) ()))
   v1
 
 end «JaxLean».«Generated»

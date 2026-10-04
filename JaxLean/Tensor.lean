@@ -1,3 +1,4 @@
+import JaxLean.Batch
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Logic.Equiv.Fin.Basic
@@ -6,6 +7,7 @@ import Mathlib.Logic.Equiv.Fin.Basic
 There is no default element, unchecked indexing, mutable store, or runtime shape check.
 Scalars have shape `[]` and are evaluated at `()`. -/
 namespace JaxLean
+open scoped BigOperators
 
 def Index : List Nat → Type
   | [] => Unit
@@ -28,6 +30,12 @@ def Index.equivFin : (s : List Nat) → Index s ≃ Fin s.prod
         simp_all }
   | n :: ns => (Equiv.prodCongr (Equiv.refl (Fin n)) (equivFin ns)).trans finProdFinEquiv
 
+/-- A vector's row-major flat coordinate is just its only coordinate. -/
+@[simp] theorem Index.equivFin_vector_val (i : Fin n) :
+    (Index.equivFin [n] (i, ())).val = i.val := by
+  change 0 + 1 * i.val = i.val
+  simp
+
 abbrev Tensor (R : Type) (shape : List Nat) := Index shape → R
 
 namespace Tensor
@@ -38,6 +46,34 @@ def map (f : R → S) (x : Tensor R s) : Tensor S s := fun i => f (x i)
 
 def map₂ (f : R → S → T) (x : Tensor R s) (y : Tensor S s) : Tensor T s :=
   fun i => f (x i) (y i)
+
+/-- Reduction of the leading batch axis; trailing coordinates are retained. -/
+def sumFirst [AddCommMonoid R] (x : Tensor R (n :: s)) : Tensor R s :=
+  fun j => Batch.reduceSum (fun i => x (i, j))
+
+/-- Map an arbitrary per-example tensor function over the leading axis. -/
+def vmap (f : Tensor R s → Tensor S t) (x : Tensor R (n :: s)) : Tensor S (n :: t) :=
+  fun i => f (fun j => x (i.1, j)) i.2
+
+/-- Ordinary rank-two matrix multiplication. Keep this operation named in
+transpiled code so general theorems can recognize it. -/
+def matmul [Semiring R] (x : Tensor R [n, k]) (w : Tensor R [k, d]) :
+    Tensor R [n, d] :=
+  fun i => ∑ j : Fin k, x (i.1, j, ()) * w (j, i.2)
+
+/-- Row-vector times matrix, preserving the linear transformation in generated code. -/
+def vecmat [Semiring R] (x : Tensor R [n]) (w : Tensor R [n, m]) : Tensor R [m] :=
+  fun j => ∑ i : Fin n, x (i, ()) * w (i, j)
+
+/-- Expand a singleton first axis; used by elementwise bias broadcasting. -/
+def broadcastFirst (n : Nat) (x : Tensor R (1 :: s)) : Tensor R (n :: s) :=
+  fun i => x (0, i.2)
+
+@[simp] theorem map_apply (f : R → S) (x : Tensor R s) (i : Index s) :
+    map f x i = f (x i) := rfl
+
+@[simp] theorem map₂_apply (f : R → S → T) (x : Tensor R s) (y : Tensor S s)
+    (i : Index s) : map₂ f x y i = f (x i) (y i) := rfl
 
 /-- Transpose, broadcast, slice and squeeze are just coordinate maps. -/
 def reindex (f : Index t → Index s) (x : Tensor R s) : Tensor R t := fun i => x (f i)

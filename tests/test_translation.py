@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 
 from jaxlean import translate, TranslationError
+from examples.generate import mlp, mlp_inputs, residual
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,7 +23,20 @@ def arr(shape, offset=0):
 
 M = arr((2, 3), 1)
 V = arr((3,), 1)
+MLP_X = jnp.array([[1., 2.], [-1., 1.], [3., -2.], [0., 0.]])
+MLP_PARAMS = (jnp.array([[1., -1., 2.], [0., 1., -1.]]),
+              jnp.array([0., 1., -1.]),
+              jnp.array([[1., 0.], [0., 1.], [1., -1.]]),
+              jnp.array([1., -1.]))
 CASES = [
+    ("residual5", residual, (arr((5, 3), -6), arr((3, 4), -5), arr((4,), -2),
+                              arr((4, 3), -4), arr((3,), -1))),
+    ("residual2", residual, (arr((2, 3), -3), arr((3, 4), -5), arr((4,), -2),
+                              arr((4, 3), -4), arr((3,), -1))),
+    ("mlp_empty", mlp, (jnp.empty((0, 2)), *MLP_PARAMS)),
+    ("mlp_singleton", mlp, (MLP_X[:1], *MLP_PARAMS)),
+    ("mlp4", mlp, (MLP_X, *MLP_PARAMS)),
+    ("mlp3_selected", mlp, (MLP_X[jnp.array([2, 0, 2])], *MLP_PARAMS)),
     ("arithmetic", lambda x: -(x + 2.0) * x - x / 4.0, (M,)),
     ("powers", lambda x: (x ** 3, x ** -2, lax.square(x)), (V,)),
     ("exact_literal", lambda x: x + jnp.float32(0.1), (V,)),
@@ -162,6 +176,30 @@ def test_raw_jaxpr_and_constants():
 
 def test_reproducible_examples():
     subprocess.run([sys.executable, "-m", "examples.generate", "--check"], cwd=ROOT, check=True)
+
+
+def test_selection_library_applies_to_new_traces():
+    """Apply one proof recipe to new batch sizes, including singleton/empty axes."""
+    parts = ["import JaxLean.RealOps\nimport JaxLean.SelectionRules\n"]
+    for n in (0, 1, 2, 3, 5):
+        source = translate(jax.make_jaxpr(mlp)(*mlp_inputs(n)),
+                           name=f"mlp{n}", namespace="SelectionTest")
+        parts.append(source.replace("import JaxLean.RealOps", ""))
+    for n, m in ((5, 2), (1, 3), (3, 1), (0, 0), (1, 0)):
+        parts.append(f"""
+example (selection : Fin {m} → Fin {n}) (x : Tensor ℝ [{n}, 2])
+    (w1 : Tensor ℝ [2, 3]) (b1 : Tensor ℝ [3])
+    (w2 : Tensor ℝ [3, 2]) (b2 : Tensor ℝ [2]) :
+    SelectionTest.mlp{m} (Tensor.selectRows selection x) w1 b1 w2 b2 =
+      Tensor.selectRows selection (SelectionTest.mlp{n} x w1 b1 w2 b2) := by
+  simp [SelectionTest.mlp{m}, SelectionTest.mlp{n}]
+""")
+    path = ROOT / "tests/_generated/SelectionLibrary.lean"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text("\n".join(parts))
+    proc = subprocess.run(["lake", "env", "lean", str(path)], cwd=ROOT,
+                          capture_output=True, text=True, timeout=120)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
 
 
 def test_transcendentals_typecheck():

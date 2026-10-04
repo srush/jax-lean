@@ -14,7 +14,7 @@ open scoped BigOperators
 
 theorem mean2_spec (x : Tensor ℝ [2]) :
     mean2 x () = (x (0, ()) + x (1, ())) / 2 := by
-  simp [mean2, Tensor.scalar, Fin.sum_univ_two]
+  simp [mean2, Tensor.scalar, Tensor.sumFirst, Batch.reduceSum, Fin.sum_univ_two]
 
 /-- Swapping two samples leaves their average unchanged. -/
 theorem mean2_swap (x : Tensor ℝ [2]) :
@@ -35,7 +35,7 @@ theorem sum_transpose (x : Tensor ℝ [2, 3]) :
 
 theorem variance2_spec (x : Tensor ℝ [2]) :
     variance2 x () = (x (0, ()) - x (1, ())) ^ 2 / 4 := by
-  simp [variance2, Tensor.scalar, Fin.sum_univ_two]
+  simp [variance2, Tensor.scalar, Tensor.sumFirst, Batch.reduceSum, Tensor.map, Tensor.map₂, Fin.sum_univ_two]
   ring
 
 /-- Also demonstrate translation (shift) invariance of population variance. -/
