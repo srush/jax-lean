@@ -1,0 +1,11 @@
+name = "jaxlean"
+version = "0.1.0"
+defaultTargets = ["JaxLean"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.33.0"
+
+[[lean_lib]]
+name = "JaxLean"
