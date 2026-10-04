@@ -17,10 +17,11 @@ from test_random_translation import lean, ROOT
 from test_translation import lean_input
 
 
+@pytest.mark.lean
 def test_generation_and_proof_axioms():
     subprocess.run([sys.executable, '-m', 'examples.certify_more', '--check'], cwd=ROOT, check=True)
-    result = lean('''import JaxLean.RandintMonteCarloProofs
-import JaxLean.TensorPuzzleProofs
+    result = lean('''import JaxLean.Examples.RandintMonteCarloProofs
+import JaxLean.Examples.TensorPuzzleProofs
 #print axioms JaxLean.MCJax.certified_die_variance
 #print axioms JaxLean.MCJax.certified_grid_variance
 #print axioms JaxLean.PuzzleJax.certified_sum
@@ -31,6 +32,7 @@ import JaxLean.TensorPuzzleProofs
     assert 'sorryAx' not in result.stdout
 
 
+@pytest.mark.lean
 def test_actual_randint_outputs_pass_through_lean_kernels():
     key = jax.random.key(18)
     die_draws = jax.vmap(mc.die_draw)(jax.random.split(key, 16))
@@ -47,6 +49,7 @@ def test_actual_randint_outputs_pass_through_lean_kernels():
     np.testing.assert_allclose(values, [mc.mc_die_16(key), mc.mc_grid_square_8(key)], rtol=1e-6)
 
 
+@pytest.mark.lean
 def test_puzzle_jax_lean_and_loop_specs_agree():
     a = jnp.array([2., -3.])
     b = jnp.array([4., 0., -2.])
@@ -54,7 +57,7 @@ def test_puzzle_jax_lean_and_loop_specs_agree():
     code = '''import JaxLean.Generated.PuzzleSum
 import JaxLean.Generated.PuzzleFlip
 import JaxLean.Generated.PuzzleOuterFlatten
-import JaxLean.Pseudocode
+import JaxLean.Examples.Pseudocode
 open JaxLean
 '''
     calls = [
@@ -78,6 +81,7 @@ open JaxLean
         np.testing.assert_array_equal(actual, reference)
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize('n', [0, 1, 5])
 def test_vector_dot_and_reverse_certificates(n):
     for label, fn in [('dot', lambda x: x @ jnp.ones_like(x)), ('reverse', lambda x: x[::-1])]:
@@ -86,6 +90,7 @@ def test_vector_dot_and_reverse_certificates(n):
         assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize('shape,target', [((0, 3), (0,)), ((1, 1), (1,)), ((2, 3, 4), (4, 6))])
 def test_reshape_certificate_sizes(shape, target):
     code = certify(jax.make_jaxpr(lambda x: x.reshape(target))(jax.ShapeDtypeStruct(shape, jnp.float32)))
@@ -93,6 +98,7 @@ def test_reshape_certificate_sizes(shape, target):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_wrong_reversal_fails_certificate():
     code = dict(artifacts())['PuzzleFlip']
     assert '(i.1.rev, ())' in code
@@ -102,6 +108,7 @@ def test_wrong_reversal_fails_certificate():
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_wrong_flatten_order_fails_certificate():
     code = dict(artifacts())['PuzzleOuterFlatten']
     original = 'Tensor.reshape (t := [6]) (by decide) («a»)'
@@ -114,8 +121,9 @@ def test_wrong_flatten_order_fails_certificate():
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_wrong_monte_carlo_variance_is_rejected():
-    result = lean('''import JaxLean.RandintMonteCarloProofs
+    result = lean('''import JaxLean.Examples.RandintMonteCarloProofs
 open JaxLean.MCJax
 example : (mc_grid_square_8 (R := ℝ)).variance = 49 / 1024 := by
   rw [mc_grid_variance]
@@ -124,6 +132,5 @@ example : (mc_grid_square_8 (R := ℝ)).variance = 49 / 1024 := by
     assert result.returncode != 0
 
 
-def test_rank_two_reverse_still_rejected():
-    with pytest.raises(TranslationError, match='rev'):
-        certify(jax.make_jaxpr(lambda x: x[::-1])(jnp.ones((2, 3))))
+def test_rank_two_reverse_certifies():
+    assert '.reindex' in certify(jax.make_jaxpr(lambda x: x[::-1])(jnp.ones((2, 3))))

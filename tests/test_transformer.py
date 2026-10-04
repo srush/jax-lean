@@ -16,6 +16,7 @@ from test_random_translation import lean, ROOT
 from test_translation import lean_input
 
 
+@pytest.mark.lean
 def test_generated_module_and_boundary_proofs():
     subprocess.run([sys.executable, '-m', 'examples.certify_transformer', '--check'],
                    cwd=ROOT, check=True)
@@ -26,7 +27,7 @@ def test_generated_module_and_boundary_proofs():
     assert ('jaxpr_certificate [transformer_ir, transformer, '
             'transformer_block_translation_correct]') in code
     assert '(«w0» : Tensor ℝ [2, 2])' in code
-    result = lean('''import JaxLean.TransformerProofs
+    result = lean('''import JaxLean.Examples.TransformerProofs
 #print axioms JaxLean.TransformerJax.certified_transformer_permute
 #print axioms JaxLean.TransformerJax.normalize_sum_one
 ''', 'TransformerAudit.lean')
@@ -34,6 +35,7 @@ def test_generated_module_and_boundary_proofs():
     assert 'sorryAx' not in result.stdout
 
 
+@pytest.mark.lean
 def test_jax_and_lean_transformer_agree():
     x = jnp.array([[1., -1.], [0., 2.], [2., 1.]])
     weights = tuple(jnp.array(a, dtype=jnp.float32) for a in (
@@ -68,6 +70,7 @@ def test_normalization_and_selection_boundary():
                            attention(x, x, x)[selection])
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize('shape', [(0, 3), (2, 0), (1, 1), (2, 3)])
 def test_row_reduction_and_broadcast_certificates(shape):
     def fn(x):
@@ -77,6 +80,7 @@ def test_row_reduction_and_broadcast_certificates(shape):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_well_typed_wrong_callee_fails_certificate():
     code = source()
     original = '«project» (R := R) (call_forward_result) («wq»)'
@@ -87,6 +91,7 @@ def test_well_typed_wrong_callee_fails_certificate():
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_wrong_key_projection_fails_certificate():
     code = source()
     original = '«project» (R := R) (call_forward_result) («wk»)'
@@ -97,6 +102,7 @@ def test_wrong_key_projection_fails_certificate():
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_module_name_collisions_and_distinct_call_bodies():
     @jax.jit
     def f(x):
@@ -114,7 +120,7 @@ def test_module_name_collisions_and_distinct_call_bodies():
 
 @pytest.mark.parametrize('fn', [
     jax.jit(lambda x: (x, x)),
-    jax.jit(lambda x: jnp.sin(x)),
+    jax.jit(lambda x: jnp.floor(x)),
     jax.jit(lambda x: x + jnp.array([1., 2.])),
 ])
 def test_unsupported_children_fail_closed(fn):
@@ -122,6 +128,7 @@ def test_unsupported_children_fail_closed(fn):
         certify_module(jax.make_jaxpr(fn)(jnp.ones(2)))
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize('tokens,hidden', [(1, 2), (4, 3)])
 def test_other_transformer_shapes_certify(tokens, hidden):
     x = jax.ShapeDtypeStruct((tokens, hidden), jnp.float32)
@@ -131,6 +138,7 @@ def test_other_transformer_shapes_certify(tokens, hidden):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_explicit_trailing_broadcast_certificate():
     jp = jax.make_jaxpr(lambda x: jnp.broadcast_to(x, (2, 3)))(jnp.ones((2, 1)))
     code = certify(jp)

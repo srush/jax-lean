@@ -89,3 +89,19 @@ runtime remain outside that theorem. Merely adding a reference link does not
 close any of those gaps. A future floating-point refinement would need an
 explicit relation to the pinned JAX primitive/lowering behavior, including
 precision and reduction-order allowances.
+
+## Typed indices and clipped gather
+
+- [JAX gather](https://docs.jax.dev/en/latest/_autosummary/jax.lax.gather.html)
+  and [StableHLO gather](https://openxla.org/stablehlo/spec#gather) guide the
+  slice/window dimension mapping. This implementation accepts explicit clip mode:
+  each signed start is clamped to `[0, operand_size - slice_size]` before adding
+  the output window offset. Explicit batching dimensions, empty windows, and
+  promise/fill modes are rejected.
+- Runtime index values use Lean `Int32`, with signed comparisons and wrapping
+  addition/subtraction/multiplication. Conversion to real still erases machine
+  float rounding. Tests include signed overflow followed by clipped gather.
+- Nonempty `reduce_max`/`reduce_min` use finite folds over the reduction domain.
+  The only admitted infinite-literal patterns are eliminated identities
+  `max(-inf, x)` and `min(+inf, x)` in the finite-real model. This is needed by
+  the pinned standard softmax Jaxpr; there is no general infinity or NaN model.

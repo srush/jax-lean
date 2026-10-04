@@ -20,3 +20,5 @@ include = ["jaxlean*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["python"]
+addopts = "-m 'not lean' --strict-markers"
+markers = ["lean: integration tests that launch Lean on temporary generated programs (opt in with -m lean)"]

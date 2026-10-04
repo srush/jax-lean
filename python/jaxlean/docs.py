@@ -97,7 +97,8 @@ def build(manifest: Path, output: Path):
         if not marker.exists() or json.loads(marker.read_text()).get("generator") != MARKER:
             raise ValueError(f"Refusing to replace an unowned directory: {output}")
     # Execute explicit repository freshness checks, never code from the manifest.
-    for checker in ("examples.certify_more", "examples.certify_transformer"):
+    for checker in ("examples.certify_more", "examples.certify_transformer",
+                    "examples.certify_noether", "examples.certify_puzzles"):
         subprocess.run([sys.executable, "-m", checker, "--check"], cwd=ROOT, check=True)
     modules = sorted({item["module"] for page in config["pages"] for card in page["cards"] for item in card["lean"]})
     subprocess.run(["lake", "build", "verso-html", *[m + ":literate" for m in modules]], cwd=ROOT, check=True)
@@ -150,17 +151,18 @@ def build(manifest: Path, output: Path):
                     sections.setdefault(item.get("section", "Correctness proof"), []).append(block)
                 if page.get("layout") == "code-only":
                     cells = []
-                    for label in ("Pseudocode", "JAX NumPy", "Correctness proof", "Certificate"):
-                        if label == "JAX NumPy":
+                    for label in card.get("sections", ("Pseudocode", "JAX NumPy", "Correctness proof", "Certificate")):
+                        python_items = [item for item in card["python"] if item.get("section", "JAX NumPy") == label]
+                        if python_items:
                             content = "".join(
                                 '<pre class="python"><code>' + html.escape(python_function(ROOT / item["file"], item["name"])[0]) + '</code></pre>'
-                                for item in card["python"]
+                                for item in python_items
                             )
                         else:
                             content = "".join(sections.get(label, []))
                             if not content:
                                 raise ValueError(f"Missing {label} in {card['title']}")
-                        cells.append(f'<section class="notebook-cell"><h3>{label}</h3>{content}</section>')
+                        cells.append(f'<section class="notebook-cell"><h3>{html.escape(label)}</h3>{content}</section>')
                     cards.append(f'<article><h2>{html.escape(card["title"])}</h2>{"".join(cells)}</article>')
                     continue
                 cards.append(f'<article><h2>{html.escape(card["title"])}</h2><p class="description">{html.escape(card["description"])}</p><div class="pair"><section class="panel"><h3>Python · JAX</h3>{"".join(python)}</section><section class="panel lean-panel"><h3>Lean · checked proof</h3>{"".join(lean)}</section></div></article>')

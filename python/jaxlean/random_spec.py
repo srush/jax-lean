@@ -12,7 +12,7 @@ import jax.numpy as jnp
 from jax.extend import core
 import numpy as np
 
-from .translate import TranslationError
+from .jaxpr import TranslationError
 
 
 def _signature(closed):

@@ -12,48 +12,8 @@ import jax
 from jax.extend import core
 import numpy as np
 
-
-class TranslationError(ValueError):
-    """The input is outside the explicitly supported real-valued fragment."""
-
-
-def shape(aval):
-    if not hasattr(aval, "shape"):
-        raise TranslationError(f"unsupported abstract value {aval}")
-    s = tuple(aval.shape)
-    if any(not isinstance(n, int) or n < 0 for n in s):
-        raise TranslationError(f"static, nonnegative dimensions required: {s}")
-    return s
-
-
-def kind(aval):
-    try:
-        dtype = np.dtype(aval.dtype)
-    except TypeError as e:
-        raise TranslationError(f"unsupported dtype {aval.dtype}") from e
-    if dtype.kind == "b":
-        return "bool"
-    if dtype.kind == "f" and dtype.itemsize in (2, 4, 8):
-        return "real"
-    if dtype.kind in "iu":
-        return "int"  # Only compile-time constants passed to a real conversion.
-    raise TranslationError(f"unsupported dtype {dtype}; expected real floating values or bool")
-
-
-def lean_shape(s):
-    return "[" + ", ".join(map(str, s)) + "]"
-
-
-def tensor_type(s, k):
-    return f"Tensor {'Bool' if k == 'bool' else 'R'} {lean_shape(s)}"
-
-
-def coords(s, var="i"):
-    return [var + ".2" * k + ".1" for k in range(len(s))]
-
-
-def index(xs):
-    return "(" + ", ".join([*xs, "()"]) + ")" if xs else "()"
+from .jaxpr import TranslationError, shape, kind, lean_shape, tensor_type, coords, index, argument_labels, _ARGUMENT_RESERVED
+from .static_index import integer_equation, scatter_plan
 
 
 def number(x):
@@ -76,27 +36,9 @@ class Value:
         return f"({self.expr} {index(xs)})"
 
 
-_ARGUMENT_RESERVED = {"R", "draw", "draws", "sampling", "split_keys"}
-
-
-def argument_labels(jp, readable=False):
-    """Stable labels from Jaxpr debug metadata; no source inspection."""
-    arg_names = getattr(jp.debug_info, "arg_names", None) or ()
-    used = set(_ARGUMENT_RESERVED)
-    labels = []
-    for n, _ in enumerate(jp.invars):
-        label = arg_names[n] if readable and n < len(arg_names) else f"x{n}"
-        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", label) or label in used:
-            label = f"arg{n}"
-        while label in used:
-            label += "_"
-        used.add(label)
-        labels.append(f"«{label}»" if readable else label)
-    return labels
-
-
 class Emitter:
     def __init__(self, max_scan_length, *, scalar=False, readable=False, random_model=None, source_file=None, certified_calls=None):
+        self.typed_indices = False
         self.certified_calls = certified_calls or {}
         self.lines = []
         self.counter = 0
@@ -114,7 +56,9 @@ class Emitter:
     def let(self, expr, aval, comment):
         s, k = shape(aval), kind(aval)
         if k == "int":
-            raise TranslationError("runtime integer arithmetic is not real arithmetic")
+            if not self.typed_indices or np.dtype(aval.dtype) != np.dtype('int32'):
+                raise TranslationError("runtime indices require signed int32")
+            k = "index"
         if self.scalar and s:
             raise TranslationError("scalar presentation requires scalar intermediate values")
         name = f"v{self.counter}"
@@ -128,18 +72,24 @@ class Emitter:
                 suffix += 1
         self.used_names.add(name)
         self.counter += 1
-        ty = ("Bool" if k == "bool" else "R") if self.scalar else tensor_type(s, k)
+        ty = ("Bool" if k == "bool" else "Int32" if k == "index" else "R") if self.scalar else tensor_type(s, k)
         self.lines += [f"  -- {comment}", f"  let {name} : {ty} := {expr}"]
         return Value(name, s, k, self.scalar)
 
     def constant(self, value, aval):
         s, k = shape(aval), kind(aval)
+        if k == "int" and self.typed_indices:
+            if np.dtype(aval.dtype) != np.dtype('int32'):
+                raise TranslationError("runtime indices require signed int32")
+            k = "index"
         a = np.asarray(value)
         if a.shape != s:
             raise TranslationError(f"constant shape {a.shape} differs from its abstract shape {s}")
         def scalar(x):
             if k == "bool":
                 return "true" if x else "false"
+            if k == "index":
+                return f"(Int32.ofInt ({int(x)}))"
             if k == "int":
                 return f"({int(x)} : R)"
             return number(x)
@@ -162,6 +112,9 @@ class Emitter:
         env = dict(zip(jp.invars, args, strict=True))
         env.update((v, self.constant(c, v.aval)) for v, c in zip(jp.constvars, cs, strict=True))
 
+        integers = {v: np.asarray(c) for v, c in zip(jp.constvars, cs, strict=True)
+                    if np.asarray(c).dtype.kind in 'iub'}
+
         def read(atom):
             return self.constant(atom.val, atom.aval) if isinstance(atom, core.Literal) else env[atom]
 
@@ -170,6 +123,26 @@ class Emitter:
             try:
                 if eq.effects:
                     raise TranslationError(f"effects are unsupported: {eq.effects}")
+                static = integer_equation(eq, integers)
+                if static is not None:
+                    integers[eq.outvars[0]] = static
+                    env[eq.outvars[0]] = self.constant(static, eq.outvars[0].aval)
+                    continue
+                if op in ("scatter", "scatter-add"):
+                    plan = scatter_plan(eq, integers)
+                    result = read(eq.invars[0])
+                    update = read(eq.invars[2])
+                    helper = "scatterAdd" if op == "scatter-add" else "scatterSet"
+                    for at, source in plan:
+                        expr = f"Tensor.{helper} {result.expr} {index([str(i) for i in at])} {update.at([str(i) for i in source])}"
+                        result = self.let(expr, eq.outvars[0].aval, op)
+                    env[eq.outvars[0]] = result
+                    continue
+                from .layout import identity_extreme
+                finite = identity_extreme(eq)
+                if finite is not None:
+                    env[eq.outvars[0]] = read(finite)
+                    continue
                 vs = [read(a) for a in eq.invars]
                 if self.readable and self.source_file and eq.source_info.traceback:
                     frames = eq.source_info.traceback.frames
@@ -207,6 +180,11 @@ class Emitter:
                 elif op == "jit" and id(p["jaxpr"]) in self.certified_calls:
                     callee = self.certified_calls[id(p["jaxpr"])]
                     self.ordered = True
+                    # A child can require transcendental operations. Propagate its requirement.
+                    def has_transcendental(jp):
+                        return any(e.primitive.name in {"exp", "log", "sqrt", "rsqrt", "sin", "cos", "tanh"} or
+                                   (e.primitive.name == "jit" and has_transcendental(e.params["jaxpr"].jaxpr)) for e in jp.eqns)
+                    self.transcendental |= has_transcendental(p["jaxpr"].jaxpr)
                     if len(eq.outvars) != 1:
                         raise TranslationError("certified calls require one result")
                     expr = f"«{callee}» (R := R) " + " ".join(f"({v.expr})" for v in vs)
@@ -220,6 +198,8 @@ class Emitter:
                 else:
                     if len(eq.outvars) != 1:
                         raise TranslationError("only call/scan may have multiple results")
+                    if op == "gather":
+                        p = {**p, '_equation': eq}
                     expr = self.primitive(op, p, vs, eq.outvars[0].aval)
                     outs = [self.let(expr, eq.outvars[0].aval, op)]
                 if len(outs) != len(eq.outvars):
@@ -273,6 +253,18 @@ class Emitter:
         s, k = shape(aval), kind(aval)
         if any(v.kind == "int" for v in vs) and op != "convert_element_type":
             raise TranslationError("integer values may only be constants converted to real values")
+        if any(v.kind == "index" for v in vs):
+            allowed = {"add", "sub", "mul", "eq", "ne", "lt", "le", "gt", "ge", "select_n", "broadcast_in_dim", "reshape", "transpose", "squeeze", "slice", "copy", "stop_gradient", "gather", "convert_element_type"}
+            if op not in allowed:
+                raise TranslationError(f"unsupported runtime index operation {op}")
+        if op == "convert_element_type" and vs[0].kind == k == "bool" and s == vs[0].shape:
+            return vs[0].expr
+        if op == "convert_element_type" and vs[0].kind == "index":
+            if k == "int" and np.dtype(aval.dtype) == np.dtype('int32'):
+                return vs[0].expr
+            if k == "real":
+                return self.elementwise(lambda x: f"({x}.toInt : R)", vs, s)
+            raise TranslationError("index conversion requires int32 or float output")
         if op in ("convert_element_type", "copy", "stop_gradient"):
             if op == "convert_element_type" and (k != "real" or vs[0].kind == "bool"):
                 raise TranslationError("only float-to-float or constant integer-to-float conversions are supported")
@@ -302,7 +294,10 @@ class Emitter:
             return f"Tensor.map ({f}) {vs[0].expr}"
         if op in comparisons:
             self.ordered = True
-            return ("" if self.scalar else "fun i => ") + f"decide ({self.element(vs[0], s)} {comparisons[op]} {self.element(vs[1], s)})"
+            left, right = (self.element(v, s) for v in vs)
+            if vs[0].kind == 'index':
+                left, right = f"{left}.toInt", f"{right}.toInt"
+            return ("" if self.scalar else "fun i => ") + f"decide ({left} {comparisons[op]} {right})"
         if op in ("min", "max", "abs"):
             self.ordered = True
             return self.elementwise(lambda *args: op + " " + " ".join(args), vs, s)
@@ -319,6 +314,11 @@ class Emitter:
         if self.scalar:
             raise TranslationError(f"unsupported scalar primitive {op!r}; use tensor presentation for array operations")
 
+        if op == "gather":
+            from .layout import gather_map
+            # The caller supplies original dimension metadata and avals.
+            mapping = gather_map(p['_equation'])
+            return f"fun i => {vs[0].expr} ({mapping} {vs[1].expr} i)"
         if op == "reshape":
             x = vs[0].expr
             if p.get("dimensions") is not None:
@@ -344,22 +344,28 @@ class Emitter:
             ix = [f"{c}.rev" if d in p["dimensions"] else c for d, c in enumerate(coords(s))]
             return f"Tensor.reindex (s := {lean_shape(vs[0].shape)}) (fun i => {index(ix)}) {vs[0].expr}"
         if op == "concatenate":
-            axis, start = p["dimension"], 0
-            cs = coords(s)
-            expr = ""
-            for n, v in enumerate(vs):
-                end = start + v.shape[axis]
-                ix = cs.copy()
-                ix[axis] = f"⟨{cs[axis]}.val - {start}, by omega⟩"
-                term = v.at(ix)
-                expr += (f"if h{n} : {cs[axis]}.val < {end} then {term} else "
-                         if n + 1 < len(vs) else term)
-                start = end
-            return "fun i => " + expr
+            from .layout import concatenate_map
+            result, src = vs[0].expr, vs[0].shape
+            for v in vs[1:]:
+                dst, mapping = concatenate_map(src, v.shape, p["dimension"])
+                result = f"(Tensor.concatenate (s := {lean_shape(src)}) (u := {lean_shape(v.shape)}) (t := {lean_shape(dst)}) {mapping} {result} {v.expr})"
+                src = dst
+            return result
+        if op in ("reduce_max", "reduce_min"):
+            from .layout import reduction
+            _, n, mapping = reduction(vs[0].shape, p["axes"], flat=True)
+            if not n:
+                raise TranslationError("empty extrema require infinity, outside real semantics")
+            self.ordered = True
+            return f"Tensor.{'reduceMax' if op == 'reduce_max' else 'reduceMin'} (s := {lean_shape(vs[0].shape)}) (t := {lean_shape(s)}) (n := {n}) (by decide) {mapping} {vs[0].expr}"
         if op in ("reduce_sum", "reduce_prod"):
             axes = tuple(p["axes"])
             if op == "reduce_sum" and axes == (0,):
                 return f"Tensor.sumFirst {vs[0].expr}"
+            if op == "reduce_sum" and not (axes == (1,) and len(vs[0].shape) == 2):
+                from .layout import reduction
+                reduced, _, mapping = reduction(vs[0].shape, axes)
+                return f"Tensor.reduceSum (s := {lean_shape(vs[0].shape)}) (t := {lean_shape(s)}) (k := {lean_shape(reduced)}) {mapping} {vs[0].expr}"
             remaining = iter(coords(s))
             ix = [f"k{axes.index(d)}" if d in axes else next(remaining)
                   for d in range(len(vs[0].shape))]
@@ -388,20 +394,9 @@ class Emitter:
         if (len(lhs.shape) == 1 and len(rhs.shape) == 2 and tuple(lc) == (0,)
                 and tuple(rc) == (0,) and not lb and not rb):
             return f"Tensor.vecmat {lhs.expr} {rhs.expr}"
-        cs = iter(coords(out_shape))
-        li, ri = [None] * len(lhs.shape), [None] * len(rhs.shape)
-        for l, r in zip(lb, rb, strict=True):
-            li[l] = ri[r] = next(cs)
-        for j, (l, r) in enumerate(zip(lc, rc, strict=True)):
-            li[l] = ri[r] = f"k{j}"
-        for ix in (li, ri):
-            for d in range(len(ix)):
-                if ix[d] is None:
-                    ix[d] = next(cs)
-        body = f"{lhs.at(li)} * {rhs.at(ri)}"
-        for j, l in reversed(list(enumerate(lc))):
-            body = f"∑ k{j} : Fin {lhs.shape[l]}, {body}"
-        return "fun i => " + body
+        from .layout import contraction
+        reduced, left, right = contraction(lhs.shape, rhs.shape, p["dimension_numbers"])
+        return f"Tensor.contract (s := {lean_shape(lhs.shape)}) (u := {lean_shape(rhs.shape)}) (t := {lean_shape(out_shape)}) (k := {lean_shape(reduced)}) {left} {right} {lhs.expr} {rhs.expr}"
 
     def scan(self, p, vs, outvars):
         length, nc, nk = p["length"], p["num_consts"], p["num_carry"]
@@ -426,7 +421,7 @@ def translate(jaxpr, *, name="program", namespace="Generated", consts=None, max_
     """Return a standalone Lean module for a ClosedJaxpr (or Jaxpr + consts).
 
     Inputs/outputs follow Jaxpr's flattened order; pytrees are not reconstructed.
-    An integer input, unknown primitive, effect or nonfinite literal fails closed.
+    Unsupported integer widths, unknown primitives, effects and general nonfinite literals fail closed.
     The pinned JAX version is intentional: this is a compiler boundary, not a
     best-effort pretty-printer for arbitrary versions of an evolving IR.
 
@@ -459,11 +454,17 @@ def translate(jaxpr, *, name="program", namespace="Generated", consts=None, max_
     source_file = source.rsplit(" at ", 1)[-1].rsplit(":", 1)[0] if " at " in source else None
     e = Emitter(max_scan_length, scalar=scalar, readable=readable,
                 random_model=random_model, source_file=source_file, certified_calls=_certified_calls)
+    from .layout import uses_indices
+    e.typed_indices = not random_model and uses_indices(jp)
     labels = argument_labels(jp, readable)
     args = []
     for n, v in enumerate(jp.invars):
         is_key = jax.dtypes.issubdtype(v.aval.dtype, jax.dtypes.prng_key)
         k = "key" if is_key and random_model else kind(v.aval)
+        if k == "int" and e.typed_indices:
+            if np.dtype(v.aval.dtype) != np.dtype('int32'):
+                raise TranslationError("runtime indices require signed int32")
+            k = "index"
         s = shape(v.aval)
         if k == "key" and s:
             raise TranslationError("uniform model requires a scalar root key, not an input batch of keys")
@@ -480,7 +481,7 @@ def translate(jaxpr, *, name="program", namespace="Generated", consts=None, max_
     classes = "[Field R]" + (" [LinearOrder R]" if e.ordered else "")
     classes += " [RealOps R]" if e.transcendental else ""
     def ty(v):
-        return ("Bool" if v.kind == "bool" else "R") if scalar else tensor_type(v.shape, v.kind)
+        return ("Bool" if v.kind == "bool" else "Int32" if v.kind == "index" else "R") if scalar else tensor_type(v.shape, v.kind)
     binders = " ".join(f"({v.expr} : {ty(v)})" for v in args if v.kind != "key")
     result_type = " × ".join(ty(v) for v in outs) or "Unit"
     result = outs[0].expr if len(outs) == 1 else "(" + ", ".join(v.expr for v in outs) + ")"
@@ -497,7 +498,7 @@ def translate(jaxpr, *, name="program", namespace="Generated", consts=None, max_
         declaration = "noncomputable def"
         result_type = "Rand R"
         result = outs[0].at([])
-        extra = ["import JaxLean.Independent" if batch is not None else "import JaxLean.Random",
+        extra = ["import JaxLean.Stdlib.Independent" if batch is not None else "import JaxLean.Stdlib.Random",
                  "-- SAMPLER SPECIFICATION: scalar randint is modeled as an ideal uniform draw.",
                  "-- The Python key is abstracted into this law; no PRNG/IEEE-754 equivalence is proved."]
         sampler = f"Rand.uniformInt (R := R) ({lo}) {hi - lo} (by decide)"
@@ -510,7 +511,7 @@ def translate(jaxpr, *, name="program", namespace="Generated", consts=None, max_
     return "\n".join([
         "-- Generated by jaxlean from JAX 0.8.0. Edit the source, not this file.",
         "-- Real arithmetic abstraction; no claim of IEEE-754 equivalence.",
-        "import JaxLean.RealOps", *extra, "", "open JaxLean", "open scoped BigOperators",
+        "import JaxLean.Core.RealOps", *(["import JaxLean.Core.Indexing"] if e.typed_indices else []), *extra, "", "open JaxLean", "open scoped BigOperators",
         "set_option linter.unusedVariables false", f"namespace {ns}", "",
         f"{declaration} «{name}» {{R : Type}} {classes} {binders} : {result_type} :=",
         *body, "", f"end {ns}", "",

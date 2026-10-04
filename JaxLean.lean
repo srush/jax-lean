@@ -1,17 +1,5 @@
-import JaxLean.Tensor
-import JaxLean.RealOps
-import JaxLean.Generated.Matmul
-import JaxLean.Generated.Scan
-import JaxLean.Generated.Smooth
-import JaxLean.Proofs
-import JaxLean.Selection
-import JaxLean.SamplingProofs
-import JaxLean.RandomProgramProofs
-import JaxLean.MonteCarloProofs
-import JaxLean.NormProofs
-import JaxLean.Generated.CertifiedMean
-import JaxLean.Generated.CertifiedLayer
-import JaxLean.Generated.CertifiedGram
-import JaxLean.TransformerProofs
-import JaxLean.RandintMonteCarloProofs
-import JaxLean.TensorPuzzleProofs
+import JaxLean.Core
+import JaxLean.Verification
+import JaxLean.Stdlib
+
+/-! Public library. Application proofs live in `JaxLean.Examples`. -/

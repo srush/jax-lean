@@ -92,6 +92,7 @@ def test_reject_unsupported_operations_and_bound_enumeration():
         x.to_lean(name="bad;name")
 
 
+@pytest.mark.lean
 def test_lean_checks_all_generated_moments():
     subprocess.run([sys.executable, "-m", "examples.sampling", "--check"], cwd=ROOT, check=True)
     modules = "\n".join(f"import JaxLean.Generated.{module}" for module in stages())
@@ -103,6 +104,7 @@ def test_lean_checks_all_generated_moments():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_lean_rejects_false_moment_claim():
     source = Discrete([0, 2]).to_lean(name="falseClaim", mean=2)
     result = check_lean(source, "FalseMoment.lean")
@@ -110,6 +112,7 @@ def test_lean_rejects_false_moment_claim():
     assert "unsolved goals" in result.stdout
 
 
+@pytest.mark.lean
 def test_export_preserves_arithmetic_instead_of_precomputing_floats():
     rv = Discrete([2**24]).map(lambda v: (v + 1) - v)
     assert float(rv.moments()[0]) == 0  # Float32 rounded away the increment.
@@ -118,6 +121,7 @@ def test_export_preserves_arithmetic_instead_of_precomputing_floats():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_zero_weights_duplicate_values_and_nonuniform_lean():
     rv = Discrete([1, 1, 4], weights=[0, 2, 1]).map(lambda v: v * v)
     result = check_lean(rv.to_lean(name="duplicates", namespace="Proof.end", mean=6, variance=50),

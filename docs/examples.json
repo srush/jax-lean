@@ -6,8 +6,39 @@
       "layout": "code-only",
       "cards": [
         {
-          "title": "sum",
           "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_ones",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_ones"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Ones",
+              "name": "JaxLean.Puzzles.Ones.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Ones",
+              "name": "JaxLean.Puzzles.Ones.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "1. ones"
+        },
+        {
+          "title": "2. sum",
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_sum",
+              "section": "Pseudocode"
+            },
             {
               "file": "examples/tensor_puzzles.py",
               "name": "puzzle_sum"
@@ -15,25 +46,25 @@
           ],
           "lean": [
             {
-              "module": "JaxLean.Pseudocode",
-              "name": "JaxLean.Pseudocode.sum",
-              "section": "Pseudocode"
-            },
-            {
-              "module": "JaxLean.TensorPuzzleProofs",
-              "name": "JaxLean.PuzzleJax.sum_matches_pseudocode",
+              "module": "JaxLean.Examples.TensorLoopProofs",
+              "name": "JaxLean.PuzzleJax.sum_matches_loop",
               "section": "Correctness proof"
             },
             {
-              "module": "JaxLean.TensorPuzzleProofs",
-              "name": "JaxLean.PuzzleJax.certified_sum",
+              "module": "JaxLean.Examples.TensorLoopProofs",
+              "name": "JaxLean.PuzzleJax.certified_sum_loop",
               "section": "Certificate"
             }
           ]
         },
         {
-          "title": "outer",
+          "title": "3. outer",
           "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_outer",
+              "section": "Pseudocode"
+            },
             {
               "file": "examples/tensor_puzzles.py",
               "name": "puzzle_outer"
@@ -41,25 +72,207 @@
           ],
           "lean": [
             {
-              "module": "JaxLean.Pseudocode",
-              "name": "JaxLean.Pseudocode.outer",
-              "section": "Pseudocode"
-            },
-            {
-              "module": "JaxLean.TensorPuzzleProofs",
-              "name": "JaxLean.PuzzleJax.outer_matches_pseudocode",
+              "module": "JaxLean.Examples.TensorLoopProofs",
+              "name": "JaxLean.PuzzleJax.outer_matches_loop",
               "section": "Correctness proof"
             },
             {
-              "module": "JaxLean.TensorPuzzleProofs",
-              "name": "JaxLean.PuzzleJax.certified_outer",
+              "module": "JaxLean.Examples.TensorLoopProofs",
+              "name": "JaxLean.PuzzleJax.certified_outer_loop",
               "section": "Certificate"
             }
           ]
         },
         {
-          "title": "flip",
           "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_diag",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_diag"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Diag",
+              "name": "JaxLean.Puzzles.Diag.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Diag",
+              "name": "JaxLean.Puzzles.Diag.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "4. diag"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_eye",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_eye"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Eye",
+              "name": "JaxLean.Puzzles.Eye.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Eye",
+              "name": "JaxLean.Puzzles.Eye.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "5. eye"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_triu",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_triu"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Triu",
+              "name": "JaxLean.Puzzles.Triu.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Triu",
+              "name": "JaxLean.Puzzles.Triu.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "6. triu"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_cumsum",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_cumsum"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Cumsum",
+              "name": "JaxLean.Puzzles.Cumsum.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Cumsum",
+              "name": "JaxLean.Puzzles.Cumsum.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "7. cumsum"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_diff",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_diff"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Diff",
+              "name": "JaxLean.Puzzles.Diff.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Diff",
+              "name": "JaxLean.Puzzles.Diff.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "8. diff"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_vstack",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_vstack"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Vstack",
+              "name": "JaxLean.Puzzles.Vstack.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Vstack",
+              "name": "JaxLean.Puzzles.Vstack.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "9. vstack"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_roll",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_roll"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Roll",
+              "name": "JaxLean.Puzzles.Roll.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Roll",
+              "name": "JaxLean.Puzzles.Roll.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "10. roll"
+        },
+        {
+          "title": "11. flip",
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_flip",
+              "section": "Pseudocode"
+            },
             {
               "file": "examples/tensor_puzzles.py",
               "name": "puzzle_flip"
@@ -67,25 +280,144 @@
           ],
           "lean": [
             {
-              "module": "JaxLean.Pseudocode",
-              "name": "JaxLean.Pseudocode.flip",
-              "section": "Pseudocode"
-            },
-            {
-              "module": "JaxLean.TensorPuzzleProofs",
-              "name": "JaxLean.PuzzleJax.flip_matches_pseudocode",
+              "module": "JaxLean.Examples.TensorLoopProofs",
+              "name": "JaxLean.PuzzleJax.flip_matches_loop",
               "section": "Correctness proof"
             },
             {
-              "module": "JaxLean.TensorPuzzleProofs",
-              "name": "JaxLean.PuzzleJax.certified_flip",
+              "module": "JaxLean.Examples.TensorLoopProofs",
+              "name": "JaxLean.PuzzleJax.certified_flip_loop",
               "section": "Certificate"
             }
           ]
         },
         {
-          "title": "flatten",
           "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_pad_to",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_pad_to"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.PadTo",
+              "name": "JaxLean.Puzzles.PadTo.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.PadTo",
+              "name": "JaxLean.Puzzles.PadTo.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "13. pad_to"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_sequence_row",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_sequence_mask",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_sequence_mask"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.SequenceMask",
+              "name": "JaxLean.Puzzles.SequenceMask.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.SequenceMask",
+              "name": "JaxLean.Puzzles.SequenceMask.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "14. sequence_mask"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_masked_sum",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_bincount",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_bincount"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Bincount",
+              "name": "JaxLean.Puzzles.Bincount.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Bincount",
+              "name": "JaxLean.Puzzles.Bincount.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "15. bincount"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_masked_sum",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_scatter_add",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_scatter_add"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.ScatterAdd",
+              "name": "JaxLean.Puzzles.ScatterAdd.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.ScatterAdd",
+              "name": "JaxLean.Puzzles.ScatterAdd.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "16. scatter_add"
+        },
+        {
+          "title": "17. flatten",
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_flatten",
+              "section": "Pseudocode"
+            },
             {
               "file": "examples/tensor_puzzles.py",
               "name": "puzzle_flatten"
@@ -93,21 +425,358 @@
           ],
           "lean": [
             {
-              "module": "JaxLean.Pseudocode",
-              "name": "JaxLean.Pseudocode.flatten",
-              "section": "Pseudocode"
-            },
-            {
-              "module": "JaxLean.TensorPuzzleProofs",
-              "name": "JaxLean.PuzzleJax.flatten_matches_pseudocode",
+              "module": "JaxLean.Examples.TensorLoopProofs",
+              "name": "JaxLean.PuzzleJax.flatten_matches_loop",
               "section": "Correctness proof"
             },
             {
-              "module": "JaxLean.TensorPuzzleProofs",
-              "name": "JaxLean.PuzzleJax.certified_flatten",
+              "module": "JaxLean.Examples.TensorLoopProofs",
+              "name": "JaxLean.PuzzleJax.certified_flatten_loop",
               "section": "Certificate"
             }
           ]
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_linspace",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_linspace"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Linspace",
+              "name": "JaxLean.Puzzles.Linspace.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Linspace",
+              "name": "JaxLean.Puzzles.Linspace.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "18. linspace"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_heaviside",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_heaviside"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Heaviside",
+              "name": "JaxLean.Puzzles.Heaviside.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Heaviside",
+              "name": "JaxLean.Puzzles.Heaviside.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "19. heaviside"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_repeat",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_repeat"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Repeat",
+              "name": "JaxLean.Puzzles.Repeat.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Repeat",
+              "name": "JaxLean.Puzzles.Repeat.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "20. repeat"
+        },
+        {
+          "python": [
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "loop_bucketize",
+              "section": "Pseudocode"
+            },
+            {
+              "file": "examples/tensor_puzzles.py",
+              "name": "puzzle_bucketize"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.Puzzles.Bucketize",
+              "name": "JaxLean.Puzzles.Bucketize.matches_loop",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.Puzzles.Bucketize",
+              "name": "JaxLean.Puzzles.Bucketize.certificate",
+              "section": "Certificate"
+            }
+          ],
+          "title": "21. bucketize"
+        },
+        {
+          "title": "Five shared lemmas",
+          "kind": "lemmas",
+          "python": [],
+          "sections": [
+            "Indexed update",
+            "Nested sum",
+            "Affine variance",
+            "Independent addition",
+            "Flux conservation"
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Stdlib.ScatterRules",
+              "name": "JaxLean.Tensor.scatterSet_vector",
+              "section": "Indexed update"
+            },
+            {
+              "module": "JaxLean.Stdlib.TensorRules",
+              "name": "JaxLean.Index.sum_cons",
+              "section": "Nested sum"
+            },
+            {
+              "module": "JaxLean.Stdlib.FiniteLaw",
+              "name": "JaxLean.FiniteLaw.variance_affine",
+              "section": "Affine variance"
+            },
+            {
+              "module": "JaxLean.Stdlib.FiniteLaw",
+              "name": "JaxLean.FiniteLaw.variance_independent_add",
+              "section": "Independent addition"
+            },
+            {
+              "module": "JaxLean.Stdlib.Equivariance",
+              "name": "JaxLean.Tensor.fluxStep_sum",
+              "section": "Flux conservation"
+            }
+          ]
+        },
+        {
+          "title": "Variance \u00b7 sixteen independent dice",
+          "kind": "example",
+          "sections": [
+            "JAX NumPy",
+            "Ideal sampling model",
+            "Variance proof",
+            "Certificate"
+          ],
+          "python": [
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "die_draw"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "die_estimate"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "mc_die_16"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.dieLaw",
+              "section": "Ideal sampling model"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_die_boundary",
+              "section": "Ideal sampling model"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_die_variance_reduction",
+              "section": "Variance proof"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_die_variance",
+              "section": "Variance proof"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.certified_die_variance",
+              "section": "Certificate"
+            }
+          ]
+        },
+        {
+          "title": "Variance \u00b7 square then average",
+          "kind": "example",
+          "sections": [
+            "JAX NumPy",
+            "Ideal sampling model",
+            "Variance proof",
+            "Certificate"
+          ],
+          "python": [
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "grid_index"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "grid_square"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "grid_estimate"
+            },
+            {
+              "file": "examples/randint_monte_carlo.py",
+              "name": "mc_grid_square_8"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.gridIndexLaw",
+              "section": "Ideal sampling model"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.gridValueLaw",
+              "section": "Ideal sampling model"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_grid_boundary",
+              "section": "Ideal sampling model"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_grid_variance_reduction",
+              "section": "Variance proof"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.mc_grid_variance",
+              "section": "Variance proof"
+            },
+            {
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
+              "name": "JaxLean.MCJax.certified_grid_variance",
+              "section": "Certificate"
+            }
+          ]
+        },
+        {
+          "title": "Physics \u00b7 advect",
+          "python": [
+            {
+              "file": "examples/noether.py",
+              "name": "advect"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Stdlib.Equivariance",
+              "name": "JaxLean.Tensor.fluxStep",
+              "section": "Specification"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.neighbor",
+              "section": "Specification"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.advect_spec",
+              "section": "Specification"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.advect_equivariant",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.advect_conserves_sum",
+              "section": "Conservation"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.advect_certificate",
+              "section": "Certificate"
+            }
+          ],
+          "sections": [
+            "JAX NumPy",
+            "Specification",
+            "Correctness proof",
+            "Conservation",
+            "Certificate"
+          ],
+          "kind": "example"
+        },
+        {
+          "title": "Physics \u00b7 burgers",
+          "python": [
+            {
+              "file": "examples/noether.py",
+              "name": "burgers"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.burgers_spec",
+              "section": "Specification"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.burgers_equivariant",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.burgers_conserves_sum",
+              "section": "Conservation"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.burgers_certificate",
+              "section": "Certificate"
+            }
+          ],
+          "sections": [
+            "JAX NumPy",
+            "Specification",
+            "Correctness proof",
+            "Conservation",
+            "Certificate"
+          ],
+          "kind": "example"
         }
       ]
     },
@@ -134,24 +803,24 @@
           ],
           "lean": [
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.mc_die_mean"
             },
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.mc_die_variance_reduction"
             },
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.mc_die_variance"
             },
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.mc_die_boundary",
               "detail": "Sampling function boundary"
             },
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.certified_die_variance",
               "detail": "Estimator Jaxpr variance certificate"
             }
@@ -180,19 +849,19 @@
           ],
           "lean": [
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.mc_grid_mean"
             },
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.mc_grid_variance_reduction"
             },
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.mc_grid_variance"
             },
             {
-              "module": "JaxLean.RandintMonteCarloProofs",
+              "module": "JaxLean.Examples.RandintMonteCarloProofs",
               "name": "JaxLean.MCJax.certified_grid_variance",
               "detail": "Estimator Jaxpr variance certificate"
             }
@@ -219,15 +888,15 @@
           ],
           "lean": [
             {
-              "module": "JaxLean.TransformerProofs",
+              "module": "JaxLean.Examples.TransformerProofs",
               "name": "JaxLean.TransformerJax.normalize_sum_one"
             },
             {
-              "module": "JaxLean.TransformerProofs",
+              "module": "JaxLean.Examples.TransformerProofs",
               "name": "JaxLean.TransformerJax.attention_permute"
             },
             {
-              "module": "JaxLean.TransformerProofs",
+              "module": "JaxLean.Examples.TransformerProofs",
               "name": "JaxLean.TransformerJax.attention_spec",
               "detail": "Attention specification"
             }
@@ -248,18 +917,145 @@
           ],
           "lean": [
             {
-              "module": "JaxLean.TransformerProofs",
+              "module": "JaxLean.Examples.TransformerProofs",
               "name": "JaxLean.TransformerJax.transformer_block_permute"
             },
             {
-              "module": "JaxLean.TransformerProofs",
+              "module": "JaxLean.Examples.TransformerProofs",
               "name": "JaxLean.TransformerJax.transformer_permute"
             },
             {
-              "module": "JaxLean.TransformerProofs",
+              "module": "JaxLean.Examples.TransformerProofs",
               "name": "JaxLean.TransformerJax.certified_transformer_permute",
               "detail": "Jaxpr evaluation certificate"
             }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "noether",
+      "title": "Noether equivariance",
+      "layout": "code-only",
+      "cards": [
+        {
+          "title": "Shared rules",
+          "lean": [
+            {
+              "module": "JaxLean.Stdlib.Equivariance",
+              "name": "JaxLean.Tensor.permute",
+              "section": "Permutation"
+            },
+            {
+              "module": "JaxLean.Stdlib.Equivariance",
+              "name": "JaxLean.Tensor.cyclicShift",
+              "section": "Cyclic shift"
+            },
+            {
+              "module": "JaxLean.Stdlib.Equivariance",
+              "name": "JaxLean.Tensor.fluxStep",
+              "section": "Flux update"
+            },
+            {
+              "module": "JaxLean.Stdlib.Equivariance",
+              "name": "JaxLean.Tensor.fluxStep_equivariant",
+              "section": "Equivariance"
+            },
+            {
+              "module": "JaxLean.Stdlib.Equivariance",
+              "name": "JaxLean.Tensor.fluxStep_sum",
+              "section": "Conservation"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.neighbor",
+              "section": "Four-cell neighbor"
+            }
+          ],
+          "python": [],
+          "sections": [
+            "Permutation",
+            "Cyclic shift",
+            "Flux update",
+            "Equivariance",
+            "Conservation",
+            "Four-cell neighbor"
+          ]
+        },
+        {
+          "title": "advect",
+          "python": [
+            {
+              "file": "examples/noether.py",
+              "name": "advect"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.advect_spec",
+              "section": "Specification"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.advect_equivariant",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.advect_conserves_sum",
+              "section": "Conservation"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.advect_certificate",
+              "section": "Certificate"
+            }
+          ],
+          "sections": [
+            "JAX NumPy",
+            "Specification",
+            "Correctness proof",
+            "Conservation",
+            "Certificate"
+          ]
+        },
+        {
+          "title": "burgers",
+          "python": [
+            {
+              "file": "examples/noether.py",
+              "name": "burgers"
+            }
+          ],
+          "lean": [
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.burgers_spec",
+              "section": "Specification"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.burgers_equivariant",
+              "section": "Correctness proof"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.burgers_conserves_sum",
+              "section": "Conservation"
+            },
+            {
+              "module": "JaxLean.Examples.NoetherProofs",
+              "name": "JaxLean.NoetherProofs.burgers_certificate",
+              "section": "Certificate"
+            }
+          ],
+          "sections": [
+            "JAX NumPy",
+            "Specification",
+            "Correctness proof",
+            "Conservation",
+            "Certificate"
           ]
         }
       ]

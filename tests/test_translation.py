@@ -108,12 +108,12 @@ def lean_input(a):
 
 @pytest.fixture(scope="module")
 def executed():
-    modules = ["import JaxLean.RealOps\n"]
+    modules = ["import JaxLean.Core.RealOps\n"]
     expected = {}
     for n, (label, fn, args) in enumerate(CASES):
         jp = jax.make_jaxpr(fn)(*args)
         source = translate(jp, namespace=f"Case{n}")
-        modules.append(source.replace("import JaxLean.RealOps", ""))
+        modules.append(source.replace("import JaxLean.Core.RealOps", ""))
         outputs = jax.tree.leaves(fn(*args))
         call = f"Case{n}.program (R := ℚ) " + " ".join(lean_input(a) for a in args)
         for k, a in enumerate(outputs):
@@ -139,6 +139,7 @@ def executed():
     return actual, expected
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize("label", [c[0] for c in CASES])
 def test_lean_matches_jax(executed, label):
     actual, expected = executed
@@ -150,7 +151,7 @@ def test_lean_matches_jax(executed, label):
 @pytest.mark.parametrize("fn,args,match", [
     (lambda x: jnp.floor(x), (V,), "floor"),
     (lambda x: jnp.sort(x), (V,), "sort"),
-    (lambda x: x + 1, (jnp.array([1, 2]),), "integer inputs"),
+    (lambda x: x + 1, (jnp.array([1, 2], dtype=jnp.uint32),), "int32"),
     (lambda x: x.astype(jnp.int32), (V,), "conversions"),
     (lambda x: x + jnp.inf, (V,), "infinity"),
     (lambda x: jnp.var(x), (V,), "NaN"),
@@ -178,13 +179,14 @@ def test_reproducible_examples():
     subprocess.run([sys.executable, "-m", "examples.generate", "--check"], cwd=ROOT, check=True)
 
 
+@pytest.mark.lean
 def test_selection_library_applies_to_new_traces():
     """Apply one proof recipe to new batch sizes, including singleton/empty axes."""
-    parts = ["import JaxLean.RealOps\nimport JaxLean.SelectionRules\n"]
+    parts = ["import JaxLean.Core.RealOps\nimport JaxLean.Stdlib.SelectionRules\n"]
     for n in (0, 1, 2, 3, 5):
         source = translate(jax.make_jaxpr(mlp)(*mlp_inputs(n)),
                            name=f"mlp{n}", namespace="SelectionTest")
-        parts.append(source.replace("import JaxLean.RealOps", ""))
+        parts.append(source.replace("import JaxLean.Core.RealOps", ""))
     for n, m in ((5, 2), (1, 3), (3, 1), (0, 0), (1, 0)):
         parts.append(f"""
 example (selection : Fin {m} → Fin {n}) (x : Tensor ℝ [{n}, 2])
@@ -202,6 +204,7 @@ example (selection : Fin {m} → Fin {n}) (x : Tensor ℝ [{n}, 2])
     assert proc.returncode == 0, proc.stdout + proc.stderr
 
 
+@pytest.mark.lean
 def test_transcendentals_typecheck():
     fn = lambda x: (jnp.exp(x), jnp.log(x), jnp.sqrt(x), jnp.sin(x), jnp.cos(x), jnp.tanh(x), lax.rsqrt(x))
     text = translate(jax.make_jaxpr(fn)(V), namespace="Transcendentals")

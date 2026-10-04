@@ -36,8 +36,9 @@ def test_source_is_standard_jax_and_readable_output():
     subprocess.run([sys.executable, "-m", "examples.transpile_random", "--check"], cwd=ROOT, check=True)
 
 
+@pytest.mark.lean
 def test_stdlib_proof_checks_and_wrong_scaling_fails():
-    good = """import JaxLean.RandomProgramProofs
+    good = """import JaxLean.Examples.RandomProgramProofs
 open JaxLean JaxLean.Generated
 example : (sample_times_100 (R := ℝ)).variance =
     100 ^ 2 * (Rand.uniformInt (R := ℝ) 0 6 (by decide)).variance := by
@@ -45,7 +46,7 @@ example : (sample_times_100 (R := ℝ)).variance =
 """
     result = lean(good, "RandomScaling.lean")
     assert result.returncode == 0, result.stdout + result.stderr
-    bad = """import JaxLean.RandomProgramProofs
+    bad = """import JaxLean.Examples.RandomProgramProofs
 open JaxLean JaxLean.Generated
 example : (sample_times_100 (R := ℝ)).variance = 100 := by
   rw [RandomProgramProofs.sample_times_100_variance_value]
@@ -56,6 +57,7 @@ example : (sample_times_100 (R := ℝ)).variance = 100 := by
     assert "unsolved goals" in result.stdout
 
 
+@pytest.mark.lean
 def test_new_source_different_bounds_and_scale_same_rule():
     def changed(key):
         draw = jax.random.randint(key, (), -3, 4)
@@ -115,6 +117,7 @@ def test_rejects_empty_uniform_spec(lo, hi):
         transpile(source, jax.random.key(0), random_model="uniform")
 
 
+@pytest.mark.lean
 def test_readable_deterministic_scalar_and_tensor_paths():
     def affine(value, scale):
         return value * scale + 1.0
@@ -130,6 +133,7 @@ def test_readable_deterministic_scalar_and_tensor_paths():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_scalar_source_with_array_intermediate_uses_tensor_path():
     def temporary_array(value):
         return jnp.sum(jnp.stack([value, value + 1.0]))
@@ -139,6 +143,7 @@ def test_scalar_source_with_array_intermediate_uses_tensor_path():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_scalar_operations_and_name_collisions():
     def operations(arg1, R):
         # R is reserved for the Lean type; its fallback must not capture arg1.

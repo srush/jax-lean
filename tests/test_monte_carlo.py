@@ -8,13 +8,15 @@ from examples.monte_carlo import monte_carlo, monte_carlo_4, uniform_six
 from test_random_translation import lean
 
 
+@pytest.mark.lean
 def test_standard_jax_and_generated_proofs():
     value = jax.jit(monte_carlo_4)(jax.random.key(0))
     assert 0 <= float(value) <= 500
-    result = lean("import JaxLean.MonteCarloProofs\n", "MonteCarloProofs.lean")
+    result = lean("import JaxLean.Examples.MonteCarloProofs\n", "MonteCarloProofs.lean")
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize("n", [1, 3, 7])
 def test_new_jaxpr_uses_elementary_rules(n):
     def sample(key):
@@ -44,6 +46,7 @@ example : (Generated.estimator (R := ℝ)).variance =
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_repeating_one_draw_is_not_independent():
     def repeated(key):
         return jnp.mean(jnp.broadcast_to(uniform_six(key), (4,)))
@@ -104,10 +107,11 @@ def test_counterfeit_batched_randint_is_rejected():
         transpile(fake, jax.random.key(0), random_model="uniform")
 
 
+@pytest.mark.lean
 def test_wrong_variance_reduction_fails():
     # Averaging four samples divides variance by four, not by sixteen.
-    source = """import JaxLean.MonteCarloProofs
-import JaxLean.RandomProgramProofs
+    source = """import JaxLean.Examples.MonteCarloProofs
+import JaxLean.Examples.RandomProgramProofs
 open JaxLean JaxLean.Generated
 example : (monte_carlo_4 (R := ℝ)).variance =
     (sample_times_100 (R := ℝ)).variance / 16 := by
@@ -120,6 +124,7 @@ example : (monte_carlo_4 (R := ℝ)).variance =
     assert "unsolved goals" in result.stdout
 
 
+@pytest.mark.lean
 def test_weighted_sum_propagates_elementary_rules():
     def weighted(key, weights):
         draws = jax.vmap(uniform_six)(jax.random.split(key, 3))

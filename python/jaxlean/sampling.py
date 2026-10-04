@@ -149,7 +149,7 @@ class Discrete:
         program = translate(closed, name=name + "Outcomes", namespace=namespace)
         if len(closed.out_avals) != 1 or closed.out_avals[0].shape != (len(probabilities),):
             raise TranslationError("expected one scalar output per world")
-        program = program.replace("import JaxLean.RealOps", "import JaxLean.RealOps\nimport JaxLean.FiniteLaw")
+        program = program.replace("import JaxLean.Core.RealOps", "import JaxLean.Core.RealOps\nimport JaxLean.Stdlib.FiniteLaw\nimport JaxLean.Stdlib.TensorRules")
         n = len(probabilities)
 
         def rational(q):

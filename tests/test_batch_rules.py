@@ -6,6 +6,7 @@ from jaxlean import transpile
 from test_random_translation import lean
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize("n", [0, 1, 4])
 def test_linear_rule_on_generated_reduction(n):
     def scaled_sum(x, scale):
@@ -24,6 +25,7 @@ example (x : Tensor ℝ [{n}, 2]) (scale : Tensor ℝ []) :
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_matrix_rule_on_generated_vmap():
     def batch_matmul_sum(x, weights):
         return jnp.sum(jax.vmap(lambda row: row @ weights)(x), axis=0)
@@ -42,6 +44,7 @@ example (x : Tensor ℝ [3, 2]) (w : Tensor ℝ [2, 4]) :
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_bilinear_cross_terms_and_general_expectation():
     source = """import JaxLean.Stdlib
 import Mathlib.Algebra.Algebra.Bilinear
@@ -62,6 +65,7 @@ example (x : Rand ℝ) :
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_bilinear_diagonal_shortcut_is_false():
     source = """import JaxLean.Stdlib
 open JaxLean
@@ -75,8 +79,9 @@ example : Batch.reduceSum (fun _ : Fin 2 => (1 : ℚ)) *
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_independence_bridge_without_rand():
-    source = """import JaxLean.BatchProbability
+    source = """import JaxLean.Stdlib.BatchProbability
 import Mathlib.MeasureTheory.Function.SpecialFunctions.Basic
 open MeasureTheory ProbabilityTheory JaxLean
 example {Ω : Type} [MeasurableSpace Ω] {μ : Measure Ω}

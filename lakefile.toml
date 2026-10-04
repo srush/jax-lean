@@ -1,6 +1,6 @@
 name = "jaxlean"
 version = "0.1.0"
-defaultTargets = ["JaxLean"]
+defaultTargets = ["JaxLean", "JaxLean.Examples"]
 
 [[require]]
 name = "mathlib"

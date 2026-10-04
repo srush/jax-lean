@@ -1,0 +1,17 @@
+import JaxLean.Examples.TensorLoopProofs
+import JaxLean.Examples.Puzzles.Ones
+import JaxLean.Examples.Puzzles.Diag
+import JaxLean.Examples.Puzzles.Eye
+import JaxLean.Examples.Puzzles.Triu
+import JaxLean.Examples.Puzzles.Cumsum
+import JaxLean.Examples.Puzzles.Diff
+import JaxLean.Examples.Puzzles.Vstack
+import JaxLean.Examples.Puzzles.Roll
+import JaxLean.Examples.Puzzles.PadTo
+import JaxLean.Examples.Puzzles.SequenceMask
+import JaxLean.Examples.Puzzles.Bincount
+import JaxLean.Examples.Puzzles.ScatterAdd
+import JaxLean.Examples.Puzzles.Linspace
+import JaxLean.Examples.Puzzles.Heaviside
+import JaxLean.Examples.Puzzles.Repeat
+import JaxLean.Examples.Puzzles.Bucketize

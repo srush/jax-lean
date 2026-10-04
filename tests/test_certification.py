@@ -14,6 +14,7 @@ def mean(x):
     return jnp.mean(x)
 
 
+@pytest.mark.lean
 def test_mean_certificate_and_reproducibility():
     subprocess.run([sys.executable, '-m', 'examples.certify', '--check'], cwd=ROOT, check=True)
     source = certify(jax.make_jaxpr(mean)(jnp.ones(2)), name='mean')
@@ -24,6 +25,7 @@ def test_mean_certificate_and_reproducibility():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize('n', [0, 1, 5])
 def test_sequence_broadcast_and_multiple_inputs(n):
     def f(x, y, a):
@@ -36,6 +38,7 @@ def test_sequence_broadcast_and_multiple_inputs(n):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_explicit_broadcast_and_exact_float_literal():
     def f(x):
         return jnp.broadcast_to(x + jnp.float32(0.1), (2, 3))
@@ -47,6 +50,7 @@ def test_explicit_broadcast_and_exact_float_literal():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_wrong_generated_divisor_fails_certificate():
     source = certify(jax.make_jaxpr(mean)(jnp.ones(2)), name='mean')
     # Change ONLY the generated function; the imported Jaxpr still divides by two.
@@ -58,6 +62,7 @@ def test_wrong_generated_divisor_fails_certificate():
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_wrong_generated_operation_fails_certificate():
     closed = jax.make_jaxpr(lambda x, y: x * y)(jnp.ones(3), jnp.ones(3))
     source = certify(closed, name='multiply')
@@ -68,6 +73,7 @@ def test_wrong_generated_operation_fails_certificate():
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_bad_variable_reference_fails_lean_typechecking():
     source = certify(jax.make_jaxpr(lambda x: x)(jnp.ones(3)), name='identity')
     source = source.replace('.ret (.var .here)', '.ret (.var (.there .here))')
@@ -76,9 +82,6 @@ def test_bad_variable_reference_fails_lean_typechecking():
 
 
 @pytest.mark.parametrize('fn,args', [
-    (lambda x: jnp.sin(x), (jnp.ones(3),)),
-    (lambda x: jnp.sum(x, axis=1), (jnp.ones((2, 3, 4)),)),
-    (lambda x: jax.lax.broadcast_in_dim(x, (3, 2), (0,)), (jnp.ones(3),)),
     (lambda x: (x, x), (jnp.ones(3),)),
     (jax.jit(lambda x: x + 1.0), (jnp.ones(3),)),
 ])
@@ -96,6 +99,7 @@ def test_captured_array_constants_fail_closed():
         certify(jp)
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize('fn,args', [
     (lambda: jnp.float32(-0.1), ()),
     (lambda x: x, (jnp.ones((2, 3)),)),
@@ -107,6 +111,7 @@ def test_literal_identity_and_older_environment_reference(fn, args):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_wrong_same_shape_operand_fails_certificate():
     source = certify(jax.make_jaxpr(lambda x, y: x + y)(jnp.ones(3), jnp.ones(3)), name='add')
     assert ' x0 x1' in source
@@ -117,6 +122,7 @@ def test_wrong_same_shape_operand_fails_certificate():
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_extended_pointwise_rules():
     def f(x, y):
         a = jnp.abs(-x + y) ** 3
@@ -126,12 +132,14 @@ def test_extended_pointwise_rules():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_negative_integer_power():
     source = certify(jax.make_jaxpr(lambda x: x ** -2)(jnp.ones(3)), name='inverse_square')
     result = lean(source, 'CertifiedNegativePower.lean')
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 @pytest.mark.parametrize('n', [0, 1, 4])
 def test_certified_dense_layer(n):
     from examples.certify import relu_layer
@@ -143,6 +151,7 @@ def test_certified_dense_layer(n):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_transpose_and_matrix_products():
     from examples.certify import gram
     source = certify(jax.make_jaxpr(gram)(jnp.ones((3, 2))), name='gram')
@@ -155,6 +164,7 @@ def test_transpose_and_matrix_products():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_float_cast_certificate_is_explicitly_real_semantics():
     def f(x):
         return jax.lax.stop_gradient(x.astype(jnp.float16)).astype(jnp.float32)
@@ -166,6 +176,7 @@ def test_float_cast_certificate_is_explicitly_real_semantics():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+@pytest.mark.lean
 def test_wrong_matrix_operand_order_fails_certificate():
     source = certify(jax.make_jaxpr(lambda x, y: x @ y)(jnp.ones((2, 2)), jnp.ones((2, 2))), name='matmul')
     assert 'Tensor.matmul x0 x1' in source
@@ -175,6 +186,7 @@ def test_wrong_matrix_operand_order_fails_certificate():
     assert 'unsolved goals' in result.stdout
 
 
+@pytest.mark.lean
 def test_wrong_transpose_permutation_fails_certificate():
     source = certify(jax.make_jaxpr(lambda x: x.T)(jnp.ones((2, 2))), name='transpose')
     assert '(i.2.1, i.1, ())' in source
@@ -185,8 +197,6 @@ def test_wrong_transpose_permutation_fails_certificate():
 
 
 @pytest.mark.parametrize('fn,args', [
-    (lambda x: x.transpose(2, 1, 0), (jnp.ones((2, 3, 4)),)),
-    (lambda x, y: x @ y, (jnp.ones((2, 3, 4)), jnp.ones((2, 4, 5)))),
     (lambda x: x.astype(jnp.int32), (jnp.ones(3),)),
 ])
 def test_new_certificate_boundaries_fail_closed(fn, args):
