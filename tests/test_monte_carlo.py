@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import pytest
 
 from jaxlean import translate, transpile, TranslationError
-from examples.monte_carlo import monte_carlo, monte_carlo_4, uniform_six
+from examples.monte_carlo.code import monte_carlo, monte_carlo_4, uniform_six
 from test_random_translation import lean
 
 
@@ -12,7 +12,7 @@ from test_random_translation import lean
 def test_standard_jax_and_generated_proofs():
     value = jax.jit(monte_carlo_4)(jax.random.key(0))
     assert 0 <= float(value) <= 500
-    result = lean("import JaxLean.Examples.MonteCarloProofs\n", "MonteCarloProofs.lean")
+    result = lean("import examples.monte_carlo.proofs.MonteCarloProofs\n", "MonteCarloProofs.lean")
     assert result.returncode == 0, result.stdout + result.stderr
 
 
@@ -110,8 +110,8 @@ def test_counterfeit_batched_randint_is_rejected():
 @pytest.mark.lean
 def test_wrong_variance_reduction_fails():
     # Averaging four samples divides variance by four, not by sixteen.
-    source = """import JaxLean.Examples.MonteCarloProofs
-import JaxLean.Examples.RandomProgramProofs
+    source = """import examples.monte_carlo.proofs.MonteCarloProofs
+import examples.random_program.proofs.RandomProgramProofs
 open JaxLean JaxLean.Generated
 example : (monte_carlo_4 (R := ℝ)).variance =
     (sample_times_100 (R := ℝ)).variance / 16 := by

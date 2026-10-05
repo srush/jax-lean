@@ -160,7 +160,7 @@ class Emitter:
                     self.lines.append("  -- random_split: distinct children are independent under the selected product-law model")
                     outs = [Value("split_keys", split_shape, "split_key")]
                 elif self.random_model and op == "jit" and p.get("name") == "_randint":
-                    from .random_spec import uniform_bounds
+                    from .rewrites.random_spec import uniform_bounds
                     if self.random_source is not None:
                         raise TranslationError("uniform model supports one draw call (scalar or vmapped); key reuse is rejected")
                     if len(vs) != 3 or vs[0].kind not in ("key", "split_key"):
@@ -444,7 +444,7 @@ def translate(jaxpr, *, name="program", namespace="Generated", consts=None, max_
         raise TranslationError("ClosedJaxpr already contains its constants")
     jp = jaxpr.jaxpr if isinstance(jaxpr, core.ClosedJaxpr) else jaxpr
     if random_model:
-        from .random_spec import has_user_arrays
+        from .rewrites.random_spec import has_user_arrays
         scalar = not has_user_arrays(jp)
     # This is JAX's own structural/type checker. It is not a correctness proof.
     from jax._src.core import check_jaxpr

@@ -2,12 +2,12 @@
 from pathlib import Path
 import jax.numpy as jnp
 import numpy as np
-from examples import noether
-from examples.certify_noether import artifacts
+from examples.noether import code as noether
+from examples.noether.generate import artifacts
 
 
 def test_generated_noether_is_current():
-    root = Path(__file__).resolve().parents[1] / 'JaxLean/Generated'
+    root = Path(__file__).resolve().parents[1] / 'examples/noether/generated'
     for name, source in artifacts():
         assert (root / (name + '.lean')).read_text() == source
 

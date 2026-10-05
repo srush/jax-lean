@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import pytest
 
 from jaxlean import translate, transpile, TranslationError
-from examples.random_program import sample_times_100, sample_scaled
+from examples.random_program.code import sample_times_100, sample_scaled
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -29,16 +29,16 @@ def test_source_is_standard_jax_and_readable_output():
     source = transpile(sample_scaled, key, jnp.float32(100), random_model="uniform")
     assert "«sample_scaled»" in source
     assert "(«scale» : R)" in source
-    assert "random_program.py:" in source
+    assert "code.py:" in source
     assert "SAMPLER SPECIFICATION" in source
     assert "Tensor" not in source
     assert "(«key»" not in source  # The model replaces a key by a law, explicitly.
-    subprocess.run([sys.executable, "-m", "examples.transpile_random", "--check"], cwd=ROOT, check=True)
+    subprocess.run([sys.executable, "-m", "examples.generate", "--check"], cwd=ROOT, check=True)
 
 
 @pytest.mark.lean
 def test_stdlib_proof_checks_and_wrong_scaling_fails():
-    good = """import JaxLean.Examples.RandomProgramProofs
+    good = """import examples.random_program.proofs.RandomProgramProofs
 open JaxLean JaxLean.Generated
 example : (sample_times_100 (R := ℝ)).variance =
     100 ^ 2 * (Rand.uniformInt (R := ℝ) 0 6 (by decide)).variance := by
@@ -46,7 +46,7 @@ example : (sample_times_100 (R := ℝ)).variance =
 """
     result = lean(good, "RandomScaling.lean")
     assert result.returncode == 0, result.stdout + result.stderr
-    bad = """import JaxLean.Examples.RandomProgramProofs
+    bad = """import examples.random_program.proofs.RandomProgramProofs
 open JaxLean JaxLean.Generated
 example : (sample_times_100 (R := ℝ)).variance = 100 := by
   rw [RandomProgramProofs.sample_times_100_variance_value]

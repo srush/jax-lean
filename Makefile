@@ -2,28 +2,14 @@
 
 generate:
 	.venv/bin/python -m examples.generate
-	.venv/bin/python -m examples.certify
-	.venv/bin/python -m examples.certify_transformer
-	.venv/bin/python -m examples.certify_more
-	.venv/bin/python -m examples.certify_noether
-	.venv/bin/python -m examples.certify_puzzles
-	.venv/bin/python -m examples.sampling
-	.venv/bin/python -m examples.transpile_random
 
 check: check-generated check-lean test
 
 check-generated:
 	.venv/bin/python -m examples.generate --check
-	.venv/bin/python -m examples.certify --check
-	.venv/bin/python -m examples.certify_transformer --check
-	.venv/bin/python -m examples.certify_more --check
-	.venv/bin/python -m examples.certify_noether --check
-	.venv/bin/python -m examples.certify_puzzles --check
-	.venv/bin/python -m examples.sampling --check
-	.venv/bin/python -m examples.transpile_random --check
 
 check-lean:
-	lake build
+	lake build JaxLean JaxLeanExamples
 
 test:
 	.venv/bin/python -m pytest -q
@@ -35,12 +21,16 @@ check-full: check-generated check-lean
 	.venv/bin/python -m pytest -q -m ""
 
 run:
-	lake build JaxLean.Run
-	lake env lean JaxLean/Run.lean
+	lake build examples.basics.proofs.Run
+	lake env lean examples/basics/proofs/Run.lean
 
 .PHONY: docs docs-serve
 docs:
-	.venv/bin/python -m jaxlean.docs build
+	PYTHONPATH=tools/verso/src .venv/bin/python -m jaxlean_verso build
 
 docs-serve: docs
-	.venv/bin/python -m jaxlean.docs serve
+	PYTHONPATH=tools/verso/src .venv/bin/python -m jaxlean_verso serve
+
+.PHONY: docs-watch
+docs-watch:
+	PYTHONPATH=tools/verso/src .venv/bin/python -m jaxlean_verso.watch

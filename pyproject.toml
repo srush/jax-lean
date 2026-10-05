@@ -15,10 +15,10 @@ test = ["pytest>=8,<10"]
 
 [tool.setuptools.packages.find]
 where = ["python"]
-include = ["jaxlean*"]
+include = ["jaxlean", "jaxlean.*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["python"]
+testpaths = ["tests", "tools/verso/tests"]
+pythonpath = ["python", "tools/verso/src"]
 addopts = "-m 'not lean' --strict-markers"
 markers = ["lean: integration tests that launch Lean on temporary generated programs (opt in with -m lean)"]

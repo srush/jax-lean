@@ -16,9 +16,9 @@ def mean(x):
 
 @pytest.mark.lean
 def test_mean_certificate_and_reproducibility():
-    subprocess.run([sys.executable, '-m', 'examples.certify', '--check'], cwd=ROOT, check=True)
+    subprocess.run([sys.executable, '-m', 'examples.certificates.generate', '--check'], cwd=ROOT, check=True)
     source = certify(jax.make_jaxpr(mean)(jnp.ones(2)), name='mean')
-    assert 'Jaxpr.Program [[2]] []' in source
+    assert 'Jaxpr.Program [(.real, [2])] (.real, [])' in source
     assert 'mean_translation_correct' in source
     assert 'Tensor.sumFirst' in source
     result = lean(source, 'CertifiedMean.lean')
@@ -33,7 +33,7 @@ def test_sequence_broadcast_and_multiple_inputs(n):
         return jnp.sum(z, axis=0) / 3.0
     closed = jax.make_jaxpr(f)(jnp.ones((n, 2)), jnp.ones((n, 2)), jnp.float32(0.1))
     source = certify(closed, name='sequence')
-    assert '.broadcast [' in source
+    assert '.add ' in source and '(t :=' in source
     result = lean(source, f'CertifiedSequence{n}.lean')
     assert result.returncode == 0, result.stdout + result.stderr
 
@@ -43,7 +43,7 @@ def test_explicit_broadcast_and_exact_float_literal():
     def f(x):
         return jnp.broadcast_to(x + jnp.float32(0.1), (2, 3))
     source = certify(jax.make_jaxpr(f)(jnp.float32(2)), name='broadcast')
-    assert '.broadcast [2, 3]' in source
+    assert '.broadcast_in_dim [2, 3] []' in source
     # Stored float32 0.1, not decimal 1/10.
     assert '13421773' in source
     result = lean(source, 'CertifiedBroadcast.lean')
@@ -142,24 +142,23 @@ def test_negative_integer_power():
 @pytest.mark.lean
 @pytest.mark.parametrize('n', [0, 1, 4])
 def test_certified_dense_layer(n):
-    from examples.certify import relu_layer
+    from examples.certificates.code import relu_layer
     source = certify(jax.make_jaxpr(relu_layer)(jnp.ones((n, 2)), jnp.ones((2, 3)), jnp.ones(3)), name='layer')
-    assert '.matmul' in source and '.prepend' in source
-    if n != 1:
-        assert '.expandFirst' in source
+    assert '.dot_general' in source and '.broadcast_in_dim' in source
+    assert '.add ' in source
     result = lean(source, f'CertifiedLayer{n}.lean')
     assert result.returncode == 0, result.stdout + result.stderr
 
 
 @pytest.mark.lean
 def test_transpose_and_matrix_products():
-    from examples.certify import gram
+    from examples.certificates.code import gram
     source = certify(jax.make_jaxpr(gram)(jnp.ones((3, 2))), name='gram')
-    assert '.transpose2' in source
+    assert '.transpose ' in source
     result = lean(source, 'CertifiedGram.lean')
     assert result.returncode == 0, result.stdout + result.stderr
     source = certify(jax.make_jaxpr(lambda x, w: x @ w)(jnp.ones(2), jnp.ones((2, 3))), name='vecmat')
-    assert '.vecmat' in source
+    assert '.dot_general' in source
     result = lean(source, 'CertifiedVecmat.lean')
     assert result.returncode == 0, result.stdout + result.stderr
 
@@ -171,7 +170,7 @@ def test_float_cast_certificate_is_explicitly_real_semantics():
     x = jnp.array([1.0001], dtype=jnp.float32)
     assert float(f(x)[0]) != float(x[0])  # Machine rounding is observably different.
     source = certify(jax.make_jaxpr(f)(x), name='casts')
-    assert '.copy' in source
+    assert '.convert_element_type' in source and '.stop_gradient' in source
     result = lean(source, 'CertifiedRealCasts.lean')
     assert result.returncode == 0, result.stdout + result.stderr
 

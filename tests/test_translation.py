@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from jaxlean import translate, TranslationError
-from examples.generate import mlp, mlp_inputs, residual
+from examples.selection.code import mlp, mlp_inputs, residual
 
 ROOT = Path(__file__).resolve().parents[1]
 

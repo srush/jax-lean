@@ -10,15 +10,15 @@ import numpy as np
 import pytest
 
 from jaxlean import certify, certify_module, TranslationError
-from examples.transformer import transformer, attention, normalize
-from examples.certify_transformer import source
+from examples.transformer.code import transformer, attention, normalize
+from examples.transformer.generate import source
 from test_random_translation import lean, ROOT
 from test_translation import lean_input
 
 
 @pytest.mark.lean
 def test_generated_module_and_boundary_proofs():
-    subprocess.run([sys.executable, '-m', 'examples.certify_transformer', '--check'],
+    subprocess.run([sys.executable, '-m', 'examples.transformer.generate', '--check'],
                    cwd=ROOT, check=True)
     code = source()
     assert code.count('def «project»') == 1  # Repeated calls share one certificate.
@@ -27,7 +27,7 @@ def test_generated_module_and_boundary_proofs():
     assert ('jaxpr_certificate [transformer_ir, transformer, '
             'transformer_block_translation_correct]') in code
     assert '(«w0» : Tensor ℝ [2, 2])' in code
-    result = lean('''import JaxLean.Examples.TransformerProofs
+    result = lean('''import examples.transformer.proofs.TransformerProofs
 #print axioms JaxLean.TransformerJax.certified_transformer_permute
 #print axioms JaxLean.TransformerJax.normalize_sum_one
 ''', 'TransformerAudit.lean')
@@ -43,7 +43,7 @@ def test_jax_and_lean_transformer_agree():
         [[1, -1], [0, 1]], [[1, 0], [1, 1]], [[1, 1], [0, 1]], [[0, 1], [1, 0]]))
     call = 'JaxLean.TransformerJax.transformer (R := ℚ) ' + ' '.join(
         lean_input(a) for a in (x, *weights))
-    code = '''import JaxLean.Generated.Transformer
+    code = '''import examples.transformer.generated.Transformer
 open JaxLean
 '''+f'''#eval IO.println (Lean.Json.compress (Lean.toJson
   ((Tensor.toList ({call})).map (fun x => s!"{{x.num}}/{{x.den}}"))))

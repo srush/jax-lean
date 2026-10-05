@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 from jaxlean import certify_module, translate, TranslationError
-from examples import common_primitives as common
+from examples.common_primitives import code as common
 from test_random_translation import lean
 
 
@@ -13,6 +13,10 @@ def array(*s, dtype=jnp.float32):
 
 
 CASES = [
+    (lambda c, x, y: jax.lax.select(c, x, y),
+     (array(dtype=jnp.bool_), array(3), array(3))),
+    (lambda a, b: jax.lax.bitwise_and(a, b),
+     (array(dtype=jnp.bool_), array(3, dtype=jnp.bool_))),
     (common.masked_values, (array(3), array(3, dtype=jnp.bool_))),
     (common.batched_scores, (array(2, 3, 4), array(2, 5, 4))),
     (common.row_softmax, (array(2, 3),)),
@@ -75,8 +79,8 @@ def test_clipped_gather_and_int32_overflow_match_jax():
     ids = jnp.array([-1, 100], dtype=jnp.int32)
     actual = common.embeddings(jnp.asarray(table), ids)
     overflow = common.shifted_embeddings(jnp.asarray(table), jnp.array([2147483647, -1], dtype=jnp.int32))
-    source = '''import JaxLean.Generated.CommonEmbeddings
-import JaxLean.Generated.CommonShifted
+    source = '''import examples.common_primitives.generated.CommonEmbeddings
+import examples.common_primitives.generated.CommonShifted
 open JaxLean
 open JaxLean.CommonJax
 private def table : Tensor ℚ [5, 3] := fun i => 10 * i.1.val + i.2.1.val

@@ -1,0 +1,17 @@
+import examples.tensor_puzzles.proofs.TensorLoopProofs
+import examples.tensor_puzzles.proofs.Puzzles.Ones
+import examples.tensor_puzzles.proofs.Puzzles.Diag
+import examples.tensor_puzzles.proofs.Puzzles.Eye
+import examples.tensor_puzzles.proofs.Puzzles.Triu
+import examples.tensor_puzzles.proofs.Puzzles.Cumsum
+import examples.tensor_puzzles.proofs.Puzzles.Diff
+import examples.tensor_puzzles.proofs.Puzzles.Vstack
+import examples.tensor_puzzles.proofs.Puzzles.Roll
+import examples.tensor_puzzles.proofs.Puzzles.PadTo
+import examples.tensor_puzzles.proofs.Puzzles.SequenceMask
+import examples.tensor_puzzles.proofs.Puzzles.Bincount
+import examples.tensor_puzzles.proofs.Puzzles.ScatterAdd
+import examples.tensor_puzzles.proofs.Puzzles.Linspace
+import examples.tensor_puzzles.proofs.Puzzles.Heaviside
+import examples.tensor_puzzles.proofs.Puzzles.Repeat
+import examples.tensor_puzzles.proofs.Puzzles.Bucketize

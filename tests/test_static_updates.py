@@ -3,8 +3,8 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-from examples import tensor_puzzles as puzzles
-from examples import scatter_updates
+from examples.tensor_puzzles import code as puzzles
+from examples.scatter import code as scatter_updates
 from jaxlean import certify, TranslationError
 from jaxlean.static_index import integer_equation, scatter_plan
 from test_random_translation import lean
@@ -19,7 +19,7 @@ from test_random_translation import lean
 def test_jax_loops_and_vectorized_forms(loop, vector, args):
     np.testing.assert_array_equal(loop(*args), vector(*args))
     source = certify(jax.make_jaxpr(loop)(*args))
-    assert 'Tensor.scatterSet' in source and '.set (s :=' in source
+    assert 'Tensor.scatterSet' in source and '.scatter (s :=' in source
 
 
 @pytest.mark.parametrize('fn', [
@@ -119,7 +119,7 @@ def test_empty_scatter_and_expansion_limit():
         update_window_dims=(), inserted_window_dims=(0,), scatter_dims_to_operand_dims=(0,))
     fn = lambda x, u: jax.lax.scatter(x, jnp.empty((0, 1), dtype=jnp.int32), u, dims)
     source = certify(jax.make_jaxpr(fn)(jnp.ones(4), jnp.ones(0)))
-    assert 'Tensor.scatterSet' not in source
+    assert 'Tensor.scatterSet' not in source.split('-- IMPORTED IR:')[0]
     assert '.ret (.var .here)' in source
     fn = lambda x, u: x.at[:257].set(u)
     with pytest.raises(TranslationError, match='256-element'):

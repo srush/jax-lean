@@ -13,27 +13,27 @@ inspects raw Python to infer behavior. Python source extraction is only for disp
 
 | # | Puzzle | Traced input shapes | Static size | Proof |
 | --- | --- | --- | --- | --- |
-| 1 | `ones` | `none` | 3 | [Lean](../JaxLean/Examples/Puzzles/Ones.lean) |
-| 2 | `sum` | `(4,)` | — | [Lean](../JaxLean/Examples/TensorLoopProofs.lean) |
-| 3 | `outer` | `(2,), (3,)` | — | [Lean](../JaxLean/Examples/TensorLoopProofs.lean) |
-| 4 | `diag` | `(3, 3)` | — | [Lean](../JaxLean/Examples/Puzzles/Diag.lean) |
-| 5 | `eye` | `none` | 3 | [Lean](../JaxLean/Examples/Puzzles/Eye.lean) |
-| 6 | `triu` | `none` | 3 | [Lean](../JaxLean/Examples/Puzzles/Triu.lean) |
-| 7 | `cumsum` | `(3,)` | — | [Lean](../JaxLean/Examples/Puzzles/Cumsum.lean) |
-| 8 | `diff` | `(3,)` | — | [Lean](../JaxLean/Examples/Puzzles/Diff.lean) |
-| 9 | `vstack` | `(3,), (3,)` | — | [Lean](../JaxLean/Examples/Puzzles/Vstack.lean) |
-| 10 | `roll` | `(3,)` | — | [Lean](../JaxLean/Examples/Puzzles/Roll.lean) |
-| 11 | `flip` | `(4,)` | — | [Lean](../JaxLean/Examples/TensorLoopProofs.lean) |
+| 1 | `ones` | `none` | 3 | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Ones.lean) |
+| 2 | `sum` | `(4,)` | — | [Lean](../examples/tensor_puzzles/proofs/TensorLoopProofs.lean) |
+| 3 | `outer` | `(2,), (3,)` | — | [Lean](../examples/tensor_puzzles/proofs/TensorLoopProofs.lean) |
+| 4 | `diag` | `(3, 3)` | — | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Diag.lean) |
+| 5 | `eye` | `none` | 3 | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Eye.lean) |
+| 6 | `triu` | `none` | 3 | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Triu.lean) |
+| 7 | `cumsum` | `(3,)` | — | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Cumsum.lean) |
+| 8 | `diff` | `(3,)` | — | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Diff.lean) |
+| 9 | `vstack` | `(3,), (3,)` | — | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Vstack.lean) |
+| 10 | `roll` | `(3,)` | — | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Roll.lean) |
+| 11 | `flip` | `(4,)` | — | [Lean](../examples/tensor_puzzles/proofs/TensorLoopProofs.lean) |
 | 12 | `compress` | — | — | Deferred |
-| 13 | `pad_to` | `(3,)` | 5 | [Lean](../JaxLean/Examples/Puzzles/PadTo.lean) |
-| 14 | `sequence_mask` | `(2, 3), (2,)` | — | [Lean](../JaxLean/Examples/Puzzles/SequenceMask.lean) |
-| 15 | `bincount` | `(3,)` | 3 | [Lean](../JaxLean/Examples/Puzzles/Bincount.lean) |
-| 16 | `scatter_add` | `(3,), (3,)` | 3 | [Lean](../JaxLean/Examples/Puzzles/ScatterAdd.lean) |
-| 17 | `flatten` | `(2, 3)` | — | [Lean](../JaxLean/Examples/TensorLoopProofs.lean) |
-| 18 | `linspace` | `(), ()` | 3 | [Lean](../JaxLean/Examples/Puzzles/Linspace.lean) |
-| 19 | `heaviside` | `(3,), (3,)` | — | [Lean](../JaxLean/Examples/Puzzles/Heaviside.lean) |
-| 20 | `repeat` | `(3,)` | 2 | [Lean](../JaxLean/Examples/Puzzles/Repeat.lean) |
-| 21 | `bucketize` | `(3,), (3,)` | — | [Lean](../JaxLean/Examples/Puzzles/Bucketize.lean) |
+| 13 | `pad_to` | `(3,)` | 5 | [Lean](../examples/tensor_puzzles/proofs/Puzzles/PadTo.lean) |
+| 14 | `sequence_mask` | `(2, 3), (2,)` | — | [Lean](../examples/tensor_puzzles/proofs/Puzzles/SequenceMask.lean) |
+| 15 | `bincount` | `(3,)` | 3 | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Bincount.lean) |
+| 16 | `scatter_add` | `(3,), (3,)` | 3 | [Lean](../examples/tensor_puzzles/proofs/Puzzles/ScatterAdd.lean) |
+| 17 | `flatten` | `(2, 3)` | — | [Lean](../examples/tensor_puzzles/proofs/TensorLoopProofs.lean) |
+| 18 | `linspace` | `(), ()` | 3 | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Linspace.lean) |
+| 19 | `heaviside` | `(3,), (3,)` | — | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Heaviside.lean) |
+| 20 | `repeat` | `(3,)` | 2 | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Repeat.lean) |
+| 21 | `bucketize` | `(3,), (3,)` | — | [Lean](../examples/tensor_puzzles/proofs/Puzzles/Bucketize.lean) |
 
 ## Scope and adaptations
 
@@ -70,7 +70,7 @@ collision and 256-update checks. It does not introduce a new scatter semantic ru
 Certificate references now quote Lean identifiers, so Python names such as `repeat`
 remain legal. The support inventory records these changes.
 
-Regenerate with `make generate`. `lake build` checks all 20 application proofs;
+Regenerate with `make generate`. `lake build JaxLeanExamples` checks all 20 application proofs;
 `make check` also checks artifact freshness and the fast Python suite. The numbered
 registry and coverage test prevent silently dropping a puzzle from the notebook.
 

@@ -44,7 +44,7 @@ work when their emitted primitives fit this inventory; differentiation itself
 is not verified.
 
 Evidence: [translation tests](tests/test_translation.py),
-[examples](examples/generate.py), [tensor semantics](JaxLean/Core/Tensor.lean).
+[examples](examples/basics/code.py), [tensor semantics](JaxLean/Core/Tensor.lean).
 
 ## Opt-in sampling: `random_model="uniform"`
 
@@ -80,15 +80,15 @@ a reduction. It emits the reduction itself; separate proofs apply stdlib rules.
 
 Evidence: [scalar tests](tests/test_random_translation.py),
 [Monte Carlo tests](tests/test_monte_carlo.py),
-[JAX example](examples/monte_carlo.py),
-[generated code](JaxLean/Generated/MonteCarlo4.lean),
-[application proofs](JaxLean/Examples/MonteCarloProofs.lean).
+[JAX example](examples/monte_carlo/code.py),
+[generated code](examples/monte_carlo/generated/MonteCarlo4.lean),
+[application proofs](examples/monte_carlo/proofs/MonteCarloProofs.lean).
 
 ## Certifiable transpilation subset
 
 `certify(closed_jaxpr, name=..., namespace=...)` emits the normal tensor function,
-a separately imported shape-typed IR, and an equality theorem for all real
-inputs. The artifact is certified **only after Lean checks that theorem**.
+a separately imported dtype- and shape-typed IR, and an equality theorem for all
+modeled inputs. The artifact is certified **only after Lean checks that theorem**.
 Ordinary `translate` and `transpile` do not automatically produce certificates.
 
 | Jaxpr feature | Certificate coverage |
@@ -97,11 +97,11 @@ Ordinary `translate` and `transpile` do not automatically produce certificates.
 | `neg`, `abs`, `square`, `integer_pow` | Real pointwise operations; static integer powers, including negative ones |
 | `broadcast_in_dim` | General static dimension maps, including singleton expansion |
 | `transpose` | Any static permutation |
-| `dot_general` | General fixed-shape contractions, including multiple contracted axes and batch dimensions. Existing matrix helpers remain named; other layouts use `Tensor.contract` |
+| `dot_general` | General fixed-shape contractions, including multiple contracted axes and batch dimensions. One `dot_general` operation with bounded coordinate maps; the readable tensor translation may use named matrix helpers |
 | `reshape` | Any fixed source/target shapes with equal element count, including empty shapes; real tensors also support dimension permutations |
 | `slice`, `squeeze` | Static in-bounds positive-stride slices; removing singleton dimensions. Imported as a shape-typed coordinate map |
-| `scatter`, `scatter-add` | Same static subset above; imported as scalar `.set` / `.addAt` steps with `.reindex` extraction from the original update tensor. Independently evaluated with coordinate equality tests |
-| Integer index scaffolding | Same static subset above, resolved during Jaxpr import; integer/bool captured constants are metadata only, not real-valued SSA variables |
+| `scatter`, `scatter-add` | Same static subset above; one `.scatter` / `.scatter_add` per source equation, carrying a validated static coordinate plan and the original update tensor. Independently evaluated with coordinate equality tests |
+| Integer index scaffolding | Same static subset above; integer/Boolean equations remain typed SSA bindings. The importer also evaluates their static values to validate scatter coordinates |
 | `rev` | Real tensors, any static axes |
 | `concatenate` | Real tensors, any static axis and number of inputs |
 | `reduce_sum` | Any static axes, including empty reduction domains |
@@ -121,11 +121,11 @@ Float16/32/64 inputs are modeled as real inputs, not constrained to representabl
 machine values. Literals preserve their stored binary rational value. Division
 uses total real-field semantics. Shapes are specialized, including empty axes.
 
-Real-only programs keep the existing `Jaxpr.Program` IR. Programs with Boolean
-or runtime integer data use `TypedJaxpr.Program`, whose SSA references carry both
-dtype and shape. Its real subprogram constructor reuses `Jaxpr.Program`; it does
-not reinterpret Booleans or indices as real values. Mixed call graphs retain
-function boundaries and use each child's checked certificate.
+All programs use `Jaxpr.Program`, whose SSA references carry both dtype and
+shape. Real, Boolean, and signed int32 values share one environment and evaluator.
+Broadcasts retain their shape/dimension parameters, comparisons are direct
+primitives, and real-only children use the same call constructor as mixed children.
+Mixed call graphs retain function boundaries and use each child's checked certificate.
 
 Other cases fail closed: captured floating array constants, `reduce_prod`
 certificates, non-jit calls, scans, random operations, multiple outputs,
@@ -142,12 +142,13 @@ model; there is no claim of verified conformance to JAX, XLA or StableHLO.
 
 Evidence: [IR semantics](JaxLean/Core/Jaxpr.lean),
 [local verification rules](JaxLean/Verification/JaxprRules.lean),
-[certified mean](JaxLean/Generated/CertifiedMean.lean),
-[certified dense ReLU layer](JaxLean/Generated/CertifiedLayer.lean),
-[certified Gram matrix](JaxLean/Generated/CertifiedGram.lean),
-[transformer call graph](JaxLean/Generated/Transformer.lean),
+[certified mean](examples/certificates/generated/CertifiedMean.lean),
+[certified dense ReLU layer](examples/certificates/generated/CertifiedLayer.lean),
+[certified Gram matrix](examples/certificates/generated/CertifiedGram.lean),
+[transformer call graph](examples/transformer/generated/Transformer.lean),
 [function-boundary tests](tests/test_transformer.py),
-[tensor puzzle certificates and Monte Carlo kernels](examples/certify_more.py),
+[tensor puzzle certificates](examples/tensor_puzzles/generate.py) and
+[Monte Carlo kernels](examples/randint_monte_carlo/generate.py),
 [pseudocode and sampling tests](tests/test_more_examples.py),
 [certificate tests](tests/test_certification.py), including deliberately corrupted
 arithmetic and references rejected by Lean. The Python Jaxpr importer remains
@@ -158,30 +159,30 @@ The new randint examples use the existing scalar/vmapped sampler specification;
 there is no extension to PRNG support. Their pure `die_estimate` and `grid_estimate`
 kernels are separately certified by `certify_module`. The theorem connecting a
 random wrapper to its deterministic kernel is checked in
-[RandintMonteCarloProofs](JaxLean/Examples/RandintMonteCarloProofs.lean).
+[RandintMonteCarloProofs](examples/randint_monte_carlo/proofs/RandintMonteCarloProofs.lean).
 
 ## Reusable theorem coverage
 
 This is distinct from primitive coverage. A supported primitive does not imply
 that every desired property has an automatic proof.
 
-- [Pseudocode](JaxLean/Examples/Pseudocode.lean): arbitrary-size accumulator-loop/finite-sum
+- [Pseudocode](examples/tensor_puzzles/proofs/Pseudocode.lean): arbitrary-size accumulator-loop/finite-sum
   equality and row-major reshape/quotient-remainder equality, including empty
-  dimensions. [TensorPuzzleProofs](JaxLean/Examples/TensorPuzzleProofs.lean) applies these
+  dimensions. [TensorPuzzleProofs](examples/tensor_puzzles/proofs/TensorPuzzleProofs.lean) applies these
   to the generated functions and composes their boundary contracts.
 - [MatrixRules](JaxLean/Stdlib/MatrixRules.lean): arbitrary row/column selection through
   query–key products, permutation of contracted axes, row normalization under
   row selection and column permutation, nonnegative normalized weights and
   row sum one for strictly positive scoring functions on nonempty rows.
-  [TransformerProofs](JaxLean/Examples/TransformerProofs.lean) applies these rules to
+  [TransformerProofs](examples/transformer/proofs/TransformerProofs.lean) applies these rules to
   the traced two-block transformer; no transformer-specific primitive is added.
 - [NormRules](JaxLean/Stdlib/NormRules.lean) and [TensorNorm](JaxLean/Stdlib/TensorNorm.lean):
   explicit L2 norm, coordinatewise domination, scaling, pointwise contraction,
   composition, matrix bounds using the Frobenius norm, symmetric componentwise
   clipping (`radius ≥ 0`) and radial clipping (`radius > 0`). The generic rules
   apply to all finite dimensions; the examples specialize shapes during tracing.
-  Evidence: [JAX source](examples/vector_norms.py),
-  [generated-program proofs](JaxLean/Examples/NormProofs.lean),
+  Evidence: [JAX source](examples/norms/code.py),
+  [generated-program proofs](examples/norms/proofs/NormProofs.lean),
   [norm tests](tests/test_norm_rules.py).
   Vector `jnp.linalg.norm` and symmetric `jnp.clip` use existing lowered
   primitives; this does not claim support for every norm API/order or a new
@@ -247,20 +248,20 @@ mathematical proofs about them.
 
 ## JAX loop specifications
 
-[Tensor puzzles](examples/tensor_puzzles.py) now include `loop_sum`,
+[Tensor puzzles](examples/tensor_puzzles/code.py) now include `loop_sum`,
 `loop_outer`, `loop_flip`, and `loop_flatten`, using ordinary Python `for`
 loops and JAX `.at[index].set(value)`. JAX unrolls these loops for the traced
 shapes before the Jaxpr reaches the transpiler; this does not add dynamic
 `while` or certified `scan` support. Both the loop and vectorized Jaxprs
-receive translation certificates. [TensorLoopProofs.lean](JaxLean/Examples/TensorLoopProofs.lean)
+receive translation certificates. [TensorLoopProofs.lean](examples/tensor_puzzles/proofs/TensorLoopProofs.lean)
 proves equality for all real inputs of the displayed shapes and composes the
 certificates to equate the two IR evaluations.
 
 ## Static scatter extension
 
-[Scatter examples](examples/scatter_updates.py) show contiguous slice replacement,
+[Scatter examples](examples/scatter/code.py) show contiguous slice replacement,
 column replacement, multiple-index replacement, and repeated-index addition.
-[ScatterProofs.lean](JaxLean/Examples/ScatterProofs.lean) gives readable function-boundary
+[ScatterProofs.lean](examples/scatter/proofs/ScatterProofs.lean) gives readable function-boundary
 specifications and composes them with translation certificates.
 
 The static index decoder follows the window/scatter coordinate mapping in the
@@ -286,11 +287,11 @@ indices and replacement of addition by assignment fail Lean certificates.
 
 ## Common primitives and function-boundary proofs
 
-[common_primitives.py](examples/common_primitives.py) contains ordinary JAX
+[common_primitives.py](examples/common_primitives/code.py) contains ordinary JAX
 examples for masking, batched query/key products, standard `jax.nn.softmax`,
 clipped embedding lookup, wrapped index arithmetic, concatenation/transpose,
 and extrema. All seven receive Lean-checked certificates.
-[CommonPrimitiveProofs.lean](JaxLean/Examples/CommonPrimitiveProofs.lean) proves the mask
+[CommonPrimitiveProofs.lean](examples/common_primitives/proofs/CommonPrimitiveProofs.lean) proves the mask
 specification, exact embedding lookup (with and without an in-range hypothesis),
 and softmax nonnegativity and row sums of one. The softmax proofs reuse the
 generic normalization lemmas in `MatrixRules`, rather than adding a softmax

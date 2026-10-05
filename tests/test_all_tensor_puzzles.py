@@ -1,12 +1,12 @@
 """Coverage and small differential checks against the original imperative specs."""
-import json
+from jaxlean_verso.notebook import load_manifest
 from pathlib import Path
 import numpy as np
 import jax.numpy as jnp
 import pytest
-from examples.tensor_puzzle_cases import PUZZLES, EXISTING, IMPLEMENTED, DEFERRED
-from examples.certify_puzzles import artifacts
-from examples import tensor_puzzles as puzzles
+from examples.tensor_puzzles.cases import PUZZLES, EXISTING, IMPLEMENTED, DEFERRED
+from examples.tensor_puzzles.generate import artifacts
+from examples.tensor_puzzles import code as puzzles
 import tensor_puzzle_reference as reference
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,21 +16,21 @@ def test_complete_numbered_puzzle_inventory():
     assert [case.number for case in PUZZLES] == list(range(1, 22))
     assert {case.name + '_spec' for case in PUZZLES} == {
         name for name in vars(reference) if name.endswith('_spec')}
-    pages = json.loads((ROOT / 'docs/examples.json').read_text())['pages']
+    pages = load_manifest(ROOT / 'docs/examples.yaml')['pages']
     page = next(p for p in pages if p['slug'] == 'puzzles')
     puzzle_titles = [card['title'] for card in page['cards']
-                     if card.get('kind', 'puzzle') == 'puzzle']
+                     if card.get('kind', 'puzzle') == 'puzzle' and card['title'].split('.', 1)[0].isdigit()]
     assert puzzle_titles == [f'{c.number}. {c.name}' for c in IMPLEMENTED]
     assert len(IMPLEMENTED) == 20
     assert set(DEFERRED) == {12}
     for case in IMPLEMENTED:
         if case.number not in EXISTING:
-            assert (ROOT / f'JaxLean/Examples/Puzzles/{case.module}.lean').exists()
+            assert (ROOT / f'examples/tensor_puzzles/proofs/Puzzles/{case.module}.lean').exists()
 
 
 def test_puzzle_artifacts_current():
     for name, source in artifacts():
-        assert (ROOT / 'JaxLean/Generated' / (name + '.lean')).read_text() == source
+        assert (ROOT / 'examples/tensor_puzzles/generated' / (name + '.lean')).read_text() == source
 
 
 @pytest.mark.parametrize('case', IMPLEMENTED, ids=lambda c: c.name)
@@ -82,8 +82,8 @@ def test_wrong_iota_coordinate_fails_certificate():
     from jaxlean import certify
     from test_random_translation import lean
     source = certify(jax.make_jaxpr(lambda: jnp.arange(3, dtype=jnp.float32))(), name='coordinates')
-    source = source.replace('.iota (s := [3]) (n := 3) (fun i => i.1)',
-                            '.iota (s := [3]) (n := 3) (fun i => i.1.rev)')
+    assert '(i.1.val : R)' in source
+    source = source.replace('(i.1.val : R)', '(i.1.rev.val : R)', 1)
     result = lean(source, 'WrongIotaCoordinate.lean')
     assert result.returncode != 0
     assert 'unsolved goals' in result.stdout
@@ -95,7 +95,7 @@ def test_mixed_static_updates_keep_runtime_indices_rejected():
     x = jax.ShapeDtypeStruct((3,), jnp.float32)
     mask = jax.ShapeDtypeStruct((), jnp.bool_)
     closed = jax.make_jaxpr(lambda x, m: x.at[1].set(jnp.where(m, x[0], 0.)))(x, mask)
-    assert 'TypedJaxpr.Program' in certify_module(closed)
+    assert 'Jaxpr.Program' in certify_module(closed)
     with pytest.raises(TranslationError, match='static|real arguments'):
         certify_module(jax.make_jaxpr(lambda x, i: x.at[i].set(1.))(
             x, jax.ShapeDtypeStruct((), jnp.int32)))

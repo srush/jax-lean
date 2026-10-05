@@ -1,0 +1,1925 @@
+# Each section renders its blocks in list order. Move blocks to reorder the article.
+# Text blocks accept Markdown; empty text shows its marker.
+
+pages:
+- slug: blog
+  title: Lean-Verified Jax
+  layout: blog
+  cards:
+  - title: Introduction
+    id: introduction
+    blocks:
+    - type: text
+      text: |
+        I have been interested recently in the impact on ML programming
+        as the cost of proofs goes to zero. Part of this interest comes
+        from wanting more stable training runs, part of it comes from
+        the general sense that we are all drowning in code reviews.
+        For this to be useful we likely would need proofs for
+        existing programming languages.
+
+        One example of this is [Aeneas](https://github.com/AeneasVerif/aeneas)
+        which is language for proving the correctness of Rust code. It works
+        by transpiling from Rust into Lean, where you can prove important properties.
+        Of course this approach would be ridiculous for a language like Python
+        which feels almost beyond specification.
+
+
+        Luckily, this approach works better for ML library like JAX.
+        While JAX uses Python and looks Pythonic,
+        it actually is much more constrained.
+        In this blog, we are going to prove the correctness of some non-trivial
+        JAX programs.
+        The library developed for this blog is at
+        [srush/jax-lean](https://github.com/srush/jax-lean). The code and proofs are
+        written by AI, the writing is human.
+        This is a followup on [Lean-Verified Transformers](https://srush.github.io/lean-transformer/)·
+
+        - srush
+      marker: Introduction
+  - title: 'Goal: Certified Solutions'
+    id: certified-solutions
+    blocks:
+    - type: text
+      text: |
+        A couple years ago, I wrote a set of 
+        [tensor-puzzles](https://github.com/srush/tensor-puzzles) as a way to help 
+        students understand broadcasting better. The puzzles give the user a specification 
+        written as an easy to read Python loop. Here the function is a cumulative sum. 
+
+      marker: Goal; certified solutions
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_cumsum
+      section: Pseudocode
+    - type: text
+      text: | 
+        Given this code, the student is asked to produce a vectorized implementation. 
+        Many of these are quite strange looking as they use all the fun or 
+        horrible Numpy tricks.
+        
+      marker: after cumsum pseudocode
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_cumsum
+      section: JAX solution
+    - type: text
+      text: |
+        When I wrote the puzzles originally, the answers were checked using quickcheck-style randomized 
+        tests. This is a completely sufficient solution to this problem, and there was never in issue.
+        However, recently I have been wondering whether you could formally guarantee that a solution is
+        correct.
+        
+      marker: after cumsum solution
+  - title: 'Background: Jax IR'
+    id: jax-ir
+    blocks:
+    - type: text
+      text: |
+        [JAX](http://github.com/google/jax) is a numerical transformation system
+        that utilizes a near 1-to-1 Numpy interface. While the primary use of JAX is machine
+        learning, the core framework has remained impressively ML agnostic. Instead it focuses on
+        a core set of transformation that can be reduced to a simple numerical operations.
+
+        If you are interested in the details of how Jax works they have an amazing tutorial
+        known as [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html).
+        We will focus particularly on the process in which they trace Python code to IR.
+
+        Let's begin with a simple function that adds two vectors. 
+
+      marker: Jax IR; addition of two vectors
+
+    - type: python
+      file: examples/blog/code.py
+      name: add_vectors
+    - type: text
+      text: | 
+        We can run this function in the standard manner. When we run it 
+        JAX is behind the scenes tracing the code and producing its 
+        own representation of what going on. 
+        
+      marker: after add_vectors
+    - type: trace_code
+      example: add
+    - type: diagram
+
+    - type: text
+      text: |
+        Its intermediate representation is known as Jaxpr. It lives 
+        between your Python code and the final lower-level representations that execute
+        the mathematical operations on hardware. We can even print it out for our function. 
+
+        In this case it looks quite similar. It takes two args, float32 size 3 vectors. 
+        Creates a temp variable that adds them. And then returns the result. 
+        
+      marker: before Jaxpr output
+    - type: trace_output
+      example: add
+    - type: text
+      text: |
+        We map these Jaxpr's directly into a Lean data structure. 
+        It looks mostly similar to the representation above. 
+        The here / there notation is used to avoid naming the args 
+        explicitly.  
+         
+        
+      marker: after Jaxpr output
+
+    - type: lean
+      module: examples.blog.generated.AddVectors
+      name: JaxLean.Blog.add_vectors_ir
+      section: Lean IR
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Blog.add_vectors_ir
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: Shape
+      detail: false
+    - type: text
+      text: |
+      
+        
+      marker: after Shape
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: DType
+      detail: false
+    - type: text
+      text: |
+      marker: after DType
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: Ty
+      detail: false
+    - type: text
+      text: |
+      marker: after Ty
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: Value
+      detail: false
+    - type: text
+      text: |
+      marker: after Value
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: Var
+      detail: false
+    - type: text
+      text: |
+        
+      marker: after Var
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: Atom
+      detail: false
+    - type: text
+      text: |
+        
+      marker: after Atom
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: Op
+      detail: true
+    - type: text
+      text: |
+        
+      marker: after Op
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: Args
+      detail: false
+    - type: text
+      text: |
+        
+      marker: after Args
+    - type: datatype
+      file: JaxLean/Core/Jaxpr.lean
+      name: Program
+      detail: false
+    - type: text
+      text: |
+        
+      marker: after Program
+
+  - title: eye
+    id: eye
+    subheading: true
+    blocks:
+    - type: text
+      text: |
+        
+      marker: Eye; static n = 3
+    - type: python
+      file: examples/blog/code.py
+      name: eye
+    - type: text
+      text: |
+        
+      marker: after eye
+    - type: trace_code
+      example: eye
+    - type: text
+      text: |
+        
+      marker: before Jaxpr output
+    - type: trace_output
+      example: eye
+    - type: text
+      text: |
+        
+      marker: after Jaxpr output
+    - type: lean
+      module: examples.tensor_puzzles.generated.PuzzlesEye
+      name: JaxLean.Puzzles.Eye.Array.eye_ir
+      section: Lean IR
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Eye.Array.eye_ir
+    - type: lean
+      module: examples.tensor_puzzles.generated.PuzzlesEye
+      name: JaxLean.Puzzles.Eye.Array.fn__where_ir
+      section: Lean IR helper
+      detail: where IR
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Eye.Array.fn__where_ir
+  - title: Transpilation to Lean
+    id: transpilation
+    blocks:
+    - type: text
+      text: |
+        [TEXT: Aeneas; translation; trusted importer; ideal-real semantics and floating-point boundary]
+
+        Reading in Jaxpr's to Lean gives a source of ground truth for the original 
+        code. With this we can then generate explicit Lean code that implements the 
+        core operations.
+
+      marker: Aeneas; translation; trusted importer; ideal-real semantics and floating-point boundary
+    - type: lean
+      module: examples.tensor_puzzles.generated.PuzzlesEye
+      name: JaxLean.Puzzles.Eye.Array.fn__where
+      section: Lean helper
+    - type: text
+      text: |
+        Since this implementation is generated, the code might deviate from the 
+        IR, but since they are both in Lean we can prove directly that it implements 
+        the IR precisely. The following
+        theorem shows that the code matches its IR.
+
+      marker: after JaxLean.Puzzles.Eye.Array.fn__where
+    - type: lean
+      module: examples.tensor_puzzles.generated.PuzzlesEye
+      name: JaxLean.Puzzles.Eye.Array.eye_translation_correct
+      section: Translation certificate
+    - type: text
+      text: |
+        A bigger challenge is ensuring that the code acts the same 
+        way of the original JAX. The core operations used in the JAX 
+        core are well documented, so we can get most of them correct.
+        The bigger issue is handling all the problems that arise from 
+        floating point numbers and possible interactions with 
+        accelerators. We are mostly going to ignore this for now 
+        and assume the semantics of real numbersis close enough for our problems. 
+
+        
+        
+      marker: after JaxLean.Puzzles.Eye.Array.eye_translation_correct
+
+    - type: lean
+      module: examples.tensor_puzzles.generated.PuzzlesEye
+      name: JaxLean.Puzzles.Eye.Array.eye
+      section: Transpiled Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Eye.Array.eye
+    - type: eval_code
+    - type: text
+      text: |
+        
+      marker: before Lean evaluation output
+    - type: eval_output
+    - type: text
+      text: |
+        
+      marker: after Lean evaluation output
+
+  - title: 'Automatic differentiation: JVP'
+    id: autodiff
+    blocks:
+    - type: text
+      text: |
+        
+      marker: JVP; directional derivative; scalar gradient; ideal-real semantics
+    - type: python
+      file: examples/autodiff/code.py
+      name: quadratic
+    - type: text
+      text: |
+        
+      marker: after quadratic
+    - type: python
+      file: examples/autodiff/code.py
+      name: jvp_tangent
+    - type: text
+      text: |
+        
+      marker: after jvp_tangent
+    - type: python
+      file: examples/autodiff/code.py
+      name: gradient
+    - type: text
+      text: |
+        
+      marker: after gradient
+    - type: lean
+      module: examples.autodiff.generated.JvpTangent
+      name: JaxLean.Autodiff.jvp_tangent
+      section: Transpiled JVP
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Autodiff.jvp_tangent
+    - type: lean
+      module: examples.autodiff.proofs.Jvp
+      name: JaxLean.Autodiff.quadratic_hasDerivAt
+      section: Mathematical derivative
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Autodiff.quadratic_hasDerivAt
+    - type: lean
+      module: examples.autodiff.proofs.Jvp
+      name: JaxLean.Autodiff.jvp_correct
+      section: JVP correctness
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Autodiff.jvp_correct
+    - type: lean
+      module: examples.autodiff.proofs.Jvp
+      name: JaxLean.Autodiff.gradient_correct
+      section: Scalar gradient correctness
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Autodiff.gradient_correct
+    - type: lean
+      module: examples.autodiff.proofs.Jvp
+      name: JaxLean.Autodiff.certified_jvp_correct
+      section: Jaxpr JVP certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Autodiff.certified_jvp_correct
+    - type: lean
+      module: examples.autodiff.proofs.Jvp
+      name: JaxLean.Autodiff.certified_gradient_correct
+      section: Jaxpr gradient certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Autodiff.certified_gradient_correct
+  - title: 'Warmup: Certified Puzzles'
+    id: puzzles
+    blocks:
+    - type: text
+      text: |
+        
+      marker: Certified puzzles; specifications and verification
+    - type: text
+      text: |
+        
+      marker: Puzzle 12 · compression · deferred
+  - title: 1. ones
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_ones
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_ones
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_ones
+    - type: text
+      text: |
+        
+      marker: after puzzle_ones
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Ones
+      name: JaxLean.Puzzles.Ones.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Ones.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Ones
+      name: JaxLean.Puzzles.Ones.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Ones.certificate
+  - title: 2. sum
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_sum
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_sum
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_sum
+    - type: text
+      text: |
+        
+      marker: after puzzle_sum
+    - type: lean
+      module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.sum_matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.PuzzleJax.sum_matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.certified_sum_loop
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.PuzzleJax.certified_sum_loop
+  - title: 3. outer
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_outer
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_outer
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_outer
+    - type: text
+      text: |
+        
+      marker: after puzzle_outer
+    - type: lean
+      module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.outer_matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.PuzzleJax.outer_matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.certified_outer_loop
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.PuzzleJax.certified_outer_loop
+  - title: 4. diag
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_diag
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_diag
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_diag
+    - type: text
+      text: |
+        
+      marker: after puzzle_diag
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Diag
+      name: JaxLean.Puzzles.Diag.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Diag.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Diag
+      name: JaxLean.Puzzles.Diag.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Diag.certificate
+  - title: 5. eye
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_eye
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_eye
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_eye
+    - type: text
+      text: |
+        
+      marker: after puzzle_eye
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Eye
+      name: JaxLean.Puzzles.Eye.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Eye.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Eye
+      name: JaxLean.Puzzles.Eye.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Eye.certificate
+  - title: 6. triu
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_triu
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_triu
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_triu
+    - type: text
+      text: |
+        
+      marker: after puzzle_triu
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Triu
+      name: JaxLean.Puzzles.Triu.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Triu.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Triu
+      name: JaxLean.Puzzles.Triu.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Triu.certificate
+  - title: 7. cumsum
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_cumsum
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_cumsum
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_cumsum
+    - type: text
+      text: |
+        
+      marker: after puzzle_cumsum
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Cumsum
+      name: JaxLean.Puzzles.Cumsum.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Cumsum.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Cumsum
+      name: JaxLean.Puzzles.Cumsum.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Cumsum.certificate
+  - title: 8. diff
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_diff
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_diff
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_diff
+    - type: text
+      text: |
+        
+      marker: after puzzle_diff
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Diff
+      name: JaxLean.Puzzles.Diff.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Diff.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Diff
+      name: JaxLean.Puzzles.Diff.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Diff.certificate
+  - title: 9. vstack
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_vstack
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_vstack
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_vstack
+    - type: text
+      text: |
+        
+      marker: after puzzle_vstack
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Vstack
+      name: JaxLean.Puzzles.Vstack.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Vstack.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Vstack
+      name: JaxLean.Puzzles.Vstack.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Vstack.certificate
+  - title: 10. roll
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_roll
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_roll
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_roll
+    - type: text
+      text: |
+        
+      marker: after puzzle_roll
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Roll
+      name: JaxLean.Puzzles.Roll.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Roll.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Roll
+      name: JaxLean.Puzzles.Roll.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Roll.certificate
+  - title: 11. flip
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_flip
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_flip
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_flip
+    - type: text
+      text: |
+        
+      marker: after puzzle_flip
+    - type: lean
+      module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.flip_matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.PuzzleJax.flip_matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.certified_flip_loop
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.PuzzleJax.certified_flip_loop
+  - title: 13. pad_to
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_pad_to
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_pad_to
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_pad_to
+    - type: text
+      text: |
+        
+      marker: after puzzle_pad_to
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.PadTo
+      name: JaxLean.Puzzles.PadTo.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.PadTo.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.PadTo
+      name: JaxLean.Puzzles.PadTo.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.PadTo.certificate
+  - title: 14. sequence_mask
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_sequence_row
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_sequence_row
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_sequence_mask
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_sequence_mask
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_sequence_mask
+    - type: text
+      text: |
+        
+      marker: after puzzle_sequence_mask
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.SequenceMask
+      name: JaxLean.Puzzles.SequenceMask.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.SequenceMask.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.SequenceMask
+      name: JaxLean.Puzzles.SequenceMask.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.SequenceMask.certificate
+  - title: 15. bincount
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_masked_sum
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_masked_sum
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_bincount
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_bincount
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_bincount
+    - type: text
+      text: |
+        
+      marker: after puzzle_bincount
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Bincount
+      name: JaxLean.Puzzles.Bincount.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Bincount.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Bincount
+      name: JaxLean.Puzzles.Bincount.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Bincount.certificate
+  - title: 16. scatter_add
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_masked_sum
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_masked_sum
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_scatter_add
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_scatter_add
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_scatter_add
+    - type: text
+      text: |
+        
+      marker: after puzzle_scatter_add
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.ScatterAdd
+      name: JaxLean.Puzzles.ScatterAdd.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.ScatterAdd.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.ScatterAdd
+      name: JaxLean.Puzzles.ScatterAdd.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.ScatterAdd.certificate
+  - title: 17. flatten
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_flatten
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_flatten
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_flatten
+    - type: text
+      text: |
+        
+      marker: after puzzle_flatten
+    - type: lean
+      module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.flatten_matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.PuzzleJax.flatten_matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.certified_flatten_loop
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.PuzzleJax.certified_flatten_loop
+  - title: 18. linspace
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_linspace
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_linspace
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_linspace
+    - type: text
+      text: |
+        
+      marker: after puzzle_linspace
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Linspace
+      name: JaxLean.Puzzles.Linspace.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Linspace.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Linspace
+      name: JaxLean.Puzzles.Linspace.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Linspace.certificate
+  - title: 19. heaviside
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_heaviside
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_heaviside
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_heaviside
+    - type: text
+      text: |
+        
+      marker: after puzzle_heaviside
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Heaviside
+      name: JaxLean.Puzzles.Heaviside.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Heaviside.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Heaviside
+      name: JaxLean.Puzzles.Heaviside.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Heaviside.certificate
+  - title: 20. repeat
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_repeat
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_repeat
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_repeat
+    - type: text
+      text: |
+        
+      marker: after puzzle_repeat
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Repeat
+      name: JaxLean.Puzzles.Repeat.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Repeat.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Repeat
+      name: JaxLean.Puzzles.Repeat.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Repeat.certificate
+  - title: 21. bucketize
+    puzzle: true
+    blocks:
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: loop_bucketize
+      section: Pseudocode
+    - type: text
+      text: |
+        
+      marker: after loop_bucketize
+    - type: python
+      file: examples/tensor_puzzles/code.py
+      name: puzzle_bucketize
+    - type: text
+      text: |
+        
+      marker: after puzzle_bucketize
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Bucketize
+      name: JaxLean.Puzzles.Bucketize.matches_loop
+      section: Correctness proof
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Bucketize.matches_loop
+    - type: lean
+      module: examples.tensor_puzzles.proofs.Puzzles.Bucketize
+      name: JaxLean.Puzzles.Bucketize.certificate
+      section: Certificate
+    - type: text
+      text: |
+        
+      marker: after JaxLean.Puzzles.Bucketize.certificate
+  - title: 'Example: Transformer Properties.'
+    id: transformer
+    blocks:
+    - type: text
+      text: |
+        [TEXT: Transformer properties; architecture subset and token permutations]
+
+        [Lean-Verified Transformers](https://srush.github.io/lean-transformer/)
+      marker: Transformer properties; architecture subset and token permutations
+    - type: python
+      file: examples/transformer/code.py
+      name: normalize
+    - type: text
+      text: |
+        
+      marker: after normalize
+    - type: python
+      file: examples/transformer/code.py
+      name: attention
+    - type: text
+      text: |
+        
+      marker: after attention
+    - type: python
+      file: examples/transformer/code.py
+      name: transformer_block
+    - type: text
+      text: |
+        
+      marker: after transformer_block
+    - type: lean
+      module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.normalize_sum_one
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.TransformerJax.normalize_sum_one
+    - type: lean
+      module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.attention_permute
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.TransformerJax.attention_permute
+    - type: lean
+      module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.transformer_block_permute
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.TransformerJax.transformer_block_permute
+    - type: lean
+      module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.certified_transformer_permute
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.TransformerJax.certified_transformer_permute
+  - title: Physical Properties
+    id: physics
+    blocks:
+    - type: text
+      text: |
+        [TEXT: Noether; periodic flux; conservation and equivariance]
+
+        [Noether](https://github.com/pmocz/noether)
+      marker: Noether; periodic flux; conservation and equivariance
+    - type: math
+      text: |-
+        F(u)ᵢ = uᵢ − λ (½uᵢ² − ½uᵢ₋₁²)
+    - type: math
+      text: |-
+        ∑ᵢ F(u)ᵢ = ∑ᵢ uᵢ
+    - type: math
+      text: |-
+        F(Pₖu) = PₖF(u)
+    - type: python
+      file: examples/noether/code.py
+      name: burgers
+    - type: text
+      text: |
+        
+      marker: after burgers
+    - type: lean
+      module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_spec
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.NoetherProofs.burgers_spec
+    - type: lean
+      module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_conserves_sum
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.NoetherProofs.burgers_conserves_sum
+    - type: lean
+      module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_equivariant
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.NoetherProofs.burgers_equivariant
+  - title: Norm bounds
+    id: norms
+    blocks:
+    - type: text
+      text: |
+        
+      marker: Euclidean norm guarantee; radius > 0
+    - type: math
+      text: |-
+        r > 0 ⟹ ‖radial_clip(x, r)‖₂ ≤ min(r, ‖x‖₂)
+    - type: python
+      file: examples/norms/code.py
+      name: radial_clip
+    - type: text
+      text: |
+        
+      marker: after radial_clip
+    - type: lean
+      module: examples.norms.proofs.NormProofs
+      name: JaxLean.NormProofs.radial_clip_bound
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.NormProofs.radial_clip_bound
+  - title: Variance
+    id: variance
+    blocks:
+    - type: text
+      text: |
+        
+      marker: Variance; ideal independent uniform draws; PRNG modeling boundary
+    - type: math
+      text: |-
+        Xᵢ ∼ Uniform{1, …, 6},  X₁, …, X₁₆ independent
+    - type: math
+      text: |-
+        Var[(X₁ + ⋯ + X₁₆) / 16] = 35 / 192
+    - type: python
+      file: examples/randint_monte_carlo/code.py
+      name: die_draw
+    - type: text
+      text: |
+        
+      marker: after die_draw
+    - type: python
+      file: examples/randint_monte_carlo/code.py
+      name: die_estimate
+    - type: text
+      text: |
+        
+      marker: after die_estimate
+    - type: python
+      file: examples/randint_monte_carlo/code.py
+      name: mc_die_16
+    - type: text
+      text: |
+        
+      marker: after mc_die_16
+    - type: lean
+      module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.dieLaw
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.MCJax.dieLaw
+    - type: lean
+      module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_boundary
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.MCJax.mc_die_boundary
+    - type: lean
+      module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_variance
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.MCJax.mc_die_variance
+    - type: lean
+      module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.certified_die_variance
+      section: Lean
+    - type: text
+      text: |
+        
+      marker: after JaxLean.MCJax.certified_die_variance
+- slug: puzzles
+  title: Tensor puzzles
+  layout: code-only
+  cards:
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_ones
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_ones
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Ones
+      name: JaxLean.Puzzles.Ones.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Ones
+      name: JaxLean.Puzzles.Ones.certificate
+      section: Certificate
+    title: 1. ones
+    puzzle: true
+  - title: 2. sum
+    python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_sum
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_sum
+    lean:
+    - module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.sum_matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.certified_sum_loop
+      section: Certificate
+    puzzle: true
+  - title: 3. outer
+    python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_outer
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_outer
+    lean:
+    - module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.outer_matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.certified_outer_loop
+      section: Certificate
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_diag
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_diag
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Diag
+      name: JaxLean.Puzzles.Diag.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Diag
+      name: JaxLean.Puzzles.Diag.certificate
+      section: Certificate
+    title: 4. diag
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_eye
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_eye
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Eye
+      name: JaxLean.Puzzles.Eye.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Eye
+      name: JaxLean.Puzzles.Eye.certificate
+      section: Certificate
+    title: 5. eye
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_triu
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_triu
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Triu
+      name: JaxLean.Puzzles.Triu.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Triu
+      name: JaxLean.Puzzles.Triu.certificate
+      section: Certificate
+    title: 6. triu
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_cumsum
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_cumsum
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Cumsum
+      name: JaxLean.Puzzles.Cumsum.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Cumsum
+      name: JaxLean.Puzzles.Cumsum.certificate
+      section: Certificate
+    title: 7. cumsum
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_diff
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_diff
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Diff
+      name: JaxLean.Puzzles.Diff.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Diff
+      name: JaxLean.Puzzles.Diff.certificate
+      section: Certificate
+    title: 8. diff
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_vstack
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_vstack
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Vstack
+      name: JaxLean.Puzzles.Vstack.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Vstack
+      name: JaxLean.Puzzles.Vstack.certificate
+      section: Certificate
+    title: 9. vstack
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_roll
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_roll
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Roll
+      name: JaxLean.Puzzles.Roll.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Roll
+      name: JaxLean.Puzzles.Roll.certificate
+      section: Certificate
+    title: 10. roll
+    puzzle: true
+  - title: 11. flip
+    python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_flip
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_flip
+    lean:
+    - module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.flip_matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.certified_flip_loop
+      section: Certificate
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_pad_to
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_pad_to
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.PadTo
+      name: JaxLean.Puzzles.PadTo.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.PadTo
+      name: JaxLean.Puzzles.PadTo.certificate
+      section: Certificate
+    title: 13. pad_to
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_sequence_row
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: loop_sequence_mask
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_sequence_mask
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.SequenceMask
+      name: JaxLean.Puzzles.SequenceMask.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.SequenceMask
+      name: JaxLean.Puzzles.SequenceMask.certificate
+      section: Certificate
+    title: 14. sequence_mask
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_masked_sum
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: loop_bincount
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_bincount
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Bincount
+      name: JaxLean.Puzzles.Bincount.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Bincount
+      name: JaxLean.Puzzles.Bincount.certificate
+      section: Certificate
+    title: 15. bincount
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_masked_sum
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: loop_scatter_add
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_scatter_add
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.ScatterAdd
+      name: JaxLean.Puzzles.ScatterAdd.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.ScatterAdd
+      name: JaxLean.Puzzles.ScatterAdd.certificate
+      section: Certificate
+    title: 16. scatter_add
+    puzzle: true
+  - title: 17. flatten
+    python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_flatten
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_flatten
+    lean:
+    - module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.flatten_matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.TensorLoopProofs
+      name: JaxLean.PuzzleJax.certified_flatten_loop
+      section: Certificate
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_linspace
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_linspace
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Linspace
+      name: JaxLean.Puzzles.Linspace.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Linspace
+      name: JaxLean.Puzzles.Linspace.certificate
+      section: Certificate
+    title: 18. linspace
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_heaviside
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_heaviside
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Heaviside
+      name: JaxLean.Puzzles.Heaviside.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Heaviside
+      name: JaxLean.Puzzles.Heaviside.certificate
+      section: Certificate
+    title: 19. heaviside
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_repeat
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_repeat
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Repeat
+      name: JaxLean.Puzzles.Repeat.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Repeat
+      name: JaxLean.Puzzles.Repeat.certificate
+      section: Certificate
+    title: 20. repeat
+    puzzle: true
+  - python:
+    - file: examples/tensor_puzzles/code.py
+      name: loop_bucketize
+      section: Pseudocode
+    - file: examples/tensor_puzzles/code.py
+      name: puzzle_bucketize
+    lean:
+    - module: examples.tensor_puzzles.proofs.Puzzles.Bucketize
+      name: JaxLean.Puzzles.Bucketize.matches_loop
+      section: Correctness proof
+    - module: examples.tensor_puzzles.proofs.Puzzles.Bucketize
+      name: JaxLean.Puzzles.Bucketize.certificate
+      section: Certificate
+    title: 21. bucketize
+    puzzle: true
+  - title: Five shared lemmas
+    kind: lemmas
+    python: []
+    sections:
+    - Indexed update
+    - Nested sum
+    - Affine variance
+    - Independent addition
+    - Flux conservation
+    lean:
+    - module: JaxLean.Stdlib.ScatterRules
+      name: JaxLean.Tensor.scatterSet_vector
+      section: Indexed update
+    - module: JaxLean.Stdlib.TensorRules
+      name: JaxLean.Index.sum_cons
+      section: Nested sum
+    - module: JaxLean.Stdlib.FiniteLaw
+      name: JaxLean.FiniteLaw.variance_affine
+      section: Affine variance
+    - module: JaxLean.Stdlib.FiniteLaw
+      name: JaxLean.FiniteLaw.variance_independent_add
+      section: Independent addition
+    - module: JaxLean.Stdlib.Equivariance
+      name: JaxLean.Tensor.fluxStep_sum
+      section: Flux conservation
+  - title: Variance · sixteen independent dice
+    kind: example
+    sections:
+    - JAX NumPy
+    - Ideal sampling model
+    - Variance proof
+    - Certificate
+    python:
+    - file: examples/randint_monte_carlo/code.py
+      name: die_draw
+    - file: examples/randint_monte_carlo/code.py
+      name: die_estimate
+    - file: examples/randint_monte_carlo/code.py
+      name: mc_die_16
+    lean:
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.dieLaw
+      section: Ideal sampling model
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_boundary
+      section: Ideal sampling model
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_variance_reduction
+      section: Variance proof
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_variance
+      section: Variance proof
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.certified_die_variance
+      section: Certificate
+  - title: Variance · square then average
+    kind: example
+    sections:
+    - JAX NumPy
+    - Ideal sampling model
+    - Variance proof
+    - Certificate
+    python:
+    - file: examples/randint_monte_carlo/code.py
+      name: grid_index
+    - file: examples/randint_monte_carlo/code.py
+      name: grid_square
+    - file: examples/randint_monte_carlo/code.py
+      name: grid_estimate
+    - file: examples/randint_monte_carlo/code.py
+      name: mc_grid_square_8
+    lean:
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.gridIndexLaw
+      section: Ideal sampling model
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.gridValueLaw
+      section: Ideal sampling model
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_grid_boundary
+      section: Ideal sampling model
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_grid_variance_reduction
+      section: Variance proof
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_grid_variance
+      section: Variance proof
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.certified_grid_variance
+      section: Certificate
+  - title: Physics · advect
+    python:
+    - file: examples/noether/code.py
+      name: advect
+    lean:
+    - module: JaxLean.Stdlib.Equivariance
+      name: JaxLean.Tensor.fluxStep
+      section: Specification
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.neighbor
+      section: Specification
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.advect_spec
+      section: Specification
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.advect_equivariant
+      section: Correctness proof
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.advect_conserves_sum
+      section: Conservation
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.advect_certificate
+      section: Certificate
+    sections:
+    - JAX NumPy
+    - Specification
+    - Correctness proof
+    - Conservation
+    - Certificate
+    kind: example
+  - title: Physics · burgers
+    python:
+    - file: examples/noether/code.py
+      name: burgers
+    lean:
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_spec
+      section: Specification
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_equivariant
+      section: Correctness proof
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_conserves_sum
+      section: Conservation
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_certificate
+      section: Certificate
+    sections:
+    - JAX NumPy
+    - Specification
+    - Correctness proof
+    - Conservation
+    - Certificate
+    kind: example
+
+- slug: sampling
+  title: Monte Carlo
+  cards:
+  - title: Average sixteen die rolls
+    description: In the ideal independent uniform model, averaging preserves the mean and divides the
+      variance by sixteen.
+    python:
+    - file: examples/randint_monte_carlo/code.py
+      name: die_draw
+    - file: examples/randint_monte_carlo/code.py
+      name: die_estimate
+    - file: examples/randint_monte_carlo/code.py
+      name: mc_die_16
+    lean:
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_mean
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_variance_reduction
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_variance
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_die_boundary
+      detail: Sampling function boundary
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.certified_die_variance
+      detail: Estimator Jaxpr variance certificate
+  - title: A nonlinear discrete estimator
+    description: Square the sampled grid coordinates, then average eight independent values. The expectation
+      is for this finite grid, not a continuous integral.
+    python:
+    - file: examples/randint_monte_carlo/code.py
+      name: grid_index
+    - file: examples/randint_monte_carlo/code.py
+      name: grid_square
+    - file: examples/randint_monte_carlo/code.py
+      name: grid_estimate
+    - file: examples/randint_monte_carlo/code.py
+      name: mc_grid_square_8
+    lean:
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_grid_mean
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_grid_variance_reduction
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.mc_grid_variance
+    - module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+      name: JaxLean.MCJax.certified_grid_variance
+      detail: Estimator Jaxpr variance certificate
+- slug: transformer
+  title: Transformer
+  cards:
+  - title: Normalization and attention
+    description: Positive row normalization sums to one. Attention commutes with permutations of the sequence
+      positions.
+    python:
+    - file: examples/transformer/code.py
+      name: normalize
+    - file: examples/transformer/code.py
+      name: attention
+    lean:
+    - module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.normalize_sum_one
+    - module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.attention_permute
+    - module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.attention_spec
+      detail: Attention specification
+  - title: A theorem at the network boundary
+    description: The two-block network inherits permutation equivariance from its component functions.
+      Its final certificate connects the theorem to the Jaxpr evaluator.
+    python:
+    - file: examples/transformer/code.py
+      name: transformer_block
+    - file: examples/transformer/code.py
+      name: transformer
+    lean:
+    - module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.transformer_block_permute
+    - module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.transformer_permute
+    - module: examples.transformer.proofs.TransformerProofs
+      name: JaxLean.TransformerJax.certified_transformer_permute
+      detail: Jaxpr evaluation certificate
+- slug: noether
+  title: Noether equivariance
+  layout: code-only
+  cards:
+  - title: Shared rules
+    lean:
+    - module: JaxLean.Stdlib.Equivariance
+      name: JaxLean.Tensor.permute
+      section: Permutation
+    - module: JaxLean.Stdlib.Equivariance
+      name: JaxLean.Tensor.cyclicShift
+      section: Cyclic shift
+    - module: JaxLean.Stdlib.Equivariance
+      name: JaxLean.Tensor.fluxStep
+      section: Flux update
+    - module: JaxLean.Stdlib.Equivariance
+      name: JaxLean.Tensor.fluxStep_equivariant
+      section: Equivariance
+    - module: JaxLean.Stdlib.Equivariance
+      name: JaxLean.Tensor.fluxStep_sum
+      section: Conservation
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.neighbor
+      section: Four-cell neighbor
+    python: []
+    sections:
+    - Permutation
+    - Cyclic shift
+    - Flux update
+    - Equivariance
+    - Conservation
+    - Four-cell neighbor
+  - title: advect
+    python:
+    - file: examples/noether/code.py
+      name: advect
+    lean:
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.advect_spec
+      section: Specification
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.advect_equivariant
+      section: Correctness proof
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.advect_conserves_sum
+      section: Conservation
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.advect_certificate
+      section: Certificate
+    sections:
+    - JAX NumPy
+    - Specification
+    - Correctness proof
+    - Conservation
+    - Certificate
+  - title: burgers
+    python:
+    - file: examples/noether/code.py
+      name: burgers
+    lean:
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_spec
+      section: Specification
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_equivariant
+      section: Correctness proof
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_conserves_sum
+      section: Conservation
+    - module: examples.noether.proofs.NoetherProofs
+      name: JaxLean.NoetherProofs.burgers_certificate
+      section: Certificate
+    sections:
+    - JAX NumPy
+    - Specification
+    - Correctness proof
+    - Conservation
+    - Certificate
+
+  

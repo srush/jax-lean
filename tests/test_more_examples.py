@@ -10,18 +10,18 @@ import numpy as np
 import pytest
 
 from jaxlean import certify, TranslationError
-from examples import randint_monte_carlo as mc
-from examples import tensor_puzzles as puzzles
-from examples.certify_more import artifacts
+from examples.randint_monte_carlo import code as mc
+from examples.tensor_puzzles import code as puzzles
+from examples.tensor_puzzles.generate import artifacts
 from test_random_translation import lean, ROOT
 from test_translation import lean_input
 
 
 @pytest.mark.lean
 def test_generation_and_proof_axioms():
-    subprocess.run([sys.executable, '-m', 'examples.certify_more', '--check'], cwd=ROOT, check=True)
-    result = lean('''import JaxLean.Examples.RandintMonteCarloProofs
-import JaxLean.Examples.TensorPuzzleProofs
+    subprocess.run([sys.executable, '-m', 'examples.generate', '--check'], cwd=ROOT, check=True)
+    result = lean('''import examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
+import examples.tensor_puzzles.proofs.TensorPuzzleProofs
 #print axioms JaxLean.MCJax.certified_die_variance
 #print axioms JaxLean.MCJax.certified_grid_variance
 #print axioms JaxLean.PuzzleJax.certified_sum
@@ -39,7 +39,7 @@ def test_actual_randint_outputs_pass_through_lean_kernels():
     grid_draws = jax.vmap(mc.grid_index)(jax.random.split(key, 8))
     assert set(np.asarray(die_draws)).issubset(set(range(1, 7)))
     assert set(np.asarray(grid_draws)).issubset(set(range(4)))
-    code = 'import JaxLean.Generated.DieEstimate\nimport JaxLean.Generated.GridEstimate\nopen JaxLean\n'
+    code = 'import examples.randint_monte_carlo.generated.DieEstimate\nimport examples.randint_monte_carlo.generated.GridEstimate\nopen JaxLean\n'
     for name, draws in [('die_estimate', die_draws), ('grid_estimate', grid_draws)]:
         call = f'MCJax.{name} (R := ℚ) {lean_input(draws)} ()'
         code += f'#eval IO.println (let x := {call}; s!"{{x.num}}/{{x.den}}")\n'
@@ -54,10 +54,10 @@ def test_puzzle_jax_lean_and_loop_specs_agree():
     a = jnp.array([2., -3.])
     b = jnp.array([4., 0., -2.])
     x = jnp.array([2., -3., 4., -5.])
-    code = '''import JaxLean.Generated.PuzzleSum
-import JaxLean.Generated.PuzzleFlip
-import JaxLean.Generated.PuzzleOuterFlatten
-import JaxLean.Examples.Pseudocode
+    code = '''import examples.tensor_puzzles.generated.PuzzleSum
+import examples.tensor_puzzles.generated.PuzzleFlip
+import examples.tensor_puzzles.generated.PuzzleOuterFlatten
+import examples.tensor_puzzles.proofs.Pseudocode
 open JaxLean
 '''
     calls = [
@@ -123,7 +123,7 @@ def test_wrong_flatten_order_fails_certificate():
 
 @pytest.mark.lean
 def test_wrong_monte_carlo_variance_is_rejected():
-    result = lean('''import JaxLean.Examples.RandintMonteCarloProofs
+    result = lean('''import examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
 open JaxLean.MCJax
 example : (mc_grid_square_8 (R := ℝ)).variance = 49 / 1024 := by
   rw [mc_grid_variance]
@@ -133,4 +133,4 @@ example : (mc_grid_square_8 (R := ℝ)).variance = 49 / 1024 := by
 
 
 def test_rank_two_reverse_certifies():
-    assert '.reindex' in certify(jax.make_jaxpr(lambda x: x[::-1])(jnp.ones((2, 3))))
+    assert '.rev' in certify(jax.make_jaxpr(lambda x: x[::-1])(jnp.ones((2, 3))))

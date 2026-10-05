@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 from jaxlean import transpile
-from examples.vector_norms import vector_norm, linear_clip, radial_clip, batch_radial_clip
+from examples.norms.code import vector_norm, linear_clip, radial_clip, batch_radial_clip
 from test_random_translation import lean
 
 
@@ -14,7 +14,7 @@ def test_examples_execute_and_proofs_check():
     assert jnp.allclose(jax.jit(radial_clip)(x, 2.0), jnp.array([1.2, 1.6, 0.0]))
     assert jnp.all(jax.jit(radial_clip)(jnp.zeros(3), 2.0) == 0)
     assert jax.jit(batch_radial_clip)(jnp.stack([x, x]), 2.0).shape == (2, 3)
-    result = lean('import JaxLean.Examples.NormProofs\n', 'NormExamples.lean')
+    result = lean('import examples.norms.proofs.NormProofs\n', 'NormExamples.lean')
     assert result.returncode == 0, result.stdout + result.stderr
 
 

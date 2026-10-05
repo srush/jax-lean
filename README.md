@@ -6,9 +6,10 @@ theorems refer directly to those definitions. Arithmetic uses an ideal real
 model; the opt-in sampling model gives supported random calls finite probability
 semantics.
 
-The Lean semantic core defines tensor values and normalized Jaxpr evaluation;
-Python performs Jaxpr import and transpilation. Optional certificates compare the generated function with an independent,
-shape-typed Lean IR evaluator. A small tactic macro packages routine certificate
+The Lean semantic core defines tensor values and one dtype- and shape-indexed
+Jaxpr evaluator. Python performs Jaxpr import and transpilation. Optional
+certificates compare the generated function with that independently defined
+Lean IR evaluator. A small tactic macro packages routine certificate
 rewrites; every resulting proof is checked by Lean. There is no dependency on Aeneas.
 
 For code review, start with [ARCHITECTURE.md](ARCHITECTURE.md) and the
@@ -27,12 +28,14 @@ source .venv/bin/activate
 python -m pip install -e '.[test]'
 lake exe cache get
 python -m examples.generate
-lake build
-lake env lean JaxLean/Examples/Run.lean
+lake build JaxLean JaxLeanExamples
+lake env lean examples/basics/proofs/Run.lean
 python -m pytest -q
 ```
 
-`lake build` checks the generated definitions and all proofs. `Run.lean` prints:
+`lake build` checks only the reusable library. `lake build JaxLeanExamples`
+checks the generated example definitions and application proofs, which live
+under `examples/<name>/proofs/` and `examples/<name>/generated/`. `make check` checks both. `Run.lean` prints:
 
 ```text
 [2]                    -- mean of [1, 3]
@@ -44,18 +47,18 @@ python -m pytest -q
 
 Read these files in order:
 
-1. [The JAX examples](examples/generate.py).
-2. [Generated mean](JaxLean/Generated/Mean.lean): two equations, two let-bindings.
+1. [The JAX examples](examples/basics/code.py).
+2. [Generated mean](examples/basics/generated/Mean.lean): two equations, two let-bindings.
 3. [Tensor semantics](JaxLean/Core/Tensor.lean): bounded indices and coordinate maps.
-4. [Proofs](JaxLean/Examples/Proofs.lean): specifications and proofs about generated code.
+4. [Proofs](examples/basics/proofs/Proofs.lean): specifications and proofs about generated code.
 5. [Translator](python/jaxlean/translate.py) and its
-   [sampler boundary checks](python/jaxlean/random_spec.py).
+   [sampler boundary checks](python/jaxlean/rewrites/random_spec.py).
 
 ## Transformer: proofs at function boundaries
 
-Start with [ordinary JAX](examples/transformer.py), then read
-[the function-level proofs](JaxLean/Examples/TransformerProofs.lean), followed by
-[the generated functions and certificates](JaxLean/Generated/Transformer.lean).
+Start with [ordinary JAX](examples/transformer/code.py), then read
+[the function-level proofs](examples/transformer/proofs/TransformerProofs.lean), followed by
+[the generated functions and certificates](examples/transformer/generated/Transformer.lean).
 The example follows the bidirectional block in
 [srush/lean-transformer](https://github.com/srush/lean-transformer/blob/main/Transformer.lean):
 ReLU projection → Q/K/V projections → attention. Normalization is the article's
@@ -112,7 +115,7 @@ There are three proof layers:
 
 1. [MatrixRules](JaxLean/Stdlib/MatrixRules.lean) proves general reindexing, contraction,
    and row-normalization laws for arbitrary dimensions and scoring functions.
-2. [TransformerProofs](JaxLean/Examples/TransformerProofs.lean) applies them at the named
+2. [TransformerProofs](examples/transformer/proofs/TransformerProofs.lean) applies them at the named
    function boundaries. Normalized rows are nonnegative and sum to one;
    attention, the block, and the network commute with token permutations.
 3. `certified_transformer_permute` uses the translation certificate to transfer
@@ -127,19 +130,19 @@ It retains the documented trusted Python importer and ideal-real arithmetic
 boundary, including the absence of a floating-point refinement proof.
 
 ```sh
-python -m examples.certify_transformer        # regenerate
-python -m examples.certify_transformer --check
-lake build JaxLean.Examples.TransformerProofs
+python -m examples.transformer.generate        # regenerate
+python -m examples.transformer.generate --check
+lake build examples.transformer.proofs.TransformerProofs
 python -m pytest tests/test_transformer.py -q -m ""
 ```
 
 ## More examples: randint Monte Carlo
 
-[The JAX source](examples/randint_monte_carlo.py) uses `random.randint`, one
+[The JAX source](examples/randint_monte_carlo/code.py) uses `random.randint`, one
 `random.split`, `vmap`, and an ordinary estimator function. Its deterministic
-kernels have [die](JaxLean/Generated/DieEstimate.lean) and
-[grid](JaxLean/Generated/GridEstimate.lean) translation certificates.
-Read [RandintMonteCarloProofs](JaxLean/Examples/RandintMonteCarloProofs.lean) for the
+kernels have [die](examples/randint_monte_carlo/generated/DieEstimate.lean) and
+[grid](examples/randint_monte_carlo/generated/GridEstimate.lean) translation certificates.
+Read [RandintMonteCarloProofs](examples/randint_monte_carlo/proofs/RandintMonteCarloProofs.lean) for the
 kernel contracts, sampling-boundary equalities, and moment proofs.
 
 | Python function | Quantity estimated | Exact mean | Exact variance |
@@ -169,11 +172,11 @@ They illustrate verification, rather than the original restricted-operator conte
 
 Read these together:
 
-1. [JAX implementations](examples/tensor_puzzles.py): dot with ones, broadcasting,
+1. [JAX implementations](examples/tensor_puzzles/code.py): dot with ones, broadcasting,
    reverse slicing, reshape, and a composition of outer product with flatten.
-2. [Independent Lean pseudocode](JaxLean/Examples/Pseudocode.lean): an accumulator loop,
+2. [Independent Lean pseudocode](examples/tensor_puzzles/proofs/Pseudocode.lean): an accumulator loop,
    explicit output-cell formulas, and row-major quotient/remainder indexing.
-3. [The equality proofs](JaxLean/Examples/TensorPuzzleProofs.lean): each generated function
+3. [The equality proofs](examples/tensor_puzzles/proofs/TensorPuzzleProofs.lean): each generated function
    equals its specification, then certificates connect the result to Jaxpr.
 
 For example, the sum specification is an actual bounded accumulator loop:
@@ -202,15 +205,15 @@ check that incorrect reversal/flatten order and variance scaling are rejected.
 Generate and check both example sets:
 
 ```sh
-python -m examples.certify_more
-python -m examples.certify_more --check
-lake build JaxLean.RandintMonteCarloProofs JaxLean.TensorPuzzleProofs
+python -m examples.generate
+python -m examples.generate --check
+lake build examples.randint_monte_carlo.proofs.RandintMonteCarloProofs examples.tensor_puzzles.proofs.TensorPuzzleProofs
 python -m pytest tests/test_more_examples.py -q -m ""
 ```
 
 ## Ordinary JAX, transpilation, and a readable theorem
 
-Start with [random_program.py](examples/random_program.py). It contains only
+Start with [random-program source](examples/random_program/code.py). It contains only
 standard JAX, with no jaxlean imports or distribution wrappers:
 
 ```python
@@ -231,13 +234,13 @@ Transpilation is a separate build step:
 ```python
 from pathlib import Path
 from jaxlean import transpile
-from examples.random_program import sample_times_100
+from examples.random_program.code import sample_times_100
 
 code = transpile(
     sample_times_100, jax.random.key(0),
     namespace="JaxLean.Generated", random_model="uniform",
 )
-Path("JaxLean/Generated/SampleTimes100.lean").write_text(code)
+Path("examples/random_program/generated/SampleTimes100.lean").write_text(code)
 ```
 
 This runs `jax.make_jaxpr` and the core translator. The lower-level entrypoint
@@ -250,7 +253,7 @@ scalar code, and marks the sampling abstraction explicitly. Its body is:
 ```lean
 let sampling := Rand.uniformInt (R := R) (0) 6 (by decide)
 Rand.map (fun draw =>
-  -- random_program.py:8 (sample_times_100)
+  -- code.py:8 (sample_times_100)
   -- convert_element_type
   let cast_result : R := draw
   -- mul
@@ -265,7 +268,7 @@ argument. Later scalar arithmetic is emitted by the same core used for
 ordinary deterministic JAX programs.
 
 Now write the theorem separately, importing `JaxLean.Stdlib` and the generated
-module. [RandomProgramProofs.lean](JaxLean/Examples/RandomProgramProofs.lean) contains:
+module. [RandomProgramProofs.lean](examples/random_program/proofs/RandomProgramProofs.lean) contains:
 
 ```lean
 theorem sample_times_100_variance :
@@ -326,8 +329,8 @@ floating-point rounding remains outside the real model. See the canonical
 [supported Jaxpr inventory](SUPPORTED_JAXPR.md) for exact boundaries.
 
 ```sh
-python -m examples.transpile_random
-lake build
+python -m examples.generate
+lake build JaxLeanExamples
 python -m pytest -q
 ```
 
@@ -407,7 +410,7 @@ vector tensors. The translator preserves vector–matrix multiplication as
 the supported vector `jnp.linalg.norm` or symmetric `jnp.clip`: they lower to
 existing multiplication, sum, square root, minimum and maximum operations.
 
-[vector_norms.py](examples/vector_norms.py) contains ordinary JAX:
+[norm example](examples/norms/code.py) contains ordinary JAX:
 
 ```python
 def linear_clip(x, weights, radius):
@@ -417,7 +420,7 @@ def radial_clip(x, radius):
     return x * (radius / jnp.maximum(radius, jnp.linalg.norm(x)))
 ```
 
-[NormProofs.lean](JaxLean/Examples/NormProofs.lean) proves bounds directly about the
+[NormProofs.lean](examples/norms/proofs/NormProofs.lean) proves bounds directly about the
 transpiled definitions. For the first function, `radius ≥ 0` gives both
 `||output||₂ ≤ ||weights||F * ||x||₂` and
 `||output||₂ ≤ sqrt(output_dimension) * radius`. The proof composes the matrix
@@ -440,7 +443,7 @@ radial clipping at a nonpositive radius are not supplied by these proof rules.
 
 ## Monte Carlo: attach a general theorem to generated code
 
-[monte_carlo.py](examples/monte_carlo.py) is ordinary executable JAX:
+[monte_carlo.py](examples/monte_carlo/code.py) is ordinary executable JAX:
 
 ```python
 def monte_carlo(key, sample, f, n):
@@ -476,8 +479,8 @@ Three system extensions make this work:
    rule for independent coordinates, each with its own function. There is no
    Monte Carlo definition or theorem in the stdlib.
 
-[MonteCarloProofs.lean](JaxLean/Examples/MonteCarloProofs.lean) unfolds the
-[transpiled definition](JaxLean/Generated/MonteCarlo4.lean) and propagates these
+[MonteCarloProofs.lean](examples/monte_carlo/proofs/MonteCarloProofs.lean) unfolds the
+[transpiled definition](examples/monte_carlo/generated/MonteCarlo4.lean) and propagates these
 rules through its body:
 
 ```lean
@@ -552,20 +555,20 @@ code = certify(closed, name="certified_mean", namespace="JaxLean.Generated")
 
 Write the returned source to a Lean file and check it with `lake env lean`.
 **Producing this source is not itself successful certification.** Lean must
-accept the emitted theorem. `python -m examples.certify` generates the checked-in
-[CertifiedMean.lean](JaxLean/Generated/CertifiedMean.lean), included in `lake build`.
+accept the emitted theorem. `python -m examples.certificates.generate` generates the checked-in
+[CertifiedMean.lean](examples/certificates/generated/CertifiedMean.lean), included in `lake build JaxLeanExamples`.
 
 The IR in that file is small enough to inspect:
 
 ```lean
-def certified_mean_ir : Jaxpr.Program [[2]] [] :=
-  .bind (.sumFirst (.var .here)) <|
-  .bind (.div (.var .here) (.literal (2) 1 (by decide))) <|
+def certified_mean_ir : Jaxpr.Program [(.real, [2])] (.real, []) :=
+  .bind (.reduce_sum (s := [2]) (t := []) (k := [2]) (fun i j => (j.1, ())) (.var .here)) <|
+  .bind (.div (.var .here) (.literal (2) 1 (by decide)) (t := [])) <|
   .ret (.var .here)
 ```
 
-`[[2]]` is the input context (one vector of length two); the final `[]` is the
-scalar output shape. `.here` selects the newest environment value. Each binding
+`[(.real, [2])]` is the input context (one real vector of length two);
+`(.real, [])` is the real scalar output type. `.here` selects the newest environment value. Each binding
 pushes its result onto the environment, so these references mean input vector,
 then sum, then quotient. `.there` accesses an older binding. Literal `2/1`
 records an exact rational value, not a Python floating computation.
@@ -580,7 +583,7 @@ theorem certified_mean_translation_correct (x0 : Tensor ℝ [2]) :
   ...
 ```
 
-[Jaxpr.lean](JaxLean/Core/Jaxpr.lean) defines shape-typed variables, environments,
+[Jaxpr.lean](JaxLean/Core/Jaxpr.lean) defines dtype- and shape-typed variables, environments,
 operations and let-bound programs. Its evaluator uses direct coordinate
 arithmetic and finite sums, independently of `Tensor.map`, `map₂` and
 `sumFirst`. Local lemmas connect these semantics to tensor operations; the
@@ -590,16 +593,29 @@ Lean's type system. No axiom or `sorry` supplies translation correctness.
 The **certifiable** fragment includes real arithmetic, transcendental functions,
 general fixed-shape broadcasts/transposes/reshapes, concatenation, batched
 contractions, arbitrary-axis sums, nonempty max/min reductions, and static
-scatter. Mixed programs additionally use a dtype-and-shape-indexed
-[`TypedJaxpr`](JaxLean/Core/TypedJaxpr.lean) layer for Boolean masks, signed int32
-indices, wrapped index arithmetic, and clipped gather. Real subprograms reuse
-the existing IR. `certify_module` retains pure single-result jit boundaries
+scatter. All programs use the same dtype-and-shape-indexed `Jaxpr.Program`,
+including Boolean masks, signed int32 indices, wrapped index arithmetic, and
+clipped gather. There is one environment and evaluator; real operations do not
+need an embedded subprogram. `certify_module` retains pure single-result jit boundaries
 and checks their bodies recursively.
 
-[Ordinary JAX examples](examples/common_primitives.py) include standard softmax,
+The [single importer](python/jaxlean/importers/jaxpr.py) preserves primitive names
+and call boundaries, using typed de Bruijn references for variables. For example,
+[eye_ir](examples/tensor_puzzles/generated/PuzzlesEye.lean) contains `iota`, two
+`broadcast_in_dim` bindings with their source shape/dimension parameters, `eq`,
+and a call to the `where` body. There are no inserted scalar-broadcast bindings
+or embedded real-only programs. Static index equations remain in the graph;
+each concatenation or static scatter remains one binding. Some layout and
+scatter parameters still use bounded coordinate maps or static coordinate plans,
+so the encoding is not a verbatim serialization of every Jaxpr parameter.
+
+Generated certificates reuse child certificates and retain explicit simplifier
+proof steps to avoid repeatedly reducing large SSA environments in Lean's kernel.
+
+[Ordinary JAX examples](examples/common_primitives/code.py) include standard softmax,
 batched query/key products, masking, and embedding lookup with
 `jnp.take(table, ids, axis=0, mode="clip")`.
-[Function-boundary proofs](JaxLean/Examples/CommonPrimitiveProofs.lean) show softmax row
+[Function-boundary proofs](examples/common_primitives/proofs/CommonPrimitiveProofs.lean) show softmax row
 sums of one, nonnegativity, and exact clipped embedding lookup, and connect
 those properties to the imported Jaxpr using translation certificates.
 
@@ -708,7 +724,7 @@ specifications. Do not assert field laws about machine floats.
 
 ## What is verified
 
-[Proofs.lean](JaxLean/Examples/Proofs.lean) checks, without `sorry` or custom axioms:
+[Proofs.lean](examples/basics/proofs/Proofs.lean) checks, without `sorry` or custom axioms:
 
 - The generated two-sample mean equals `(x₀ + x₁)/2` and is invariant under swap.
 - Transposing twice is identity, and summation is invariant under transpose.
@@ -747,7 +763,7 @@ needs an explicit relationship to the existing real semantics.
 
 The proof components live in [SelectionRules.lean](JaxLean/Stdlib/SelectionRules.lean).
 That file imports **no generated programs**. The small application file
-[Selection.lean](JaxLean/Examples/Selection.lean) applies the same library to two different
+[Selection.lean](examples/selection/proofs/Selection.lean) applies the same library to two different
 transpiled networks. It follows the selection-equivariance property in
 [Lean Verified Transformers](https://srush.github.io/lean-transformer/).
 
@@ -772,7 +788,7 @@ def mlp(x, w1, b1, w2, b2):
 ```
 
 The translator emits calls to named pure functions instead of expanding every
-operation into scalar indexing. In [MLP4.lean](JaxLean/Generated/MLP4.lean),
+operation into scalar indexing. In [MLP4.lean](examples/selection/generated/MLP4.lean),
 `x0, x1, x2, x3, x4` mean `x, w1, b1, w2, b2`:
 
 ```lean
@@ -878,8 +894,8 @@ and singleton batches.
 
 ```sh
 python -m examples.generate --check
-lake build
-lake env lean JaxLean/Examples/Selection.lean
+lake build JaxLeanExamples
+lake env lean examples/selection/proofs/Selection.lean
 python -m pytest -q
 ```
 
@@ -896,13 +912,26 @@ parameter in the generated mathematical model. Lean checks the assembled
 proof; the Python translator is still trusted to model the original Jaxpr.
 This is not a proof of bitwise equality between floating-point JAX executions.
 
-## Explicit finite-law experiments
+## Example layout
 
-The earlier [sampling.py example](examples/sampling.py) and `Discrete` helper
-remain available for constructing finite laws explicitly. The ordinary-JAX
-workflow above is the primary interface for verifying source functions.
-[FiniteLaw.lean](JaxLean/Stdlib/FiniteLaw.lean) supplies shared expectation, variance,
-covariance, and independence theorems to both workflows.
+Each example family keeps its Python program and Lean artifacts together:
+
+```text
+examples/transformer/
+  code.py
+  generate.py
+  proofs/TransformerProofs.lean
+  generated/Transformer.lean
+```
+
+The same layout is used for basics, selection, norms, certificates, common
+primitives, scatter, tensor puzzles, random programs, Monte Carlo, randint
+estimators, and Noether updates. `JaxLeanExamples.lean` imports the example
+proofs; the core library does not depend on them.
+
+Run `python -m examples.transformer.generate` to regenerate one example, or
+add `--check` to check freshness. `make generate` and `make check-generated`
+cover every example directory.
 
 ## Development
 
@@ -918,7 +947,7 @@ make check-full        # freshness + Lean build + all Python/integration tests
 
 The default `pytest` selection excludes the `lean` marker. It checks Python
 validation, unsupported-input rejection, sampling behavior, and documentation
-extraction. `lake build` continues to kernel-check all library and example
+extraction. `make check-lean` kernel-checks all library and example
 proofs, reusing unchanged compiled modules. Tests marked `lean` compile extra
 temporary programs, compare JAX with Lean execution, and deliberately corrupt
 programs to test rejection. Run them when changing the importer, certificate
@@ -941,11 +970,30 @@ there are no absolute paths to another checkout in the package configuration.
 ## Python / Lean proof notebook
 
 ```sh
+python -m pip install -e tools/verso
 make docs-serve
 # Open http://localhost:8765
+# In a second terminal, from the repository root:
+make docs-watch
 ```
 
-The small [HTML generator](python/jaxlean/docs.py) uses **Verso** to render
+The notebook tooling is a separate Python distribution in `tools/verso/`.
+It is excluded from the core `jaxlean` installation. `make docs` and
+`make docs-serve` run it directly from that directory. To install its CLI:
+
+```sh
+pip install -e tools/verso
+jaxlean-verso build --root /path/to/jaxlean
+jaxlean-verso serve --root /path/to/jaxlean
+```
+
+The documentation package uses PyYAML for its manifest and markdown-it-py for
+text blocks. Building the notebook also requires the JAX example environment
+and Lake/Verso; these are separate from the documentation package dependencies.
+`--root` defaults to the current directory and identifies the repository,
+independently of where the package is installed.
+
+The small [HTML generator](tools/verso/src/jaxlean_verso/notebook.py) uses **Verso** to render
 kernel-checked Lean declarations beside the original Python functions. The
 notebook includes tensor puzzles, `randint` Monte Carlo estimators, and the
 transformer. Lean names have type/documentation mouseovers; tactic underlines
@@ -957,16 +1005,35 @@ builds additional dependencies; subsequent builds use Lake's cache. Jupytext
 would be useful for synchronizing notebooks and Python scripts, but doesn't
 provide Lean elaboration or hover information, so it is not needed here.
 
-Edit [docs/examples.json](docs/examples.json) to pair Python function names with
-fully qualified Lean declarations and their modules. Add `"detail": "Label"` to
-a Lean entry to make it expandable. No proof text is copied into the manifest.
-Python entries can use `"section": "Pseudocode"` to display executable JAX
-loop specifications. The tensor-puzzles page compares these `.at[...].set(...)`
-loops with vectorized JAX and certifies equality of their two imported Jaxprs.
-Python source is inspected only for display; the transpiler still consumes
-Jaxpr. The generator runs the existing example freshness checks before building
-Verso's `:literate` artifacts, and fails on missing functions/declarations.
-For new example families, extend those checks in `build()` as well.
+Edit [docs/examples.yaml](docs/examples.yaml). Each blog section has an ordered
+`blocks` list: move entries to reorder the page, and insert a `type: text` entry
+between any two snippets. Text supports Markdown, including inline links; an
+empty text block displays its `marker`. Python and Lean snippets refer to source
+functions and declarations, so code is not copied into the manifest:
+
+```yaml
+blocks:
+- type: python
+  file: examples/blog/code.py
+  name: add_vectors
+- type: text
+  text: |
+  marker: after add_vectors
+- type: lean
+  module: examples.blog.generated.AddVectors
+  name: JaxLean.Blog.add_vectors_ir
+  section: Lean IR
+```
+
+Use `detail: Label` on a Lean block to make it expandable. Datatype blocks read
+the current declarations from source, including the unified IR's dtype and
+shape indices. Python source is inspected only for display; the transpiler
+still consumes Jaxpr. `make docs` checks generated-file freshness and builds
+Verso's `:literate` artifacts, failing on missing functions or declarations.
+
+`make docs-watch` refreshes prose and style edits using the last checked Lean
+output. Code edits trigger a full documentation build; failures preserve the
+last successful preview. Keep the HTTP server running alongside the watcher.
 
 `make docs` writes `.lake/build/proof-notebook/`, including local JavaScript/CSS,
 full module pages, and a source-hash build record. Serve this directory over
