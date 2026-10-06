@@ -34,12 +34,10 @@ def fn__roll_static_ir : Jaxpr.Program [(.real, [4])] (.real, [4]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__roll_static_translation_correct («a» : Tensor ℝ [4]) :
-    Jaxpr.Program.eval (.cons «a» .nil) fn__roll_static_ir = «fn__roll_static» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«NoetherJax».«Burgers».fn__roll_static_ir = _root_.«JaxLean».«NoetherJax».«Burgers».«fn__roll_static» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__roll_static_ir, «fn__roll_static», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__roll_static_ir, «fn__roll_static», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«NoetherJax».«Burgers».fn__roll_static_ir, _root_.«JaxLean».«NoetherJax».«Burgers».«fn__roll_static»]
 
 end «JaxLean».«NoetherJax».«Burgers»
 
@@ -60,7 +58,7 @@ def «burgers» {R : Type} [Field R] [LinearOrder R] («u» : Tensor R [4]) («l
   let mul_result : Tensor R [4] := Tensor.map (fun a0 => ((Tensor.scalar (1 / 2 : R)) ()) * a0) integer_pow_result
   -- code.py:12 (burgers)
   -- call fn__roll_static
-  let call_fn__roll_static_result : Tensor R [4] := «fn__roll_static» (R := R) (mul_result)
+  let call_fn__roll_static_result : Tensor R [4] := _root_.«JaxLean».«NoetherJax».«Burgers».«fn__roll_static» (R := R) (mul_result)
   -- code.py:12 (burgers)
   -- sub
   let sub_result : Tensor R [4] := Tensor.map₂ (fun a0 a1 => a0 - a1) mul_result call_fn__roll_static_result
@@ -88,12 +86,9 @@ def burgers_ir : Jaxpr.Program [(.real, [4]), (.real, [])] (.real, [4]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem burgers_translation_correct («u» : Tensor ℝ [4]) («lam» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «u» (.cons «lam» .nil)) burgers_ir = «burgers» (R := ℝ) «u» «lam» := by
+    Jaxpr.Program.eval (.cons «u» (.cons «lam» .nil)) _root_.«JaxLean».«NoetherJax».«Burgers».burgers_ir = _root_.«JaxLean».«NoetherJax».«Burgers».«burgers» (R := ℝ) «u» «lam» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [burgers_ir, «burgers», ↓fn__roll_static_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [burgers_ir, «burgers», fn__roll_static_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«NoetherJax».«Burgers».burgers_ir, _root_.«JaxLean».«NoetherJax».«Burgers».«burgers», _root_.«JaxLean».«NoetherJax».«Burgers».fn__roll_static_translation_correct]
 
 end «JaxLean».«NoetherJax».«Burgers»

@@ -14,7 +14,8 @@ The importer consumes Jaxpr independently of the tensor-function emitter.
 | Comparisons | `eq`, `ne`, `lt`, `le`, `gt`, `ge` |
 | Boolean operations | `and`, `or`, `xor`, `not`, `select_n` |
 | Broadcast | `broadcast_in_dim` with shape and dimension list; elementwise broadcasting stays inside its source operation |
-| Layout | `transpose`, `squeeze`, `slice`, `rev`, `reshape` with bounded coordinate maps |
+| Permutations | `transpose` with a checked source permutation; `rev` with a checked axis list |
+| Other layout operations | `squeeze`, `slice`, `reshape` with bounded coordinate maps |
 | Initialization | `iota` with shape and axis |
 | Products and reductions | `dot_general`, `reduce_sum`, `reduce_max`, `reduce_min` |
 | Other tensor operations | `concatenate`, `gather` |

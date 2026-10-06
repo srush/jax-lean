@@ -45,11 +45,9 @@ def gradient_ir : Jaxpr.Program [(.real, [])] (.real, []) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem gradient_translation_correct (x0 : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons x0 .nil) gradient_ir = «gradient» (R := ℝ) x0 := by
+    Jaxpr.Program.eval (.cons x0 .nil) _root_.«JaxLean».«Autodiff».gradient_ir = _root_.«JaxLean».«Autodiff».«gradient» (R := ℝ) x0 := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [gradient_ir, «gradient», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [gradient_ir, «gradient», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Autodiff».gradient_ir, _root_.«JaxLean».«Autodiff».«gradient»]
 
 end «JaxLean».«Autodiff»

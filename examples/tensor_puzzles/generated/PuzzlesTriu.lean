@@ -36,12 +36,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, [3, 3]), (.real, []), (.real, [])] (.r
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [3, 3]) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Triu».«Array».fn__where_ir = _root_.«JaxLean».«Puzzles».«Triu».«Array».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Triu».«Array».fn__where_ir, _root_.«JaxLean».«Puzzles».«Triu».«Array».«fn__where»]
 
 end «JaxLean».«Puzzles».«Triu».«Array»
 
@@ -68,7 +66,7 @@ def «triu» {R : Type} [Field R] [LinearOrder R]  : Tensor R [3, 3] :=
   let le_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (i.1, 0, ())) ≤ (broadcast_in_dim_result_2 (0, i.2.1, ())))
   -- code.py:101 (puzzle_triu)
   -- call fn__where
-  let call_fn__where_result : Tensor R [3, 3] := «fn__where» (R := R) (le_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Triu».«Array».«fn__where» (R := R) (le_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   call_fn__where_result
 
 end «JaxLean».«Puzzles».«Triu».«Array»
@@ -86,13 +84,10 @@ def triu_ir : Jaxpr.Program [] (.real, [3, 3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem triu_translation_correct  :
-    Jaxpr.Program.eval .nil triu_ir = «triu» (R := ℝ)  := by
+    Jaxpr.Program.eval .nil _root_.«JaxLean».«Puzzles».«Triu».«Array».triu_ir = _root_.«JaxLean».«Puzzles».«Triu».«Array».«triu» (R := ℝ)  := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [triu_ir, «triu», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [triu_ir, «triu», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Triu».«Array».triu_ir, _root_.«JaxLean».«Puzzles».«Triu».«Array».«triu», _root_.«JaxLean».«Puzzles».«Triu».«Array».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«Triu».«Array»
 
@@ -158,11 +153,9 @@ def triu_ir : Jaxpr.Program [] (.real, [3, 3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem triu_translation_correct  :
-    Jaxpr.Program.eval .nil triu_ir = «triu» (R := ℝ)  := by
+    Jaxpr.Program.eval .nil _root_.«JaxLean».«Puzzles».«Triu».«Loop».triu_ir = _root_.«JaxLean».«Puzzles».«Triu».«Loop».«triu» (R := ℝ)  := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [triu_ir, «triu», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [triu_ir, «triu», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Triu».«Loop».triu_ir, _root_.«JaxLean».«Puzzles».«Triu».«Loop».«triu»]
 
 end «JaxLean».«Puzzles».«Triu».«Loop»

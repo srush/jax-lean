@@ -43,12 +43,9 @@ class JaxprImporter:
 
     @staticmethod
     def variable_name(i):
-        name = ''
-        while True:
-            name = chr(ord('a') + i % 26) + name
-            i = i // 26 - 1
-            if i < 0:
-                return name
+        # Single letters match small Jaxprs. Numbered names avoid Lean keywords
+        # such as `by`, `do`, `if`, and `in` in larger graphs.
+        return chr(ord('a') + i) if i < 26 else f'v{i}'
 
     def atom(self, v):
         if isinstance(v, core.Literal) or (v in self.constants and v not in self.env):
@@ -82,8 +79,12 @@ class JaxprImporter:
             return self.names[v]
         return f'(.var {ref})'
 
-    def emit(self, expr, out):
-        if self.named_vars:
+    def emit(self, expr, out, *, args=None):
+        if args is not None:
+            line = (f'    {self.names[out]} : {ty(out.aval)} := call {expr} with {args};'
+                    if self.named_vars else f'  .call {expr} {args} <|')
+            self.lines.append(line)
+        elif self.named_vars:
             self.lines.append(f'    {self.names[out]} : {ty(out.aval)} := {expr};')
         else:
             self.lines.append(f'  .bind ({expr}) <|')
@@ -119,13 +120,7 @@ class JaxprImporter:
                 args = '.nil'
                 for v in reversed(eq.invars):
                     args = f'(.cons {self.atom(v)} {args})'
-                if self.named_vars:
-                    self.lines.append(
-                        f'    {self.names[out]} : {ty(out.aval)} := call {callee}_ir with {args};')
-                else:
-                    self.lines.append(f'  .call {callee}_ir {args} <|')
-                self.env = {v: i+1 for v, i in self.env.items()}
-                self.env[out] = 0
+                self.emit(f'{callee}_ir', out, args=args)
                 continue
             if op in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
                 d = dtype(eq.invars[0].aval)
@@ -154,11 +149,13 @@ class JaxprImporter:
                 expr = f'.{op} {self.atom(eq.invars[0])}'
             elif op == 'broadcast_in_dim':
                 expr = f'.broadcast_in_dim {lean_shape(s)} {lean_shape(p["broadcast_dimensions"])} {self.atom(eq.invars[0])}'
-            elif op in ('reshape', 'transpose', 'squeeze', 'slice'):
+            elif op == 'transpose':
+                expr = f'.transpose {lean_shape(p["permutation"])} {self.atom(eq.invars[0])} (t := {lean_shape(s)})'
+            elif op == 'rev':
+                expr = f'.rev {lean_shape(p["dimensions"])} {self.atom(eq.invars[0])}'
+            elif op in ('reshape', 'squeeze', 'slice'):
                 src = shape(eq.invars[0].aval)
-                if op == 'transpose':
-                    ix = [coords(s)[tuple(p['permutation']).index(d)] for d in range(len(src))]
-                elif op == 'squeeze':
+                if op == 'squeeze':
                     remaining = iter(coords(s))
                     ix = ['0' if d in p['dimensions'] else next(remaining) for d in range(len(src))]
                 elif op == 'slice':
@@ -173,14 +170,11 @@ class JaxprImporter:
                     ix = None
                 if ix is not None:
                     mapping = f'(fun i => {index(ix)})'
-                primitive = op
-                expr = f'.{primitive} (s := {lean_shape(src)}) (t := {lean_shape(s)}) {mapping} {self.atom(eq.invars[0])}'
-            elif op == 'concatenate':
-                self.emit_numeric(eq)
-                continue
-            elif k == 'real' and (all(dtype(v.aval) == 'real' for v in eq.invars) or op in ('scatter', 'scatter-add')):
-                self.emit_numeric(eq)
-                continue
+                expr = f'.{op} (s := {lean_shape(src)}) (t := {lean_shape(s)}) {mapping} {self.atom(eq.invars[0])}'
+            elif op == 'concatenate' or (k == 'real' and (
+                    all(dtype(v.aval) == 'real' for v in eq.invars)
+                    or op in ('scatter', 'scatter-add'))):
+                expr = self.numeric_operation(eq)
             else:
                 raise TranslationError(f'no certificate rule for {op}')
             self.emit(expr, out)
@@ -190,27 +184,19 @@ class JaxprImporter:
             return '\n'.join([f'  jaxpr% ({inputs}) {{', *self.lines, f'    return {result}', '  }'])
         return '\n'.join([*self.lines, f'  .ret {result}'])
 
-    def emit_numeric(self, eq):
+    def numeric_operation(self, eq):
         from ..static_index import scatter_plan
         op, out, integers = eq.primitive.name, eq.outvars[0], self.constants
         if op == "iota" and kind(out.aval) == "real":
             s = shape(out.aval)
             axis = eq.params['dimension']
-            self.emit(f".iota {lean_shape(s)} {axis}", out)
-            return
+            return f".iota {lean_shape(s)} {axis}"
         if op in ("scatter", "scatter-add"):
             plan = scatter_plan(eq, integers)
             result, _, update = eq.invars
             positions = ', '.join(f'({index([str(i) for i in at])}, {index([str(i) for i in source])})' for at, source in plan)
             rule = 'scatter_add' if op == 'scatter-add' else 'scatter'
-            self.emit(f'.{rule} (s := {lean_shape(shape(result.aval))}) (u := {lean_shape(shape(update.aval))}) [{positions}] {self.atom(result)} {self.atom(update)}', out)
-            return
-        from ..layout import identity_extreme
-        finite = identity_extreme(eq)
-        if finite is not None:
-            self.env[out] = self.env[finite]
-            self.names[out] = self.names[finite]
-            return
+            return f'.{rule} (s := {lean_shape(shape(result.aval))}) (u := {lean_shape(shape(update.aval))}) [{positions}] {self.atom(result)} {self.atom(update)}'
         s = shape(out.aval)
         if op in ("add", "add_any", "sub", "mul", "div", "min", "max"):
             expr = f".{'add' if op == 'add_any' else op} " + " ".join(self.atom(v) for v in eq.invars) + self.broadcast_shape(eq.invars, s)
@@ -241,11 +227,7 @@ class JaxprImporter:
                 offset = end
             mapping = '(fun i => ' + ''.join(choices) + ')'
             expr = f'.concatenate (t := {lean_shape(s)}) {args} {mapping}'
-        elif op == "rev":
-            ix = [f"{c}.rev" if d in eq.params["dimensions"] else c for d, c in enumerate(coords(s))]
-            expr = f".rev (s := {lean_shape(s)}) (t := {lean_shape(s)}) (fun i => {index(ix)}) {self.atom(eq.invars[0])}"
         elif op == "dot_general":
-            (lc, rc), (lb, rb) = eq.params["dimension_numbers"]
             a, b = eq.invars
             from ..layout import contraction
             reduced, left, right = contraction(shape(a.aval), shape(b.aval), eq.params["dimension_numbers"])
@@ -262,4 +244,4 @@ class JaxprImporter:
             expr = f".reduce_sum (s := {lean_shape(shape(eq.invars[0].aval))}) (t := {lean_shape(s)}) (k := {lean_shape(reduced)}) {mapping} {self.atom(eq.invars[0])}"
         else:
             raise TranslationError(f"primitive {op!r} has no translation certificate rule")
-        self.emit(expr, out)
+        return expr

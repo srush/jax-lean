@@ -41,12 +41,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, [3, 3]), (.real, [1, 3]), (.real, [])]
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [3, 3]) («x» : Tensor ℝ [1, 3]) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».fn__where_ir = _root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».fn__where_ir, _root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».«fn__where»]
 
 end «JaxLean».«Puzzles».«ScatterAdd».«Array»
 
@@ -79,7 +77,7 @@ def «scatter_add» {R : Type} [Field R] [LinearOrder R] («values» : Tensor R 
   let broadcast_in_dim_result_3 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) «values»
   -- code.py:216 (puzzle_scatter_add)
   -- call fn__where
-  let call_fn__where_result : Tensor R [3, 3] := «fn__where» (R := R) (eq_result) (broadcast_in_dim_result_3) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».«fn__where» (R := R) (eq_result) (broadcast_in_dim_result_3) ((Tensor.scalar (0 : R)))
   -- code.py:216 (puzzle_scatter_add)
   -- reduce_sum
   let reduce_sum_result : Tensor R [3] := fun i => ∑ k0 : Fin 3, (call_fn__where_result (i.1, k0, ()))
@@ -103,13 +101,10 @@ def scatter_add_ir : Jaxpr.Program [(.real, [3]), (.int, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem scatter_add_translation_correct («values» : Tensor ℝ [3]) («link» : Tensor Int32 [3]) :
-    Jaxpr.Program.eval (.cons «values» (.cons «link» .nil)) scatter_add_ir = «scatter_add» (R := ℝ) «values» «link» := by
+    Jaxpr.Program.eval (.cons «values» (.cons «link» .nil)) _root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».scatter_add_ir = _root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».«scatter_add» (R := ℝ) «values» «link» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [scatter_add_ir, «scatter_add», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [scatter_add_ir, «scatter_add», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».scatter_add_ir, _root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».«scatter_add», _root_.«JaxLean».«Puzzles».«ScatterAdd».«Array».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«ScatterAdd».«Array»
 
@@ -143,12 +138,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, []), (.real, []), (.real, [])] (.real,
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool []) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».fn__where_ir = _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».fn__where_ir, _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«fn__where»]
 
 end «JaxLean».«Puzzles».«ScatterAdd».«Loop»
 
@@ -175,7 +168,7 @@ def «loop_masked_sum» {R : Type} [Field R] [LinearOrder R] («values» : Tenso
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
   -- code.py:203 (loop_masked_sum)
   -- call fn__where
-  let call_fn__where_result : Tensor R [] := «fn__where» (R := R) (squeeze_result) (squeeze_result_2) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«fn__where» (R := R) (squeeze_result) (squeeze_result_2) ((Tensor.scalar (0 : R)))
   -- code.py:203 (loop_masked_sum)
   -- add
   let add_result : Tensor R [] := Tensor.scalar (((Tensor.scalar (0 : R)) ()) + (call_fn__where_result ()))
@@ -193,7 +186,7 @@ def «loop_masked_sum» {R : Type} [Field R] [LinearOrder R] («values» : Tenso
   let squeeze_result_4 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
   -- code.py:203 (loop_masked_sum)
   -- call fn__where
-  let call_fn__where_result_2 : Tensor R [] := «fn__where» (R := R) (squeeze_result_3) (squeeze_result_4) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«fn__where» (R := R) (squeeze_result_3) (squeeze_result_4) ((Tensor.scalar (0 : R)))
   -- code.py:203 (loop_masked_sum)
   -- add
   let add_result_2 : Tensor R [] := Tensor.scalar ((add_result ()) + (call_fn__where_result_2 ()))
@@ -211,7 +204,7 @@ def «loop_masked_sum» {R : Type} [Field R] [LinearOrder R] («values» : Tenso
   let squeeze_result_6 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_6
   -- code.py:203 (loop_masked_sum)
   -- call fn__where
-  let call_fn__where_result_3 : Tensor R [] := «fn__where» (R := R) (squeeze_result_5) (squeeze_result_6) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«fn__where» (R := R) (squeeze_result_5) (squeeze_result_6) ((Tensor.scalar (0 : R)))
   -- code.py:203 (loop_masked_sum)
   -- add
   let add_result_3 : Tensor R [] := Tensor.scalar ((add_result_2 ()) + (call_fn__where_result_3 ()))
@@ -245,13 +238,10 @@ def loop_masked_sum_ir : Jaxpr.Program [(.real, [3]), (.bool, [3])] (.real, []) 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem loop_masked_sum_translation_correct («values» : Tensor ℝ [3]) («mask» : Tensor Bool [3]) :
-    Jaxpr.Program.eval (.cons «values» (.cons «mask» .nil)) loop_masked_sum_ir = «loop_masked_sum» (R := ℝ) «values» «mask» := by
+    Jaxpr.Program.eval (.cons «values» (.cons «mask» .nil)) _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».loop_masked_sum_ir = _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«loop_masked_sum» (R := ℝ) «values» «mask» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [loop_masked_sum_ir, «loop_masked_sum», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [loop_masked_sum_ir, «loop_masked_sum», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».loop_masked_sum_ir, _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«loop_masked_sum», _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«ScatterAdd».«Loop»
 
@@ -275,7 +265,7 @@ def «scatter_add» {R : Type} [Field R] [LinearOrder R] («values» : Tensor R 
   let eq_result : Tensor Bool [3] := fun i => decide ((cast_result (i.1, ())) = ((Tensor.scalar (0 : R)) ()))
   -- code.py:222 (loop_scatter_add)
   -- call loop_masked_sum
-  let call_loop_masked_sum_result : Tensor R [] := «loop_masked_sum» (R := R) («values») (eq_result)
+  let call_loop_masked_sum_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«loop_masked_sum» (R := R) («values») (eq_result)
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (call_loop_masked_sum_result ())
   -- code.py:222 (loop_scatter_add)
@@ -286,7 +276,7 @@ def «scatter_add» {R : Type} [Field R] [LinearOrder R] («values» : Tensor R 
   let eq_result_2 : Tensor Bool [3] := fun i => decide ((cast_result_2 (i.1, ())) = ((Tensor.scalar (1 : R)) ()))
   -- code.py:222 (loop_scatter_add)
   -- call loop_masked_sum
-  let call_loop_masked_sum_result_2 : Tensor R [] := «loop_masked_sum» (R := R) («values») (eq_result_2)
+  let call_loop_masked_sum_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«loop_masked_sum» (R := R) («values») (eq_result_2)
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (call_loop_masked_sum_result_2 ())
   -- code.py:222 (loop_scatter_add)
@@ -297,7 +287,7 @@ def «scatter_add» {R : Type} [Field R] [LinearOrder R] («values» : Tensor R 
   let eq_result_3 : Tensor Bool [3] := fun i => decide ((cast_result_3 (i.1, ())) = ((Tensor.scalar (2 : R)) ()))
   -- code.py:222 (loop_scatter_add)
   -- call loop_masked_sum
-  let call_loop_masked_sum_result_3 : Tensor R [] := «loop_masked_sum» (R := R) («values») (eq_result_3)
+  let call_loop_masked_sum_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«loop_masked_sum» (R := R) («values») (eq_result_3)
   -- scatter
   let scatter_result_3 : Tensor R [3] := Tensor.scatterSet scatter_result_2 (2, ()) (call_loop_masked_sum_result_3 ())
   scatter_result_3
@@ -328,12 +318,9 @@ def scatter_add_ir : Jaxpr.Program [(.real, [3]), (.int, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem scatter_add_translation_correct («values» : Tensor ℝ [3]) («link» : Tensor Int32 [3]) :
-    Jaxpr.Program.eval (.cons «values» (.cons «link» .nil)) scatter_add_ir = «scatter_add» (R := ℝ) «values» «link» := by
+    Jaxpr.Program.eval (.cons «values» (.cons «link» .nil)) _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».scatter_add_ir = _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«scatter_add» (R := ℝ) «values» «link» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [scatter_add_ir, «scatter_add», ↓loop_masked_sum_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [scatter_add_ir, «scatter_add», loop_masked_sum_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».scatter_add_ir, _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».«scatter_add», _root_.«JaxLean».«Puzzles».«ScatterAdd».«Loop».loop_masked_sum_translation_correct]
 
 end «JaxLean».«Puzzles».«ScatterAdd».«Loop»

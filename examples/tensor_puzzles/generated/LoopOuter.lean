@@ -183,11 +183,9 @@ def loop_outer_ir : Jaxpr.Program [(.real, [2]), (.real, [3])] (.real, [2, 3]) :
 set_option maxRecDepth 4096 in
 set_option linter.unusedSimpArgs false in
 theorem loop_outer_translation_correct («a» : Tensor ℝ [2]) («b» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) loop_outer_ir = «loop_outer» (R := ℝ) «a» «b» := by
+    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) _root_.«JaxLean».«PuzzleJax».loop_outer_ir = _root_.«JaxLean».«PuzzleJax».«loop_outer» (R := ℝ) «a» «b» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [loop_outer_ir, «loop_outer», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [loop_outer_ir, «loop_outer», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».loop_outer_ir, _root_.«JaxLean».«PuzzleJax».«loop_outer»]
 
 end «JaxLean».«PuzzleJax»

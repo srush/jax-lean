@@ -36,12 +36,10 @@ def fn__roll_static_ir : Jaxpr.Program [(.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__roll_static_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) fn__roll_static_ir = «fn__roll_static» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Roll».«Array».fn__roll_static_ir = _root_.«JaxLean».«Puzzles».«Roll».«Array».«fn__roll_static» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__roll_static_ir, «fn__roll_static», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__roll_static_ir, «fn__roll_static», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Roll».«Array».fn__roll_static_ir, _root_.«JaxLean».«Puzzles».«Roll».«Array».«fn__roll_static»]
 
 end «JaxLean».«Puzzles».«Roll».«Array»
 
@@ -56,7 +54,7 @@ namespace «JaxLean».«Puzzles».«Roll».«Array»
 def «roll» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) : Tensor R [3] :=
   -- code.py:153 (puzzle_roll)
   -- call fn__roll_static
-  let call_fn__roll_static_result : Tensor R [3] := «fn__roll_static» (R := R) («a»)
+  let call_fn__roll_static_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«Roll».«Array».«fn__roll_static» (R := R) («a»)
   call_fn__roll_static_result
 
 end «JaxLean».«Puzzles».«Roll».«Array»
@@ -70,13 +68,10 @@ def roll_ir : Jaxpr.Program [(.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem roll_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) roll_ir = «roll» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Roll».«Array».roll_ir = _root_.«JaxLean».«Puzzles».«Roll».«Array».«roll» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [roll_ir, «roll», ↓fn__roll_static_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [roll_ir, «roll», fn__roll_static_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Roll».«Array».roll_ir, _root_.«JaxLean».«Puzzles».«Roll».«Array».«roll», _root_.«JaxLean».«Puzzles».«Roll».«Array».fn__roll_static_translation_correct]
 
 end «JaxLean».«Puzzles».«Roll».«Array»
 
@@ -142,11 +137,9 @@ def roll_ir : Jaxpr.Program [(.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem roll_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) roll_ir = «roll» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Roll».«Loop».roll_ir = _root_.«JaxLean».«Puzzles».«Roll».«Loop».«roll» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [roll_ir, «roll», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [roll_ir, «roll», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Roll».«Loop».roll_ir, _root_.«JaxLean».«Puzzles».«Roll».«Loop».«roll»]
 
 end «JaxLean».«Puzzles».«Roll».«Loop»

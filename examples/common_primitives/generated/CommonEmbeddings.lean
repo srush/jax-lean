@@ -31,12 +31,10 @@ def fn__take_ir : Jaxpr.Program [(.real, [5, 3]), (.int, [2])] (.real, [2, 3]) :
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__take_translation_correct («a» : Tensor ℝ [5, 3]) («indices» : Tensor Int32 [2]) :
-    Jaxpr.Program.eval (.cons «a» (.cons «indices» .nil)) fn__take_ir = «fn__take» (R := ℝ) «a» «indices» := by
+    Jaxpr.Program.eval (.cons «a» (.cons «indices» .nil)) _root_.«JaxLean».«CommonJax».«Embeddings».fn__take_ir = _root_.«JaxLean».«CommonJax».«Embeddings».«fn__take» (R := ℝ) «a» «indices» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__take_ir, «fn__take», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__take_ir, «fn__take», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«CommonJax».«Embeddings».fn__take_ir, _root_.«JaxLean».«CommonJax».«Embeddings».«fn__take»]
 
 end «JaxLean».«CommonJax».«Embeddings»
 
@@ -51,7 +49,7 @@ namespace «JaxLean».«CommonJax».«Embeddings»
 def «embeddings» {R : Type} [Field R] [LinearOrder R] («table» : Tensor R [5, 3]) («ids» : Tensor Int32 [2]) : Tensor R [2, 3] :=
   -- code.py:19 (embeddings)
   -- call fn__take
-  let call_fn__take_result : Tensor R [2, 3] := «fn__take» (R := R) («table») («ids»)
+  let call_fn__take_result : Tensor R [2, 3] := _root_.«JaxLean».«CommonJax».«Embeddings».«fn__take» (R := R) («table») («ids»)
   call_fn__take_result
 
 end «JaxLean».«CommonJax».«Embeddings»
@@ -65,12 +63,9 @@ def embeddings_ir : Jaxpr.Program [(.real, [5, 3]), (.int, [2])] (.real, [2, 3])
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem embeddings_translation_correct («table» : Tensor ℝ [5, 3]) («ids» : Tensor Int32 [2]) :
-    Jaxpr.Program.eval (.cons «table» (.cons «ids» .nil)) embeddings_ir = «embeddings» (R := ℝ) «table» «ids» := by
+    Jaxpr.Program.eval (.cons «table» (.cons «ids» .nil)) _root_.«JaxLean».«CommonJax».«Embeddings».embeddings_ir = _root_.«JaxLean».«CommonJax».«Embeddings».«embeddings» (R := ℝ) «table» «ids» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [embeddings_ir, «embeddings», ↓fn__take_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [embeddings_ir, «embeddings», fn__take_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«CommonJax».«Embeddings».embeddings_ir, _root_.«JaxLean».«CommonJax».«Embeddings».«embeddings», _root_.«JaxLean».«CommonJax».«Embeddings».fn__take_translation_correct]
 
 end «JaxLean».«CommonJax».«Embeddings»

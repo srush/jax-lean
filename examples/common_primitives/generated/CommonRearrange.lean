@@ -24,17 +24,15 @@ end «JaxLean».«CommonJax».«Rearrange»
 namespace «JaxLean».«CommonJax».«Rearrange»
 def rearrange_ir : Jaxpr.Program [(.real, [2, 1, 3]), (.real, [2, 2, 3])] (.real, [3, 2, 3]) :=
   .bind (.concatenate (t := [2, 3, 3]) (.cons (.var .here) (.cons (.var (.there .here)) .nil)) (fun i => if h0 : i.2.1.val < 1 then ⟨[2, 1, 3], .here, (i.1, ⟨i.2.1.val - 0, by omega⟩, i.2.2.1, ())⟩ else ⟨[2, 2, 3], (.there .here), (i.1, ⟨i.2.1.val - 1, by omega⟩, i.2.2.1, ())⟩)) <|
-  .bind (.transpose (s := [2, 3, 3]) (t := [3, 2, 3]) (fun i => (i.2.1, i.2.2.1, i.1, ())) (.var .here)) <|
+  .bind (.transpose [2, 0, 1] (.var .here) (t := [3, 2, 3])) <|
   .ret (.var .here)
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem rearrange_translation_correct («x» : Tensor ℝ [2, 1, 3]) («y» : Tensor ℝ [2, 2, 3]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «y» .nil)) rearrange_ir = «rearrange» (R := ℝ) «x» «y» := by
+    Jaxpr.Program.eval (.cons «x» (.cons «y» .nil)) _root_.«JaxLean».«CommonJax».«Rearrange».rearrange_ir = _root_.«JaxLean».«CommonJax».«Rearrange».«rearrange» (R := ℝ) «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨j2, ⟨⟩⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [rearrange_ir, «rearrange», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [rearrange_ir, «rearrange», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«CommonJax».«Rearrange».rearrange_ir, _root_.«JaxLean».«CommonJax».«Rearrange».«rearrange»]
 
 end «JaxLean».«CommonJax».«Rearrange»

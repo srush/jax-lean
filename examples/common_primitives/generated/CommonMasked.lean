@@ -34,12 +34,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, [3]), (.real, [3]), (.real, [])] (.rea
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [3]) («x» : Tensor ℝ [3]) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«CommonJax».«Masked».fn__where_ir = _root_.«JaxLean».«CommonJax».«Masked».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«CommonJax».«Masked».fn__where_ir, _root_.«JaxLean».«CommonJax».«Masked».«fn__where»]
 
 end «JaxLean».«CommonJax».«Masked»
 
@@ -60,7 +58,7 @@ def «masked_values» {R : Type} [Field R] [LinearOrder R] («x» : Tensor R [3]
   let and_result : Tensor Bool [3] := fun i => Bool.and («mask» (i.1, ())) (gt_result (i.1, ()))
   -- code.py:7 (masked_values)
   -- call fn__where
-  let call_fn__where_result : Tensor R [3] := «fn__where» (R := R) (and_result) («x») ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [3] := _root_.«JaxLean».«CommonJax».«Masked».«fn__where» (R := R) (and_result) («x») ((Tensor.scalar (0 : R)))
   call_fn__where_result
 
 end «JaxLean».«CommonJax».«Masked»
@@ -76,12 +74,9 @@ def masked_values_ir : Jaxpr.Program [(.real, [3]), (.bool, [3])] (.real, [3]) :
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem masked_values_translation_correct («x» : Tensor ℝ [3]) («mask» : Tensor Bool [3]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «mask» .nil)) masked_values_ir = «masked_values» (R := ℝ) «x» «mask» := by
+    Jaxpr.Program.eval (.cons «x» (.cons «mask» .nil)) _root_.«JaxLean».«CommonJax».«Masked».masked_values_ir = _root_.«JaxLean».«CommonJax».«Masked».«masked_values» (R := ℝ) «x» «mask» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [masked_values_ir, «masked_values», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [masked_values_ir, «masked_values», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«CommonJax».«Masked».masked_values_ir, _root_.«JaxLean».«CommonJax».«Masked».«masked_values», _root_.«JaxLean».«CommonJax».«Masked».fn__where_translation_correct]
 
 end «JaxLean».«CommonJax».«Masked»

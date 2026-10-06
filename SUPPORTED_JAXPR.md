@@ -96,13 +96,13 @@ Ordinary `translate` and `transpile` do not automatically produce certificates.
 | `add`, `add_any`, `sub`, `mul`, `div`, `min`, `max` | Equal shapes, scalar broadcasting, or equal-rank singleton-axis broadcasting |
 | `neg`, `abs`, `square`, `integer_pow` | Real pointwise operations; static integer powers, including negative ones |
 | `broadcast_in_dim` | General static dimension maps, including singleton expansion |
-| `transpose` | Any static permutation |
+| `transpose` | Source permutation retained in the IR; Lean checks the permutation and derives its coordinate map |
 | `dot_general` | General fixed-shape contractions, including multiple contracted axes and batch dimensions. One `dot_general` operation with bounded coordinate maps; the readable tensor translation may use named matrix helpers |
 | `reshape` | Any fixed source/target shapes with equal element count, including empty shapes; real tensors also support dimension permutations |
 | `slice`, `squeeze` | Static in-bounds positive-stride slices; removing singleton dimensions. Imported as a shape-typed coordinate map |
 | `scatter`, `scatter-add` | Same static subset above; one `.scatter` / `.scatter_add` per source equation, carrying a validated static coordinate plan and the original update tensor. Independently evaluated with coordinate equality tests |
 | Integer index scaffolding | Same static subset above; integer/Boolean equations remain typed SSA bindings. The importer also evaluates their static values to validate scatter coordinates |
-| `rev` | Real tensors, any static axes |
+| `rev` | Source axis list retained in the IR; Lean rejects repeated or out-of-range axes |
 | `concatenate` | Real tensors, any static axis and number of inputs |
 | `reduce_sum` | Any static axes, including empty reduction domains |
 | `reduce_max`, `reduce_min` | Any static axes with nonempty reduction domains |

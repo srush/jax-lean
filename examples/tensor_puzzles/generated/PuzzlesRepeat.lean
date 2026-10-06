@@ -28,12 +28,10 @@ def repeat_ir : Jaxpr.Program [(.real, [3])] (.real, [2, 3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem repeat_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) repeat_ir = «repeat» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Repeat».«Array».repeat_ir = _root_.«JaxLean».«Puzzles».«Repeat».«Array».«repeat» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [repeat_ir, «repeat», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [repeat_ir, «repeat», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Repeat».«Array».repeat_ir, _root_.«JaxLean».«Puzzles».«Repeat».«Array».«repeat»]
 
 end «JaxLean».«Puzzles».«Repeat».«Array»
 
@@ -148,11 +146,9 @@ def repeat_ir : Jaxpr.Program [(.real, [3])] (.real, [2, 3]) :=
 set_option maxRecDepth 4096 in
 set_option linter.unusedSimpArgs false in
 theorem repeat_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) repeat_ir = «repeat» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Repeat».«Loop».repeat_ir = _root_.«JaxLean».«Puzzles».«Repeat».«Loop».«repeat» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [repeat_ir, «repeat», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [repeat_ir, «repeat», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Repeat».«Loop».repeat_ir, _root_.«JaxLean».«Puzzles».«Repeat».«Loop».«repeat»]
 
 end «JaxLean».«Puzzles».«Repeat».«Loop»

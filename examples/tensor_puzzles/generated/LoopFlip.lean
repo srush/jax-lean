@@ -74,11 +74,9 @@ def loop_flip_ir : Jaxpr.Program [(.real, [4])] (.real, [4]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem loop_flip_translation_correct («a» : Tensor ℝ [4]) :
-    Jaxpr.Program.eval (.cons «a» .nil) loop_flip_ir = «loop_flip» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«PuzzleJax».loop_flip_ir = _root_.«JaxLean».«PuzzleJax».«loop_flip» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [loop_flip_ir, «loop_flip», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [loop_flip_ir, «loop_flip», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».loop_flip_ir, _root_.«JaxLean».«PuzzleJax».«loop_flip»]
 
 end «JaxLean».«PuzzleJax»

@@ -16,6 +16,17 @@ private def binderName (b : TSyntax `jaxprBinder) : MacroM Ident := do
   let `(jaxprBinder| $name:ident : $_) := b | Macro.throwErrorAt b "expected typed variable"
   return name
 
+private def binderContext (binders : Array (TSyntax `jaxprBinder)) : MacroM Term := do
+  let types ← binders.mapM fun b => do
+    let `(jaxprBinder| $_:ident : $t) := b | Macro.throwErrorAt b "expected typed variable"
+    pure t
+  `([$types,*])
+
+private partial def references (name : Name) : Syntax → Bool
+  | .ident _ _ id _ => id == name
+  | .node _ _ args => args.any (references name)
+  | _ => false
+
 private def bindNames (binders : Array (TSyntax `jaxprBinder)) (body : Term) : MacroM Term := do
   let mut seen : Array Name := #[]
   for b in binders do
@@ -30,6 +41,7 @@ private def bindNames (binders : Array (TSyntax `jaxprBinder)) (body : Term) : M
   let mut result := body
   for i in (List.range binders.size).reverse do
     let name ← binderName binders[i]!
+    if !references name.getId body.raw then continue
     let mut ref ← `(JaxLean.Jaxpr.Var.here)
     for _ in [:i] do
       ref ← `(JaxLean.Jaxpr.Var.there $ref)
@@ -39,14 +51,16 @@ private def bindNames (binders : Array (TSyntax `jaxprBinder)) (body : Term) : M
 
 macro_rules
   | `(jaxpr% ($binders:jaxprBinder,*) { return $result }) => do
-    bindNames binders.getElems (← `(JaxLean.Jaxpr.Program.ret $result))
+    let ctx ← binderContext binders.getElems
+    bindNames binders.getElems (← `((JaxLean.Jaxpr.Program.ret $result : JaxLean.Jaxpr.Program $ctx _)))
   | `(jaxpr% ($binders:jaxprBinder,*) { $b:jaxprBinder := $op; $rest:jaxprStep* return $result }) => do
     let name ← binderName b
     for previous in binders.getElems do
       if (← binderName previous).getId == name.getId then
         Macro.throwErrorAt name "duplicate SSA variable"
     let `(jaxprBinder| $_:ident : $t) := b | Macro.throwErrorAt b "expected typed variable"
-    let operation ← bindNames binders.getElems (← `(($op : JaxLean.Jaxpr.Op _ $t)))
+    let ctx ← binderContext binders.getElems
+    let operation ← bindNames binders.getElems (← `(($op : JaxLean.Jaxpr.Op $ctx $t)))
     `(JaxLean.Jaxpr.Program.bind $operation
       (jaxpr% ($b, $binders,*) { $rest* return $result }))
   | `(jaxpr% ($binders:jaxprBinder,*) { $b:jaxprBinder := call $callee with $args; $rest:jaxprStep* return $result }) => do
@@ -55,7 +69,8 @@ macro_rules
       if (← binderName previous).getId == name.getId then
         Macro.throwErrorAt name "duplicate SSA variable"
     let `(jaxprBinder| $_:ident : $t) := b | Macro.throwErrorAt b "expected typed variable"
-    let arguments ← bindNames binders.getElems args
+    let ctx ← binderContext binders.getElems
+    let arguments ← bindNames binders.getElems (← `(($args : JaxLean.Jaxpr.Args $ctx _)))
     `(JaxLean.Jaxpr.Program.call (t := $t) $callee $arguments
       (jaxpr% ($b, $binders,*) { $rest* return $result }))
 

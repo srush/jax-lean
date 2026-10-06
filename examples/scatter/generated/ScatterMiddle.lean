@@ -28,11 +28,9 @@ def replace_middle_ir : Jaxpr.Program [(.real, [4]), (.real, [2])] (.real, [4]) 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem replace_middle_translation_correct («x» : Tensor ℝ [4]) («values» : Tensor ℝ [2]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «values» .nil)) replace_middle_ir = «replace_middle» (R := ℝ) «x» «values» := by
+    Jaxpr.Program.eval (.cons «x» (.cons «values» .nil)) _root_.«JaxLean».«ScatterJax».replace_middle_ir = _root_.«JaxLean».«ScatterJax».«replace_middle» (R := ℝ) «x» «values» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [replace_middle_ir, «replace_middle», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [replace_middle_ir, «replace_middle», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«ScatterJax».replace_middle_ir, _root_.«JaxLean».«ScatterJax».«replace_middle»]
 
 end «JaxLean».«ScatterJax»

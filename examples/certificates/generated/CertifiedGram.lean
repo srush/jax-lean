@@ -20,18 +20,16 @@ end «JaxLean».«Generated»
 -- IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.
 namespace «JaxLean».«Generated»
 def certified_gram_ir : Jaxpr.Program [(.real, [3, 2])] (.real, [2, 2]) :=
-  .bind (.transpose (s := [3, 2]) (t := [2, 3]) (fun i => (i.2.1, i.1, ())) (.var .here)) <|
+  .bind (.transpose [1, 0] (.var .here) (t := [2, 3])) <|
   .bind (.dot_general (s := [2, 3]) (u := [3, 2]) (t := [2, 2]) (k := [3]) (fun i j => (i.1, j.1, ())) (fun i j => (j.1, i.2.1, ())) (.var .here) (.var (.there .here))) <|
   .ret (.var .here)
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem certified_gram_translation_correct (x0 : Tensor ℝ [3, 2]) :
-    Jaxpr.Program.eval (.cons x0 .nil) certified_gram_ir = «certified_gram» (R := ℝ) x0 := by
+    Jaxpr.Program.eval (.cons x0 .nil) _root_.«JaxLean».«Generated».certified_gram_ir = _root_.«JaxLean».«Generated».«certified_gram» (R := ℝ) x0 := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [certified_gram_ir, «certified_gram», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [certified_gram_ir, «certified_gram», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Generated».certified_gram_ir, _root_.«JaxLean».«Generated».«certified_gram»]
 
 end «JaxLean».«Generated»

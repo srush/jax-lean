@@ -108,12 +108,15 @@ def lean_input(a):
 
 @pytest.fixture(scope="module")
 def executed():
-    modules = ["import JaxLean.Core.RealOps\n"]
+    imports = ["import JaxLean.Core.RealOps"]
+    modules = []
     expected = {}
     for n, (label, fn, args) in enumerate(CASES):
         jp = jax.make_jaxpr(fn)(*args)
         source = translate(jp, namespace=f"Case{n}")
-        modules.append(source.replace("import JaxLean.Core.RealOps", ""))
+        lines = source.splitlines()
+        imports.extend(line for line in lines if line.startswith("import "))
+        modules.append("\n".join(line for line in lines if not line.startswith("import ")))
         outputs = jax.tree.leaves(fn(*args))
         call = f"Case{n}.program (R := ℚ) " + " ".join(lean_input(a) for a in args)
         for k, a in enumerate(outputs):
@@ -125,7 +128,7 @@ def executed():
             expected[label, k] = np.asarray(a).flatten()
     target = ROOT / "tests/_generated/Differential.lean"
     target.parent.mkdir(exist_ok=True)
-    target.write_text("\n".join(modules))
+    target.write_text("\n".join(dict.fromkeys(imports)) + "\n" + "\n".join(modules))
     proc = subprocess.run(["lake", "env", "lean", "-j", "1", str(target)], cwd=ROOT,
                           capture_output=True, text=True, timeout=180)
     assert proc.returncode == 0, proc.stdout + proc.stderr

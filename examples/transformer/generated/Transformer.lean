@@ -26,12 +26,10 @@ def project_ir : Jaxpr.Program [(.real, [3, 2]), (.real, [2, 2])] (.real, [3, 2]
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem project_translation_correct («x» : Tensor ℝ [3, 2]) («weight» : Tensor ℝ [2, 2]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «weight» .nil)) project_ir = «project» (R := ℝ) «x» «weight» := by
+    Jaxpr.Program.eval (.cons «x» (.cons «weight» .nil)) _root_.«JaxLean».«TransformerJax».project_ir = _root_.«JaxLean».«TransformerJax».«project» (R := ℝ) «x» «weight» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [project_ir, «project», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [project_ir, «project», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«TransformerJax».project_ir, _root_.«JaxLean».«TransformerJax».«project»]
 
 end «JaxLean».«TransformerJax»
 
@@ -46,7 +44,7 @@ namespace «JaxLean».«TransformerJax»
 def «forward» {R : Type} [Field R] [LinearOrder R] («x» : Tensor R [3, 2]) («weight» : Tensor R [2, 2]) : Tensor R [3, 2] :=
   -- code.py:18 (forward)
   -- call project
-  let call_project_result : Tensor R [3, 2] := «project» (R := R) («x») («weight»)
+  let call_project_result : Tensor R [3, 2] := _root_.«JaxLean».«TransformerJax».«project» (R := R) («x») («weight»)
   -- code.py:18 (forward)
   -- max
   let max_result : Tensor R [3, 2] := Tensor.map (fun a0 => max a0 ((Tensor.scalar (0 : R)) ())) call_project_result
@@ -64,13 +62,10 @@ def forward_ir : Jaxpr.Program [(.real, [3, 2]), (.real, [2, 2])] (.real, [3, 2]
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem forward_translation_correct («x» : Tensor ℝ [3, 2]) («weight» : Tensor ℝ [2, 2]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «weight» .nil)) forward_ir = «forward» (R := ℝ) «x» «weight» := by
+    Jaxpr.Program.eval (.cons «x» (.cons «weight» .nil)) _root_.«JaxLean».«TransformerJax».forward_ir = _root_.«JaxLean».«TransformerJax».«forward» (R := ℝ) «x» «weight» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [forward_ir, «forward», ↓project_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [forward_ir, «forward», project_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«TransformerJax».forward_ir, _root_.«JaxLean».«TransformerJax».«forward», _root_.«JaxLean».«TransformerJax».project_translation_correct]
 
 end «JaxLean».«TransformerJax»
 
@@ -115,12 +110,10 @@ def normalize_ir : Jaxpr.Program [(.real, [3, 3])] (.real, [3, 3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem normalize_translation_correct («scores» : Tensor ℝ [3, 3]) :
-    Jaxpr.Program.eval (.cons «scores» .nil) normalize_ir = «normalize» (R := ℝ) «scores» := by
+    Jaxpr.Program.eval (.cons «scores» .nil) _root_.«JaxLean».«TransformerJax».normalize_ir = _root_.«JaxLean».«TransformerJax».«normalize» (R := ℝ) «scores» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [normalize_ir, «normalize», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [normalize_ir, «normalize», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«TransformerJax».normalize_ir, _root_.«JaxLean».«TransformerJax».«normalize»]
 
 end «JaxLean».«TransformerJax»
 
@@ -141,7 +134,7 @@ def «attention» {R : Type} [Field R] [LinearOrder R] («q» : Tensor R [3, 2])
   let matmul_result : Tensor R [3, 3] := Tensor.matmul «q» transpose_result
   -- code.py:30 (attention)
   -- call normalize
-  let call_normalize_result : Tensor R [3, 3] := «normalize» (R := R) (matmul_result)
+  let call_normalize_result : Tensor R [3, 3] := _root_.«JaxLean».«TransformerJax».«normalize» (R := R) (matmul_result)
   -- code.py:30 (attention)
   -- dot_general
   let matmul_result_2 : Tensor R [3, 2] := Tensor.matmul call_normalize_result «v»
@@ -152,7 +145,7 @@ end «JaxLean».«TransformerJax»
 -- IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.
 namespace «JaxLean».«TransformerJax»
 def attention_ir : Jaxpr.Program [(.real, [3, 2]), (.real, [3, 2]), (.real, [3, 2])] (.real, [3, 2]) :=
-  .bind (.transpose (s := [3, 2]) (t := [2, 3]) (fun i => (i.2.1, i.1, ())) (.var (.there .here))) <|
+  .bind (.transpose [1, 0] (.var (.there .here)) (t := [2, 3])) <|
   .bind (.dot_general (s := [3, 2]) (u := [2, 3]) (t := [3, 3]) (k := [2]) (fun i j => (i.1, j.1, ())) (fun i j => (j.1, i.2.1, ())) (.var (.there .here)) (.var .here)) <|
   .call normalize_ir (.cons (.var .here) .nil) <|
   .bind (.dot_general (s := [3, 3]) (u := [3, 2]) (t := [3, 2]) (k := [3]) (fun i j => (i.1, j.1, ())) (fun i j => (j.1, i.2.1, ())) (.var .here) (.var (.there (.there (.there (.there (.there .here))))))) <|
@@ -161,13 +154,10 @@ def attention_ir : Jaxpr.Program [(.real, [3, 2]), (.real, [3, 2]), (.real, [3, 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem attention_translation_correct («q» : Tensor ℝ [3, 2]) («k» : Tensor ℝ [3, 2]) («v» : Tensor ℝ [3, 2]) :
-    Jaxpr.Program.eval (.cons «q» (.cons «k» (.cons «v» .nil))) attention_ir = «attention» (R := ℝ) «q» «k» «v» := by
+    Jaxpr.Program.eval (.cons «q» (.cons «k» (.cons «v» .nil))) _root_.«JaxLean».«TransformerJax».attention_ir = _root_.«JaxLean».«TransformerJax».«attention» (R := ℝ) «q» «k» «v» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [attention_ir, «attention», ↓normalize_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [attention_ir, «attention», normalize_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«TransformerJax».attention_ir, _root_.«JaxLean».«TransformerJax».«attention», _root_.«JaxLean».«TransformerJax».normalize_translation_correct]
 
 end «JaxLean».«TransformerJax»
 
@@ -182,19 +172,19 @@ namespace «JaxLean».«TransformerJax»
 def «transformer_block» {R : Type} [Field R] [LinearOrder R] («x» : Tensor R [3, 2]) («weight» : Tensor R [2, 2]) («wq» : Tensor R [2, 2]) («wk» : Tensor R [2, 2]) («wv» : Tensor R [2, 2]) : Tensor R [3, 2] :=
   -- code.py:35 (transformer_block)
   -- call forward
-  let call_forward_result : Tensor R [3, 2] := «forward» (R := R) («x») («weight»)
+  let call_forward_result : Tensor R [3, 2] := _root_.«JaxLean».«TransformerJax».«forward» (R := R) («x») («weight»)
   -- code.py:36 (transformer_block)
   -- call project
-  let call_project_result : Tensor R [3, 2] := «project» (R := R) (call_forward_result) («wq»)
+  let call_project_result : Tensor R [3, 2] := _root_.«JaxLean».«TransformerJax».«project» (R := R) (call_forward_result) («wq»)
   -- code.py:37 (transformer_block)
   -- call project
-  let call_project_result_2 : Tensor R [3, 2] := «project» (R := R) (call_forward_result) («wk»)
+  let call_project_result_2 : Tensor R [3, 2] := _root_.«JaxLean».«TransformerJax».«project» (R := R) (call_forward_result) («wk»)
   -- code.py:38 (transformer_block)
   -- call project
-  let call_project_result_3 : Tensor R [3, 2] := «project» (R := R) (call_forward_result) («wv»)
+  let call_project_result_3 : Tensor R [3, 2] := _root_.«JaxLean».«TransformerJax».«project» (R := R) (call_forward_result) («wv»)
   -- code.py:39 (transformer_block)
   -- call attention
-  let call_attention_result : Tensor R [3, 2] := «attention» (R := R) (call_project_result) (call_project_result_2) (call_project_result_3)
+  let call_attention_result : Tensor R [3, 2] := _root_.«JaxLean».«TransformerJax».«attention» (R := R) (call_project_result) (call_project_result_2) (call_project_result_3)
   call_attention_result
 
 end «JaxLean».«TransformerJax»
@@ -212,13 +202,10 @@ def transformer_block_ir : Jaxpr.Program [(.real, [3, 2]), (.real, [2, 2]), (.re
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem transformer_block_translation_correct («x» : Tensor ℝ [3, 2]) («weight» : Tensor ℝ [2, 2]) («wq» : Tensor ℝ [2, 2]) («wk» : Tensor ℝ [2, 2]) («wv» : Tensor ℝ [2, 2]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «weight» (.cons «wq» (.cons «wk» (.cons «wv» .nil))))) transformer_block_ir = «transformer_block» (R := ℝ) «x» «weight» «wq» «wk» «wv» := by
+    Jaxpr.Program.eval (.cons «x» (.cons «weight» (.cons «wq» (.cons «wk» (.cons «wv» .nil))))) _root_.«JaxLean».«TransformerJax».transformer_block_ir = _root_.«JaxLean».«TransformerJax».«transformer_block» (R := ℝ) «x» «weight» «wq» «wk» «wv» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [transformer_block_ir, «transformer_block», ↓forward_translation_correct, ↓project_translation_correct, ↓attention_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [transformer_block_ir, «transformer_block», forward_translation_correct, project_translation_correct, attention_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«TransformerJax».transformer_block_ir, _root_.«JaxLean».«TransformerJax».«transformer_block», _root_.«JaxLean».«TransformerJax».forward_translation_correct, _root_.«JaxLean».«TransformerJax».project_translation_correct, _root_.«JaxLean».«TransformerJax».attention_translation_correct]
 
 end «JaxLean».«TransformerJax»
 
@@ -230,13 +217,13 @@ open scoped BigOperators
 set_option linter.unusedVariables false
 namespace «JaxLean».«TransformerJax»
 
-def «transformer» {R : Type} [Field R] [LinearOrder R] («x» : Tensor R [3, 2]) («w0» : Tensor R [2, 2]) («q0» : Tensor R [2, 2]) («k0» : Tensor R [2, 2]) («v0» : Tensor R [2, 2]) («w1» : Tensor R [2, 2]) («q1» : Tensor R [2, 2]) («k1» : Tensor R [2, 2]) («v1» : Tensor R [2, 2]) : Tensor R [3, 2] :=
+def «transformer» {R : Type} [Field R] [LinearOrder R] («x» : Tensor R [3, 2]) («w0» : Tensor R [2, 2]) («q0» : Tensor R [2, 2]) («arg3» : Tensor R [2, 2]) («v0» : Tensor R [2, 2]) («w1» : Tensor R [2, 2]) («q1» : Tensor R [2, 2]) («arg7» : Tensor R [2, 2]) («v1» : Tensor R [2, 2]) : Tensor R [3, 2] :=
   -- code.py:43 (transformer)
   -- call transformer_block
-  let call_transformer_block_result : Tensor R [3, 2] := «transformer_block» (R := R) («x») («w0») («q0») («k0») («v0»)
+  let call_transformer_block_result : Tensor R [3, 2] := _root_.«JaxLean».«TransformerJax».«transformer_block» (R := R) («x») («w0») («q0») («arg3») («v0»)
   -- code.py:44 (transformer)
   -- call transformer_block
-  let call_transformer_block_result_2 : Tensor R [3, 2] := «transformer_block» (R := R) (call_transformer_block_result) («w1») («q1») («k1») («v1»)
+  let call_transformer_block_result_2 : Tensor R [3, 2] := _root_.«JaxLean».«TransformerJax».«transformer_block» (R := R) (call_transformer_block_result) («w1») («q1») («arg7») («v1»)
   call_transformer_block_result_2
 
 end «JaxLean».«TransformerJax»
@@ -250,13 +237,10 @@ def transformer_ir : Jaxpr.Program [(.real, [3, 2]), (.real, [2, 2]), (.real, [2
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
-theorem transformer_translation_correct («x» : Tensor ℝ [3, 2]) («w0» : Tensor ℝ [2, 2]) («q0» : Tensor ℝ [2, 2]) («k0» : Tensor ℝ [2, 2]) («v0» : Tensor ℝ [2, 2]) («w1» : Tensor ℝ [2, 2]) («q1» : Tensor ℝ [2, 2]) («k1» : Tensor ℝ [2, 2]) («v1» : Tensor ℝ [2, 2]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «w0» (.cons «q0» (.cons «k0» (.cons «v0» (.cons «w1» (.cons «q1» (.cons «k1» (.cons «v1» .nil))))))))) transformer_ir = «transformer» (R := ℝ) «x» «w0» «q0» «k0» «v0» «w1» «q1» «k1» «v1» := by
+theorem transformer_translation_correct («x» : Tensor ℝ [3, 2]) («w0» : Tensor ℝ [2, 2]) («q0» : Tensor ℝ [2, 2]) («arg3» : Tensor ℝ [2, 2]) («v0» : Tensor ℝ [2, 2]) («w1» : Tensor ℝ [2, 2]) («q1» : Tensor ℝ [2, 2]) («arg7» : Tensor ℝ [2, 2]) («v1» : Tensor ℝ [2, 2]) :
+    Jaxpr.Program.eval (.cons «x» (.cons «w0» (.cons «q0» (.cons «arg3» (.cons «v0» (.cons «w1» (.cons «q1» (.cons «arg7» (.cons «v1» .nil))))))))) _root_.«JaxLean».«TransformerJax».transformer_ir = _root_.«JaxLean».«TransformerJax».«transformer» (R := ℝ) «x» «w0» «q0» «arg3» «v0» «w1» «q1» «arg7» «v1» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [transformer_ir, «transformer», ↓transformer_block_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [transformer_ir, «transformer», transformer_block_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«TransformerJax».transformer_ir, _root_.«JaxLean».«TransformerJax».«transformer», _root_.«JaxLean».«TransformerJax».transformer_block_translation_correct]
 
 end «JaxLean».«TransformerJax»

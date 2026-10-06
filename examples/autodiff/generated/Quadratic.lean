@@ -30,11 +30,9 @@ def quadratic_ir : Jaxpr.Program [(.real, [])] (.real, []) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem quadratic_translation_correct (x0 : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons x0 .nil) quadratic_ir = «quadratic» (R := ℝ) x0 := by
+    Jaxpr.Program.eval (.cons x0 .nil) _root_.«JaxLean».«Autodiff».quadratic_ir = _root_.«JaxLean».«Autodiff».«quadratic» (R := ℝ) x0 := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [quadratic_ir, «quadratic», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [quadratic_ir, «quadratic», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Autodiff».quadratic_ir, _root_.«JaxLean».«Autodiff».«quadratic»]
 
 end «JaxLean».«Autodiff»

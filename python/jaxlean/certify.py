@@ -26,14 +26,10 @@ def certify(closed_jaxpr, *, name="program", namespace="Generated", readable=Fal
     # Run the ordinary translator (including its version and Jaxpr checks).
     target = translate(closed_jaxpr, name=name, namespace=namespace, readable=readable,
                        _certified_calls=_calls)
-    if named_vars:
-        target = target.replace("set_option linter.unusedVariables false\n", "")
     ir_body = importer.run()
     inputs = closed_jaxpr.jaxpr.invars
-    ir_type = ty
-    ir_namespace = "Jaxpr"
-    ctx = "[" + ", ".join(ir_type(v.aval) for v in inputs) + "]"
-    out = ir_type(closed_jaxpr.jaxpr.outvars[0].aval)
+    ctx = "[" + ", ".join(ty(v.aval) for v in inputs) + "]"
+    out = ty(closed_jaxpr.jaxpr.outvars[0].aval)
     labels = argument_labels(closed_jaxpr.jaxpr, readable)
     binders = " ".join(f"({labels[i]} : {binder_type(v.aval)})" for i, v in enumerate(inputs))
     env = ".nil"
@@ -44,34 +40,24 @@ def certify(closed_jaxpr, *, name="program", namespace="Generated", readable=Fal
     pattern = "⟨⟩"
     for i in reversed(range(len(shape(closed_jaxpr.jaxpr.outvars[0].aval)))):
         pattern = f"⟨j{i}, {pattern}⟩"
-    call_rules = "".join(f", {n}_translation_correct" for n in dict.fromkeys((_calls or {}).values()))
-    call_rules += ", Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval"
-    reference = f"«{name}»"
-    early_calls = "".join(f", ↓{n}_translation_correct" for n in dict.fromkeys((_calls or {}).values()))
-    # Retain explicit rewrite proofs so the kernel does not re-expand the SSA
-    # environment at every use (exponential for nested calls and updates).
-    prepare = (f"  simp (config := {{ implicitDefEqProofs := false }}) only [{name}_ir, {reference}{early_calls}, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, "
-               "↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>\n")
-    # Normalize dependent arguments (including Decidable instances) before the
-    # arithmetic simplifier. Otherwise symbolic Int32 conversions inside calls
-    # can trigger repeated, expensive definitional equality checks.
-    normalize = ("    (try dsimp (config := { instances := true }) only [List.foldl, "
-                 "Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, "
-                 "Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>\n")
-    proof = (prepare + "    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>\n"
-             + (normalize if _calls else "")
-             + f"    jaxpr_certificate [{name}_ir, {reference}{call_rules}]")
+    # Qualify declarations so source argument names cannot shadow definitions.
+    qualified = f"_root_.{ns}"
+    reference = f"{qualified}.«{name}»"
+    ir_reference = f"{qualified}.{name}_ir"
+    call_rules = "".join(f", {qualified}.{n}_translation_correct"
+                         for n in dict.fromkeys((_calls or {}).values()))
+    proof = f"  jaxpr_certificate [{ir_reference}, {reference}{call_rules}]"
     depth_option = "set_option maxRecDepth 4096 in\n" if len(closed_jaxpr.jaxpr.eqns) >= 32 else ""
-    linter_option = "" if named_vars else "set_option linter.unusedSimpArgs false in\n"
+    linter_option = "set_option linter.unusedSimpArgs false in\n"
     certificate = f"""
 -- IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.
 namespace {ns}
-def {name}_ir : {ir_namespace}.Program {ctx} {out} :=
+def {name}_ir : Jaxpr.Program {ctx} {out} :=
 {ir_body}
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 {depth_option}{linter_option}theorem {name}_translation_correct {binders} :
-    {ir_namespace}.Program.eval {env} {name}_ir = {reference} (R := ℝ) {args} := by
+    Jaxpr.Program.eval {env} {ir_reference} = {reference} (R := ℝ) {args} := by
   funext i
   rcases i with {pattern}
 {proof}

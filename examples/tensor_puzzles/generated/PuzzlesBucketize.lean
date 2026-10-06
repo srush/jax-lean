@@ -40,12 +40,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, [3, 3]), (.real, [1, 3]), (.real, [])]
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [3, 3]) («x» : Tensor ℝ [1, 3]) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Bucketize».«Array».fn__where_ir = _root_.«JaxLean».«Puzzles».«Bucketize».«Array».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Bucketize».«Array».fn__where_ir, _root_.«JaxLean».«Puzzles».«Bucketize».«Array».«fn__where»]
 
 end «JaxLean».«Puzzles».«Bucketize».«Array»
 
@@ -78,7 +76,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let broadcast_in_dim_result_3 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) add_result
   -- code.py:262 (puzzle_bucketize)
   -- call fn__where
-  let call_fn__where_result : Tensor R [3, 3] := «fn__where» (R := R) (ge_result) (broadcast_in_dim_result_3) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Bucketize».«Array».«fn__where» (R := R) (ge_result) (broadcast_in_dim_result_3) ((Tensor.scalar (0 : R)))
   -- code.py:262 (puzzle_bucketize)
   -- reduce_max
   let reduce_max_result : Tensor R [3] := Tensor.reduceMax (s := [3, 3]) (t := [3]) (n := 3) (by decide) (fun i j => (i.1, ((Index.equivFin [3]).symm j).1, ())) call_fn__where_result
@@ -102,13 +100,10 @@ def bucketize_ir : Jaxpr.Program [(.real, [3]), (.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem bucketize_translation_correct («v» : Tensor ℝ [3]) («boundaries» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «v» (.cons «boundaries» .nil)) bucketize_ir = «bucketize» (R := ℝ) «v» «boundaries» := by
+    Jaxpr.Program.eval (.cons «v» (.cons «boundaries» .nil)) _root_.«JaxLean».«Puzzles».«Bucketize».«Array».bucketize_ir = _root_.«JaxLean».«Puzzles».«Bucketize».«Array».«bucketize» (R := ℝ) «v» «boundaries» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [bucketize_ir, «bucketize», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [bucketize_ir, «bucketize», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Bucketize».«Array».bucketize_ir, _root_.«JaxLean».«Puzzles».«Bucketize».«Array».«bucketize», _root_.«JaxLean».«Puzzles».«Bucketize».«Array».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«Bucketize».«Array»
 
@@ -138,12 +133,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, []), (.real, []), (.real, [])] (.real,
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool []) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».fn__where_ir = _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Bucketize».«Loop».fn__where_ir, _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where»]
 
 end «JaxLean».«Puzzles».«Bucketize».«Loop»
 
@@ -176,7 +169,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result : Tensor Bool [] := fun i => decide ((squeeze_result ()) ≥ (squeeze_result_2 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result : Tensor R [] := «fn__where» (R := R) (ge_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   -- code.py:270 (loop_bucketize)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «v»
@@ -194,7 +187,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result_2 : Tensor Bool [] := fun i => decide ((squeeze_result_3 ()) ≥ (squeeze_result_4 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result_2 : Tensor R [] := «fn__where» (R := R) (ge_result_2) ((Tensor.scalar (2 : R))) (call_fn__where_result)
+  let call_fn__where_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_2) ((Tensor.scalar (2 : R))) (call_fn__where_result)
   -- code.py:270 (loop_bucketize)
   -- slice
   let slice_result_5 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «v»
@@ -212,7 +205,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result_3 : Tensor Bool [] := fun i => decide ((squeeze_result_5 ()) ≥ (squeeze_result_6 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result_3 : Tensor R [] := «fn__where» (R := R) (ge_result_3) ((Tensor.scalar (3 : R))) (call_fn__where_result_2)
+  let call_fn__where_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_3) ((Tensor.scalar (3 : R))) (call_fn__where_result_2)
   -- code.py:271 (loop_bucketize)
   -- convert_element_type
   let cast_result : Tensor R [] := call_fn__where_result_3
@@ -235,7 +228,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result_4 : Tensor Bool [] := fun i => decide ((squeeze_result_7 ()) ≥ (squeeze_result_8 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result_4 : Tensor R [] := «fn__where» (R := R) (ge_result_4) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result_4 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_4) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   -- code.py:270 (loop_bucketize)
   -- slice
   let slice_result_9 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «v»
@@ -253,7 +246,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result_5 : Tensor Bool [] := fun i => decide ((squeeze_result_9 ()) ≥ (squeeze_result_10 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result_5 : Tensor R [] := «fn__where» (R := R) (ge_result_5) ((Tensor.scalar (2 : R))) (call_fn__where_result_4)
+  let call_fn__where_result_5 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_5) ((Tensor.scalar (2 : R))) (call_fn__where_result_4)
   -- code.py:270 (loop_bucketize)
   -- slice
   let slice_result_11 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «v»
@@ -271,7 +264,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result_6 : Tensor Bool [] := fun i => decide ((squeeze_result_11 ()) ≥ (squeeze_result_12 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result_6 : Tensor R [] := «fn__where» (R := R) (ge_result_6) ((Tensor.scalar (3 : R))) (call_fn__where_result_5)
+  let call_fn__where_result_6 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_6) ((Tensor.scalar (3 : R))) (call_fn__where_result_5)
   -- code.py:271 (loop_bucketize)
   -- convert_element_type
   let cast_result_2 : Tensor R [] := call_fn__where_result_6
@@ -294,7 +287,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result_7 : Tensor Bool [] := fun i => decide ((squeeze_result_13 ()) ≥ (squeeze_result_14 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result_7 : Tensor R [] := «fn__where» (R := R) (ge_result_7) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result_7 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_7) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   -- code.py:270 (loop_bucketize)
   -- slice
   let slice_result_15 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «v»
@@ -312,7 +305,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result_8 : Tensor Bool [] := fun i => decide ((squeeze_result_15 ()) ≥ (squeeze_result_16 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result_8 : Tensor R [] := «fn__where» (R := R) (ge_result_8) ((Tensor.scalar (2 : R))) (call_fn__where_result_7)
+  let call_fn__where_result_8 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_8) ((Tensor.scalar (2 : R))) (call_fn__where_result_7)
   -- code.py:270 (loop_bucketize)
   -- slice
   let slice_result_17 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «v»
@@ -330,7 +323,7 @@ def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) (�
   let ge_result_9 : Tensor Bool [] := fun i => decide ((squeeze_result_17 ()) ≥ (squeeze_result_18 ()))
   -- code.py:270 (loop_bucketize)
   -- call fn__where
-  let call_fn__where_result_9 : Tensor R [] := «fn__where» (R := R) (ge_result_9) ((Tensor.scalar (3 : R))) (call_fn__where_result_8)
+  let call_fn__where_result_9 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_9) ((Tensor.scalar (3 : R))) (call_fn__where_result_8)
   -- code.py:271 (loop_bucketize)
   -- convert_element_type
   let cast_result_3 : Tensor R [] := call_fn__where_result_9
@@ -413,12 +406,9 @@ def bucketize_ir : Jaxpr.Program [(.real, [3]), (.real, [3])] (.real, [3]) :=
 set_option maxRecDepth 4096 in
 set_option linter.unusedSimpArgs false in
 theorem bucketize_translation_correct («v» : Tensor ℝ [3]) («boundaries» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «v» (.cons «boundaries» .nil)) bucketize_ir = «bucketize» (R := ℝ) «v» «boundaries» := by
+    Jaxpr.Program.eval (.cons «v» (.cons «boundaries» .nil)) _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».bucketize_ir = _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«bucketize» (R := ℝ) «v» «boundaries» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [bucketize_ir, «bucketize», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [bucketize_ir, «bucketize», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Bucketize».«Loop».bucketize_ir, _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«bucketize», _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«Bucketize».«Loop»

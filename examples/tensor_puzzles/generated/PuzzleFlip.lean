@@ -20,18 +20,16 @@ end «JaxLean».«PuzzleJax»
 -- IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.
 namespace «JaxLean».«PuzzleJax»
 def puzzle_flip_ir : Jaxpr.Program [(.real, [4])] (.real, [4]) :=
-  .bind (.rev (s := [4]) (t := [4]) (fun i => (i.1.rev, ())) (.var .here)) <|
+  .bind (.rev [0] (.var .here)) <|
   .ret (.var .here)
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem puzzle_flip_translation_correct («a» : Tensor ℝ [4]) :
-    Jaxpr.Program.eval (.cons «a» .nil) puzzle_flip_ir = «puzzle_flip» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«PuzzleJax».puzzle_flip_ir = _root_.«JaxLean».«PuzzleJax».«puzzle_flip» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [puzzle_flip_ir, «puzzle_flip», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [puzzle_flip_ir, «puzzle_flip», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».puzzle_flip_ir, _root_.«JaxLean».«PuzzleJax».«puzzle_flip»]
 
 end «JaxLean».«PuzzleJax»
 
@@ -45,7 +43,7 @@ namespace «JaxLean».«PuzzleJax»
 
 def «flip» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [4]) : Tensor R [4] :=
   -- call puzzle_flip
-  let call_puzzle_flip_result : Tensor R [4] := «puzzle_flip» (R := R) («a»)
+  let call_puzzle_flip_result : Tensor R [4] := _root_.«JaxLean».«PuzzleJax».«puzzle_flip» (R := R) («a»)
   call_puzzle_flip_result
 
 end «JaxLean».«PuzzleJax»
@@ -59,12 +57,9 @@ def flip_ir : Jaxpr.Program [(.real, [4])] (.real, [4]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem flip_translation_correct («a» : Tensor ℝ [4]) :
-    Jaxpr.Program.eval (.cons «a» .nil) flip_ir = «flip» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«PuzzleJax».flip_ir = _root_.«JaxLean».«PuzzleJax».«flip» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [flip_ir, «flip», ↓puzzle_flip_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [flip_ir, «flip», puzzle_flip_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».flip_ir, _root_.«JaxLean».«PuzzleJax».«flip», _root_.«JaxLean».«PuzzleJax».puzzle_flip_translation_correct]
 
 end «JaxLean».«PuzzleJax»

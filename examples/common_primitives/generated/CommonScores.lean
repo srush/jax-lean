@@ -23,18 +23,16 @@ end «JaxLean».«CommonJax».«Scores»
 -- IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.
 namespace «JaxLean».«CommonJax».«Scores»
 def batched_scores_ir : Jaxpr.Program [(.real, [2, 3, 4]), (.real, [2, 5, 4])] (.real, [2, 3, 5]) :=
-  .bind (.transpose (s := [2, 5, 4]) (t := [2, 4, 5]) (fun i => (i.1, i.2.2.1, i.2.1, ())) (.var (.there .here))) <|
+  .bind (.transpose [0, 2, 1] (.var (.there .here)) (t := [2, 4, 5])) <|
   .bind (.dot_general (s := [2, 3, 4]) (u := [2, 4, 5]) (t := [2, 3, 5]) (k := [4]) (fun i j => (i.1, i.2.1, j.1, ())) (fun i j => (i.1, j.1, i.2.2.1, ())) (.var (.there .here)) (.var .here)) <|
   .ret (.var .here)
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem batched_scores_translation_correct («q» : Tensor ℝ [2, 3, 4]) («k» : Tensor ℝ [2, 5, 4]) :
-    Jaxpr.Program.eval (.cons «q» (.cons «k» .nil)) batched_scores_ir = «batched_scores» (R := ℝ) «q» «k» := by
+    Jaxpr.Program.eval (.cons «q» (.cons «k» .nil)) _root_.«JaxLean».«CommonJax».«Scores».batched_scores_ir = _root_.«JaxLean».«CommonJax».«Scores».«batched_scores» (R := ℝ) «q» «k» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨j2, ⟨⟩⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [batched_scores_ir, «batched_scores», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [batched_scores_ir, «batched_scores», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«CommonJax».«Scores».batched_scores_ir, _root_.«JaxLean».«CommonJax».«Scores».«batched_scores»]
 
 end «JaxLean».«CommonJax».«Scores»

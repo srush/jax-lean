@@ -32,12 +32,10 @@ def pad_to_ir : Jaxpr.Program [(.real, [3])] (.real, [5]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem pad_to_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) pad_to_ir = «pad_to» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«PadTo».«Array».pad_to_ir = _root_.«JaxLean».«Puzzles».«PadTo».«Array».«pad_to» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [pad_to_ir, «pad_to», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [pad_to_ir, «pad_to», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«PadTo».«Array».pad_to_ir, _root_.«JaxLean».«Puzzles».«PadTo».«Array».«pad_to»]
 
 end «JaxLean».«Puzzles».«PadTo».«Array»
 
@@ -103,11 +101,9 @@ def pad_to_ir : Jaxpr.Program [(.real, [3])] (.real, [5]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem pad_to_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) pad_to_ir = «pad_to» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«PadTo».«Loop».pad_to_ir = _root_.«JaxLean».«Puzzles».«PadTo».«Loop».«pad_to» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [pad_to_ir, «pad_to», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [pad_to_ir, «pad_to», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«PadTo».«Loop».pad_to_ir, _root_.«JaxLean».«Puzzles».«PadTo».«Loop».«pad_to»]
 
 end «JaxLean».«Puzzles».«PadTo».«Loop»

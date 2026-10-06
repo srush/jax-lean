@@ -33,11 +33,9 @@ def certified_layer_ir : Jaxpr.Program [(.real, [3, 2]), (.real, [2, 4]), (.real
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem certified_layer_translation_correct (x0 : Tensor ℝ [3, 2]) (x1 : Tensor ℝ [2, 4]) (x2 : Tensor ℝ [4]) :
-    Jaxpr.Program.eval (.cons x0 (.cons x1 (.cons x2 .nil))) certified_layer_ir = «certified_layer» (R := ℝ) x0 x1 x2 := by
+    Jaxpr.Program.eval (.cons x0 (.cons x1 (.cons x2 .nil))) _root_.«JaxLean».«Generated».certified_layer_ir = _root_.«JaxLean».«Generated».«certified_layer» (R := ℝ) x0 x1 x2 := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [certified_layer_ir, «certified_layer», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [certified_layer_ir, «certified_layer», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Generated».certified_layer_ir, _root_.«JaxLean».«Generated».«certified_layer»]
 
 end «JaxLean».«Generated»

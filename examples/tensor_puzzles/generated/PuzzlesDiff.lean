@@ -44,12 +44,10 @@ def diff_ir : Jaxpr.Program [(.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem diff_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) diff_ir = «diff» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Diff».«Array».diff_ir = _root_.«JaxLean».«Puzzles».«Diff».«Array».«diff» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [diff_ir, «diff», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [diff_ir, «diff», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Diff».«Array».diff_ir, _root_.«JaxLean».«Puzzles».«Diff».«Array».«diff»]
 
 end «JaxLean».«Puzzles».«Diff».«Array»
 
@@ -139,11 +137,9 @@ def diff_ir : Jaxpr.Program [(.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem diff_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) diff_ir = «diff» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Diff».«Loop».diff_ir = _root_.«JaxLean».«Puzzles».«Diff».«Loop».«diff» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [diff_ir, «diff», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [diff_ir, «diff», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Diff».«Loop».diff_ir, _root_.«JaxLean».«Puzzles».«Diff».«Loop».«diff»]
 
 end «JaxLean».«Puzzles».«Diff».«Loop»

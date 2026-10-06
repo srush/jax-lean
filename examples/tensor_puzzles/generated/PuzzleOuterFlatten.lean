@@ -34,12 +34,10 @@ def puzzle_outer_ir : Jaxpr.Program [(.real, [2]), (.real, [3])] (.real, [2, 3])
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem puzzle_outer_translation_correct («a» : Tensor ℝ [2]) («b» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) puzzle_outer_ir = «puzzle_outer» (R := ℝ) «a» «b» := by
+    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) _root_.«JaxLean».«PuzzleJax».puzzle_outer_ir = _root_.«JaxLean».«PuzzleJax».«puzzle_outer» (R := ℝ) «a» «b» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [puzzle_outer_ir, «puzzle_outer», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [puzzle_outer_ir, «puzzle_outer», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».puzzle_outer_ir, _root_.«JaxLean».«PuzzleJax».«puzzle_outer»]
 
 end «JaxLean».«PuzzleJax»
 
@@ -68,12 +66,10 @@ def puzzle_flatten_ir : Jaxpr.Program [(.real, [2, 3])] (.real, [6]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem puzzle_flatten_translation_correct («a» : Tensor ℝ [2, 3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) puzzle_flatten_ir = «puzzle_flatten» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«PuzzleJax».puzzle_flatten_ir = _root_.«JaxLean».«PuzzleJax».«puzzle_flatten» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [puzzle_flatten_ir, «puzzle_flatten», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [puzzle_flatten_ir, «puzzle_flatten», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».puzzle_flatten_ir, _root_.«JaxLean».«PuzzleJax».«puzzle_flatten»]
 
 end «JaxLean».«PuzzleJax»
 
@@ -88,10 +84,10 @@ namespace «JaxLean».«PuzzleJax»
 def «outer_flatten» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [2]) («b» : Tensor R [3]) : Tensor R [6] :=
   -- code.py:32 (outer_flatten)
   -- call puzzle_outer
-  let call_puzzle_outer_result : Tensor R [2, 3] := «puzzle_outer» (R := R) («a») («b»)
+  let call_puzzle_outer_result : Tensor R [2, 3] := _root_.«JaxLean».«PuzzleJax».«puzzle_outer» (R := R) («a») («b»)
   -- code.py:32 (outer_flatten)
   -- call puzzle_flatten
-  let call_puzzle_flatten_result : Tensor R [6] := «puzzle_flatten» (R := R) (call_puzzle_outer_result)
+  let call_puzzle_flatten_result : Tensor R [6] := _root_.«JaxLean».«PuzzleJax».«puzzle_flatten» (R := R) (call_puzzle_outer_result)
   call_puzzle_flatten_result
 
 end «JaxLean».«PuzzleJax»
@@ -106,12 +102,9 @@ def outer_flatten_ir : Jaxpr.Program [(.real, [2]), (.real, [3])] (.real, [6]) :
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem outer_flatten_translation_correct («a» : Tensor ℝ [2]) («b» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) outer_flatten_ir = «outer_flatten» (R := ℝ) «a» «b» := by
+    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) _root_.«JaxLean».«PuzzleJax».outer_flatten_ir = _root_.«JaxLean».«PuzzleJax».«outer_flatten» (R := ℝ) «a» «b» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [outer_flatten_ir, «outer_flatten», ↓puzzle_outer_translation_correct, ↓puzzle_flatten_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [outer_flatten_ir, «outer_flatten», puzzle_outer_translation_correct, puzzle_flatten_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».outer_flatten_ir, _root_.«JaxLean».«PuzzleJax».«outer_flatten», _root_.«JaxLean».«PuzzleJax».puzzle_outer_translation_correct, _root_.«JaxLean».«PuzzleJax».puzzle_flatten_translation_correct]
 
 end «JaxLean».«PuzzleJax»

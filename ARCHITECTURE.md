@@ -40,7 +40,7 @@ does not import the Jaxpr evaluator, Verification, or generated examples.
 - [Verification/JaxprRules.lean](JaxLean/Verification/JaxprRules.lean): local equalities between IR evaluation and tensor operations.
 - [Verification/Certificate.lean](JaxLean/Verification/Certificate.lean): proof automation composing those equalities and unfolding remaining semantic definitions.
 
-This is a mathematical model of the supported Jaxpr fragment. Broadcast primitives carry their shape and dimension list; elementwise broadcasting is internal to the primitive evaluator; a static scatter stores a validated coordinate plan in one operation. Dtype, shape, and reference correctness are checked by
+This is a mathematical model of the supported Jaxpr fragment. Broadcast primitives carry their shape and dimension list; transpose and reversal carry their source axis parameters; elementwise broadcasting is internal to the primitive evaluator; a static scatter stores a validated coordinate plan in one operation. Dtype, shape, and reference correctness are checked by
 Lean. The Python importer still determines what the original Jaxpr means in
 this IR. A certificate does not prove that normalization/layout decoding is
 faithful to JAX, nor that ideal-real operations match machine floating point.
@@ -53,7 +53,7 @@ faithful to JAX, nor that ideal-real operations match machine floating point.
 | [layout.py](python/jaxlean/layout.py), [static_index.py](python/jaxlean/static_index.py) | Trusted static layout/index decoding, with no dependence on either renderer |
 | [translate.py](python/jaxlean/translate.py) | Jaxpr → readable Lean tensor function |
 | [importers/jaxpr.py](python/jaxlean/importers/jaxpr.py) | Jaxpr → unified IR syntax; primitive dispatch is `JaxprImporter.run` |
-| [certify.py](python/jaxlean/certify.py) | Runs transpilation/import independently, emits equality obligations, preserves supported function boundaries |
+| [certify.py](python/jaxlean/certify.py) | Runs transpilation/import independently, emits equality obligations using the shared Lean certificate tactic, preserves supported function boundaries |
 | [random_spec.py](python/jaxlean/rewrites/random_spec.py) | Translation extension: recognizes supported random Jaxpr and substitutes an explicit ideal law; not a PRNG implementation proof |
 | [jaxlean-verso](tools/verso/src/jaxlean_verso/notebook.py) | Displays Python and checked Lean in the notebook; outside the semantic pipeline |
 

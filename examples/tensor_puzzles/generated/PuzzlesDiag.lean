@@ -36,12 +36,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, [3, 3]), (.real, []), (.real, [])] (.r
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [3, 3]) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Diag».«Array».fn__where_ir = _root_.«JaxLean».«Puzzles».«Diag».«Array».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Diag».«Array».fn__where_ir, _root_.«JaxLean».«Puzzles».«Diag».«Array».«fn__where»]
 
 end «JaxLean».«Puzzles».«Diag».«Array»
 
@@ -68,7 +66,7 @@ def «diag» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3, 3]) : Te
   let eq_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (i.1, 0, ())) = (broadcast_in_dim_result_2 (0, i.2.1, ())))
   -- code.py:89 (puzzle_eye)
   -- call fn__where
-  let call_fn__where_result : Tensor R [3, 3] := «fn__where» (R := R) (eq_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Diag».«Array».«fn__where» (R := R) (eq_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   -- code.py:77 (puzzle_diag)
   -- convert_element_type
   let cast_result : Tensor R [3, 3] := call_fn__where_result
@@ -98,13 +96,10 @@ def diag_ir : Jaxpr.Program [(.real, [3, 3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem diag_translation_correct («a» : Tensor ℝ [3, 3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) diag_ir = «diag» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Diag».«Array».diag_ir = _root_.«JaxLean».«Puzzles».«Diag».«Array».«diag» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [diag_ir, «diag», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [diag_ir, «diag», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Diag».«Array».diag_ir, _root_.«JaxLean».«Puzzles».«Diag».«Array».«diag», _root_.«JaxLean».«Puzzles».«Diag».«Array».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«Diag».«Array»
 
@@ -170,11 +165,9 @@ def diag_ir : Jaxpr.Program [(.real, [3, 3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem diag_translation_correct («a» : Tensor ℝ [3, 3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) diag_ir = «diag» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Diag».«Loop».diag_ir = _root_.«JaxLean».«Puzzles».«Diag».«Loop».«diag» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [diag_ir, «diag», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [diag_ir, «diag», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Diag».«Loop».diag_ir, _root_.«JaxLean».«Puzzles».«Diag».«Loop».«diag»]
 
 end «JaxLean».«Puzzles».«Diag».«Loop»

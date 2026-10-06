@@ -30,11 +30,9 @@ def die_estimate_ir : Jaxpr.Program [(.real, [16])] (.real, []) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem die_estimate_translation_correct («arg0» : Tensor ℝ [16]) :
-    Jaxpr.Program.eval (.cons «arg0» .nil) die_estimate_ir = «die_estimate» (R := ℝ) «arg0» := by
+    Jaxpr.Program.eval (.cons «arg0» .nil) _root_.«JaxLean».«MCJax».die_estimate_ir = _root_.«JaxLean».«MCJax».«die_estimate» (R := ℝ) «arg0» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [die_estimate_ir, «die_estimate», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [die_estimate_ir, «die_estimate», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«MCJax».die_estimate_ir, _root_.«JaxLean».«MCJax».«die_estimate»]
 
 end «JaxLean».«MCJax»

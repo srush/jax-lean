@@ -30,12 +30,10 @@ def puzzle_sum_ir : Jaxpr.Program [(.real, [4])] (.real, []) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem puzzle_sum_translation_correct («a» : Tensor ℝ [4]) :
-    Jaxpr.Program.eval (.cons «a» .nil) puzzle_sum_ir = «puzzle_sum» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«PuzzleJax».puzzle_sum_ir = _root_.«JaxLean».«PuzzleJax».«puzzle_sum» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [puzzle_sum_ir, «puzzle_sum», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [puzzle_sum_ir, «puzzle_sum», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».puzzle_sum_ir, _root_.«JaxLean».«PuzzleJax».«puzzle_sum»]
 
 end «JaxLean».«PuzzleJax»
 
@@ -49,7 +47,7 @@ namespace «JaxLean».«PuzzleJax»
 
 def «sum» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [4]) : Tensor R [] :=
   -- call puzzle_sum
-  let call_puzzle_sum_result : Tensor R [] := «puzzle_sum» (R := R) («a»)
+  let call_puzzle_sum_result : Tensor R [] := _root_.«JaxLean».«PuzzleJax».«puzzle_sum» (R := R) («a»)
   call_puzzle_sum_result
 
 end «JaxLean».«PuzzleJax»
@@ -63,12 +61,9 @@ def sum_ir : Jaxpr.Program [(.real, [4])] (.real, []) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem sum_translation_correct («a» : Tensor ℝ [4]) :
-    Jaxpr.Program.eval (.cons «a» .nil) sum_ir = «sum» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«PuzzleJax».sum_ir = _root_.«JaxLean».«PuzzleJax».«sum» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [sum_ir, «sum», ↓puzzle_sum_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [sum_ir, «sum», puzzle_sum_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».sum_ir, _root_.«JaxLean».«PuzzleJax».«sum», _root_.«JaxLean».«PuzzleJax».puzzle_sum_translation_correct]
 
 end «JaxLean».«PuzzleJax»

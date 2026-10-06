@@ -44,12 +44,10 @@ def linspace_ir : Jaxpr.Program [(.real, []), (.real, [])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem linspace_translation_correct («start» : Tensor ℝ []) («stop» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «start» (.cons «stop» .nil)) linspace_ir = «linspace» (R := ℝ) «start» «stop» := by
+    Jaxpr.Program.eval (.cons «start» (.cons «stop» .nil)) _root_.«JaxLean».«Puzzles».«Linspace».«Array».linspace_ir = _root_.«JaxLean».«Puzzles».«Linspace».«Array».«linspace» (R := ℝ) «start» «stop» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [linspace_ir, «linspace», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [linspace_ir, «linspace», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Linspace».«Array».linspace_ir, _root_.«JaxLean».«Puzzles».«Linspace».«Array».«linspace»]
 
 end «JaxLean».«Puzzles».«Linspace».«Array»
 
@@ -139,11 +137,9 @@ def linspace_ir : Jaxpr.Program [(.real, []), (.real, [])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem linspace_translation_correct («start» : Tensor ℝ []) («stop» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «start» (.cons «stop» .nil)) linspace_ir = «linspace» (R := ℝ) «start» «stop» := by
+    Jaxpr.Program.eval (.cons «start» (.cons «stop» .nil)) _root_.«JaxLean».«Puzzles».«Linspace».«Loop».linspace_ir = _root_.«JaxLean».«Puzzles».«Linspace».«Loop».«linspace» (R := ℝ) «start» «stop» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [linspace_ir, «linspace», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [linspace_ir, «linspace», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Linspace».«Loop».linspace_ir, _root_.«JaxLean».«Puzzles».«Linspace».«Loop».«linspace»]
 
 end «JaxLean».«Puzzles».«Linspace».«Loop»

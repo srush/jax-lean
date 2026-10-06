@@ -31,11 +31,9 @@ def replace_selected_ir : Jaxpr.Program [(.real, [4]), (.real, [2])] (.real, [4]
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem replace_selected_translation_correct («x» : Tensor ℝ [4]) («values» : Tensor ℝ [2]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «values» .nil)) replace_selected_ir = «replace_selected» (R := ℝ) «x» «values» := by
+    Jaxpr.Program.eval (.cons «x» (.cons «values» .nil)) _root_.«JaxLean».«ScatterJax».replace_selected_ir = _root_.«JaxLean».«ScatterJax».«replace_selected» (R := ℝ) «x» «values» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [replace_selected_ir, «replace_selected», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [replace_selected_ir, «replace_selected», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«ScatterJax».replace_selected_ir, _root_.«JaxLean».«ScatterJax».«replace_selected»]
 
 end «JaxLean».«ScatterJax»

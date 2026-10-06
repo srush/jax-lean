@@ -6,6 +6,7 @@ import JaxLean.Core.RealOps
 
 open JaxLean
 open scoped BigOperators
+set_option linter.unusedVariables false
 namespace «JaxLean».«Blog»
 
 def «add_then_scale» {R : Type} [Field R] (x0 : Tensor R [3]) (x1 : Tensor R [3]) : Tensor R [3] :=
@@ -27,12 +28,11 @@ def add_then_scale_ir : Jaxpr.Program [(.real, [3]), (.real, [3])] (.real, [3]) 
   }
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
+set_option linter.unusedSimpArgs false in
 theorem add_then_scale_translation_correct (x0 : Tensor ℝ [3]) (x1 : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons x0 (.cons x1 .nil)) add_then_scale_ir = «add_then_scale» (R := ℝ) x0 x1 := by
+    Jaxpr.Program.eval (.cons x0 (.cons x1 .nil)) _root_.«JaxLean».«Blog».add_then_scale_ir = _root_.«JaxLean».«Blog».«add_then_scale» (R := ℝ) x0 x1 := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [add_then_scale_ir, «add_then_scale», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [add_then_scale_ir, «add_then_scale», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Blog».add_then_scale_ir, _root_.«JaxLean».«Blog».«add_then_scale»]
 
 end «JaxLean».«Blog»

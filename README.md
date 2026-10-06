@@ -13,7 +13,8 @@ Lean IR evaluator. A small tactic macro packages routine certificate
 rewrites; every resulting proof is checked by Lean. There is no dependency on Aeneas.
 
 For code review, start with [ARCHITECTURE.md](ARCHITECTURE.md) and the
-[primitive index](docs/primitive-index.md). They separate Core, Verification,
+[primitive index](docs/primitive-index.md). The [implementation review](docs/code-review.md)
+records corrected issues and the remaining trust boundaries. These guides separate Core, Verification,
 Stdlib, generated artifacts, and application proofs.
 
 ## Start here

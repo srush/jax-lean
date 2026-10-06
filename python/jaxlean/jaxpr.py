@@ -48,7 +48,7 @@ def index(xs):
     return "(" + ", ".join([*xs, "()"]) + ")" if xs else "()"
 
 
-_ARGUMENT_RESERVED = {"R", "draw", "draws", "sampling", "split_keys"}
+_ARGUMENT_RESERVED = {"R", "draw", "draws", "sampling", "split_keys", "i", "j", "ix"}
 
 
 def argument_labels(jp, readable=False):
@@ -58,7 +58,7 @@ def argument_labels(jp, readable=False):
     labels = []
     for n, _ in enumerate(jp.invars):
         label = arg_names[n] if readable and n < len(arg_names) else f"x{n}"
-        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", label) or label in used:
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", label) or label in used or re.fullmatch(r"[ak][0-9]+", label):
             label = f"arg{n}"
         while label in used:
             label += "_"

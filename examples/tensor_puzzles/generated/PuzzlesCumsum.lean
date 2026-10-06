@@ -40,12 +40,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, [3, 3]), (.real, [1, 3]), (.real, [])]
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [3, 3]) («x» : Tensor ℝ [1, 3]) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Cumsum».«Array».fn__where_ir = _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Cumsum».«Array».fn__where_ir, _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«fn__where»]
 
 end «JaxLean».«Puzzles».«Cumsum».«Array»
 
@@ -75,7 +73,7 @@ def «puzzle_cumsum» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]
   let broadcast_in_dim_result_3 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) «a»
   -- code.py:116 (puzzle_cumsum)
   -- call fn__where
-  let call_fn__where_result : Tensor R [3, 3] := «fn__where» (R := R) (ge_result) (broadcast_in_dim_result_3) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«fn__where» (R := R) (ge_result) (broadcast_in_dim_result_3) ((Tensor.scalar (0 : R)))
   -- code.py:116 (puzzle_cumsum)
   -- reduce_sum
   let reduce_sum_result : Tensor R [3] := fun i => ∑ k0 : Fin 3, (call_fn__where_result (i.1, k0, ()))
@@ -98,13 +96,10 @@ def puzzle_cumsum_ir : Jaxpr.Program [(.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem puzzle_cumsum_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) puzzle_cumsum_ir = «puzzle_cumsum» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Cumsum».«Array».puzzle_cumsum_ir = _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«puzzle_cumsum» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [puzzle_cumsum_ir, «puzzle_cumsum», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [puzzle_cumsum_ir, «puzzle_cumsum», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Cumsum».«Array».puzzle_cumsum_ir, _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«puzzle_cumsum», _root_.«JaxLean».«Puzzles».«Cumsum».«Array».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«Cumsum».«Array»
 
@@ -118,7 +113,7 @@ namespace «JaxLean».«Puzzles».«Cumsum».«Array»
 
 def «cumsum» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) : Tensor R [3] :=
   -- call puzzle_cumsum
-  let call_puzzle_cumsum_result : Tensor R [3] := «puzzle_cumsum» (R := R) («a»)
+  let call_puzzle_cumsum_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«puzzle_cumsum» (R := R) («a»)
   call_puzzle_cumsum_result
 
 end «JaxLean».«Puzzles».«Cumsum».«Array»
@@ -132,13 +127,10 @@ def cumsum_ir : Jaxpr.Program [(.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem cumsum_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) cumsum_ir = «cumsum» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Cumsum».«Array».cumsum_ir = _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«cumsum» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [cumsum_ir, «cumsum», ↓puzzle_cumsum_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [cumsum_ir, «cumsum», puzzle_cumsum_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Cumsum».«Array».cumsum_ir, _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«cumsum», _root_.«JaxLean».«Puzzles».«Cumsum».«Array».puzzle_cumsum_translation_correct]
 
 end «JaxLean».«Puzzles».«Cumsum».«Array»
 
@@ -216,11 +208,9 @@ def cumsum_ir : Jaxpr.Program [(.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem cumsum_translation_correct («a» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) cumsum_ir = «cumsum» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«Puzzles».«Cumsum».«Loop».cumsum_ir = _root_.«JaxLean».«Puzzles».«Cumsum».«Loop».«cumsum» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [cumsum_ir, «cumsum», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [cumsum_ir, «cumsum», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Cumsum».«Loop».cumsum_ir, _root_.«JaxLean».«Puzzles».«Cumsum».«Loop».«cumsum»]
 
 end «JaxLean».«Puzzles».«Cumsum».«Loop»

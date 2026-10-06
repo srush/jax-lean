@@ -34,6 +34,16 @@ def broadcastIndex : (s t : Shape) → (dims : List Nat) → broadcastValid s t 
        broadcastIndex ns t axes h.2.2 i)
   | _ :: _, _, [], h, _ => False.elim h
 
+/-- The source permutation determines the inverse coordinate map. -/
+abbrev transposeDimensions (s : Shape) (permutation : List Nat) : List Nat :=
+  (List.range s.length).map (fun axis => permutation.idxOf axis)
+
+/-- Reverse exactly the axes named by the Jaxpr parameter. -/
+def reverseIndex : (s : Shape) → List Nat → Index s → Nat → Index s
+  | [], _, _, _ => ()
+  | _ :: ns, axes, i, axis =>
+      (if axis ∈ axes then i.1.rev else i.1, reverseIndex ns axes i.2 (axis + 1))
+
 inductive DType where
   | real | bool | int
   deriving DecidableEq
@@ -179,10 +189,14 @@ inductive Op (ctx : List Ty) : Ty → Type
 
   | broadcast_in_dim (shape : Shape) (broadcast_dimensions : List Nat) (x : Atom ctx (d, s))
       (valid : broadcastValid s shape broadcast_dimensions := by decide) : Op ctx (d, shape)
-  | transpose (map : Index t → Index s) : Atom ctx (d, s) → Op ctx (d, t)
+  | transpose (permutation : List Nat) (x : Atom ctx (d, s))
+      (valid : t = permutation.map (fun axis => s[axis]?.getD 1) ∧
+        permutation.Perm (List.range s.length) ∧
+        broadcastValid s t (transposeDimensions s permutation) := by decide) : Op ctx (d, t)
   | squeeze (map : Index t → Index s) : Atom ctx (d, s) → Op ctx (d, t)
   | slice (map : Index t → Index s) : Atom ctx (d, s) → Op ctx (d, t)
-  | rev (map : Index t → Index s) : Atom ctx (d, s) → Op ctx (d, t)
+  | rev (dimensions : List Nat) (x : Atom ctx (d, s))
+      (valid : dimensions.Nodup ∧ dimensions.all (· < s.length) := by decide) : Op ctx (d, s)
   | reshape (map : Index t → Index s) : Atom ctx (d, s) → Op ctx (d, t)
 
   | scatter_add (plan : List (Index s × Index u)) : Atom ctx (.real, s) → Atom ctx (.real, u) → Op ctx (.real, s)
@@ -309,10 +323,11 @@ noncomputable def Op.eval (env : Env ctx) : Op ctx t → Value t
   | @Op.broadcast_in_dim _ d source shape dims x h =>
       let xv := x.eval env
       fun i => xv (broadcastIndex source shape dims h i)
-  | @Op.transpose _ target source d map x => fun i => (Atom.eval (t := (d, source)) env x) (map i)
+  | @Op.transpose _ d source target _permutation x valid =>
+      fun i => (Atom.eval (t := (d, source)) env x) (broadcastIndex source target _ valid.2.2 i)
   | @Op.squeeze _ target source d map x => fun i => (Atom.eval (t := (d, source)) env x) (map i)
   | @Op.slice _ target source d map x => fun i => (Atom.eval (t := (d, source)) env x) (map i)
-  | @Op.rev _ target source d map x => fun i => (Atom.eval (t := (d, source)) env x) (map i)
+  | .rev dimensions x _ => fun i => x.eval env (reverseIndex _ dimensions i 0)
   | @Op.reshape _ target source d map x => fun i => (Atom.eval (t := (d, source)) env x) (map i)
 
   | .scatter_add plan x update =>

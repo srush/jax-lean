@@ -37,7 +37,8 @@ class Value:
 
 
 class Emitter:
-    def __init__(self, max_scan_length, *, scalar=False, readable=False, random_model=None, source_file=None, certified_calls=None):
+    def __init__(self, max_scan_length, *, scalar=False, readable=False, random_model=None, source_file=None, certified_calls=None, namespace="Generated"):
+        self.namespace = ".".join(f"«{part}»" for part in namespace.split("."))
         self.typed_indices = False
         self.certified_calls = certified_calls or {}
         self.lines = []
@@ -187,7 +188,7 @@ class Emitter:
                     self.transcendental |= has_transcendental(p["jaxpr"].jaxpr)
                     if len(eq.outvars) != 1:
                         raise TranslationError("certified calls require one result")
-                    expr = f"«{callee}» (R := R) " + " ".join(f"({v.expr})" for v in vs)
+                    expr = f"_root_.{self.namespace}.«{callee}» (R := R) " + " ".join(f"({v.expr})" for v in vs)
                     outs = [self.let(expr, eq.outvars[0].aval, f"call {callee}")]
                 elif op in ("jit", "custom_jvp_call"):
                     nested = p["jaxpr" if op == "jit" else "call_jaxpr"]
@@ -453,7 +454,7 @@ def translate(jaxpr, *, name="program", namespace="Generated", consts=None, max_
     source = getattr(debug, "func_src_info", "") or ""
     source_file = source.rsplit(" at ", 1)[-1].rsplit(":", 1)[0] if " at " in source else None
     e = Emitter(max_scan_length, scalar=scalar, readable=readable,
-                random_model=random_model, source_file=source_file, certified_calls=_certified_calls)
+                random_model=random_model, source_file=source_file, certified_calls=_certified_calls, namespace=namespace)
     from .layout import uses_indices
     e.typed_indices = not random_model and uses_indices(jp)
     labels = argument_labels(jp, readable)

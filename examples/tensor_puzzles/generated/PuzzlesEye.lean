@@ -7,6 +7,7 @@ import JaxLean.Core.RealOps
 
 open JaxLean
 open scoped BigOperators
+set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Eye».«Array»
 
 def «fn__where» {R : Type} [Field R] («condition» : Tensor Bool [3, 3]) («x» : Tensor R []) («y» : Tensor R []) : Tensor R [3, 3] :=
@@ -34,13 +35,12 @@ def fn__where_ir : Jaxpr.Program [(.bool, [3, 3]), (.real, []), (.real, [])] (.r
   }
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
+set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [3, 3]) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Eye».«Array».fn__where_ir = _root_.«JaxLean».«Puzzles».«Eye».«Array».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Eye».«Array».fn__where_ir, _root_.«JaxLean».«Puzzles».«Eye».«Array».«fn__where»]
 
 end «JaxLean».«Puzzles».«Eye».«Array»
 
@@ -49,6 +49,7 @@ end «JaxLean».«Puzzles».«Eye».«Array»
 
 open JaxLean
 open scoped BigOperators
+set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Eye».«Array»
 
 def «eye» {R : Type} [Field R] [LinearOrder R]  : Tensor R [3, 3] :=
@@ -66,7 +67,7 @@ def «eye» {R : Type} [Field R] [LinearOrder R]  : Tensor R [3, 3] :=
   let eq_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (i.1, 0, ())) = (broadcast_in_dim_result_2 (0, i.2.1, ())))
   -- code.py:89 (puzzle_eye)
   -- call fn__where
-  let call_fn__where_result : Tensor R [3, 3] := «fn__where» (R := R) (eq_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Eye».«Array».«fn__where» (R := R) (eq_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   call_fn__where_result
 
 end «JaxLean».«Puzzles».«Eye».«Array»
@@ -84,14 +85,12 @@ def eye_ir : Jaxpr.Program [] (.real, [3, 3]) :=
   }
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
+set_option linter.unusedSimpArgs false in
 theorem eye_translation_correct  :
-    Jaxpr.Program.eval .nil eye_ir = «eye» (R := ℝ)  := by
+    Jaxpr.Program.eval .nil _root_.«JaxLean».«Puzzles».«Eye».«Array».eye_ir = _root_.«JaxLean».«Puzzles».«Eye».«Array».«eye» (R := ℝ)  := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [eye_ir, «eye», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [eye_ir, «eye», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Eye».«Array».eye_ir, _root_.«JaxLean».«Puzzles».«Eye».«Array».«eye», _root_.«JaxLean».«Puzzles».«Eye».«Array».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«Eye».«Array»
 
@@ -101,6 +100,7 @@ end «JaxLean».«Puzzles».«Eye».«Array»
 
 open JaxLean
 open scoped BigOperators
+set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Eye».«Loop»
 
 def «eye» {R : Type} [Field R]  : Tensor R [3, 3] :=
@@ -138,12 +138,11 @@ def eye_ir : Jaxpr.Program [] (.real, [3, 3]) :=
   }
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
+set_option linter.unusedSimpArgs false in
 theorem eye_translation_correct  :
-    Jaxpr.Program.eval .nil eye_ir = «eye» (R := ℝ)  := by
+    Jaxpr.Program.eval .nil _root_.«JaxLean».«Puzzles».«Eye».«Loop».eye_ir = _root_.«JaxLean».«Puzzles».«Eye».«Loop».«eye» (R := ℝ)  := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [eye_ir, «eye», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [eye_ir, «eye», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Eye».«Loop».eye_ir, _root_.«JaxLean».«Puzzles».«Eye».«Loop».«eye»]
 
 end «JaxLean».«Puzzles».«Eye».«Loop»

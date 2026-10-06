@@ -9,7 +9,7 @@ from jaxlean.importers.jaxpr import JaxprImporter
 
 def test_names_are_stable_and_unbounded():
     assert [JaxprImporter.variable_name(i) for i in (0, 1, 25, 26, 27, 701, 702)] == [
-        'a', 'b', 'z', 'aa', 'ab', 'zz', 'aaa']
+        'a', 'b', 'z', 'v26', 'v27', 'v701', 'v702']
     closed = jax.make_jaxpr(lambda a, b: (a + b) * a)(jnp.ones(3), jnp.ones(3))
     source = certify_module(closed, named_vars=True)
     assert 'jaxpr% (a : (.real, [3]), b : (.real, [3]))' in source

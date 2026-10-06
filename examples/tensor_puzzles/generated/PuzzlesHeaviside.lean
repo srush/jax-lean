@@ -36,12 +36,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, [3]), (.real, []), (.real, [])] (.real
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [3]) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Heaviside».«Array».fn__where_ir = _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Heaviside».«Array».fn__where_ir, _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«fn__where»]
 
 end «JaxLean».«Puzzles».«Heaviside».«Array»
 
@@ -74,12 +72,10 @@ def fn__where_2_ir : Jaxpr.Program [(.bool, [3]), (.real, [3]), (.real, [3])] (.
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_2_translation_correct («condition» : Tensor Bool [3]) («x» : Tensor ℝ [3]) («y» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_2_ir = «fn__where_2» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Heaviside».«Array».fn__where_2_ir = _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«fn__where_2» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_2_ir, «fn__where_2», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_2_ir, «fn__where_2», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Heaviside».«Array».fn__where_2_ir, _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«fn__where_2»]
 
 end «JaxLean».«Puzzles».«Heaviside».«Array»
 
@@ -100,10 +96,10 @@ def «heaviside» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) (�
   let gt_result : Tensor Bool [3] := fun i => decide ((«a» (i.1, ())) > ((Tensor.scalar (0 : R)) ()))
   -- code.py:238 (puzzle_heaviside)
   -- call fn__where
-  let call_fn__where_result : Tensor R [3] := «fn__where» (R := R) (gt_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«fn__where» (R := R) (gt_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   -- code.py:238 (puzzle_heaviside)
   -- call fn__where_2
-  let call_fn__where_2_result : Tensor R [3] := «fn__where_2» (R := R) (eq_result) («b») (call_fn__where_result)
+  let call_fn__where_2_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«fn__where_2» (R := R) (eq_result) («b») (call_fn__where_result)
   call_fn__where_2_result
 
 end «JaxLean».«Puzzles».«Heaviside».«Array»
@@ -120,13 +116,10 @@ def heaviside_ir : Jaxpr.Program [(.real, [3]), (.real, [3])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem heaviside_translation_correct («a» : Tensor ℝ [3]) («b» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) heaviside_ir = «heaviside» (R := ℝ) «a» «b» := by
+    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) _root_.«JaxLean».«Puzzles».«Heaviside».«Array».heaviside_ir = _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«heaviside» (R := ℝ) «a» «b» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [heaviside_ir, «heaviside», ↓fn__where_translation_correct, ↓fn__where_2_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [heaviside_ir, «heaviside», fn__where_translation_correct, fn__where_2_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Heaviside».«Array».heaviside_ir, _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«heaviside», _root_.«JaxLean».«Puzzles».«Heaviside».«Array».fn__where_translation_correct, _root_.«JaxLean».«Puzzles».«Heaviside».«Array».fn__where_2_translation_correct]
 
 end «JaxLean».«Puzzles».«Heaviside».«Array»
 
@@ -156,12 +149,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, []), (.real, []), (.real, [])] (.real,
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool []) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».fn__where_ir = _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Heaviside».«Loop».fn__where_ir, _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where»]
 
 end «JaxLean».«Puzzles».«Heaviside».«Loop»
 
@@ -194,12 +185,10 @@ def fn__where_2_ir : Jaxpr.Program [(.bool, []), (.real, []), (.real, [])] (.rea
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_2_translation_correct («condition» : Tensor Bool []) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_2_ir = «fn__where_2» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».fn__where_2_ir = _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where_2» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_2_ir, «fn__where_2», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_2_ir, «fn__where_2», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Heaviside».«Loop».fn__where_2_ir, _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where_2»]
 
 end «JaxLean».«Puzzles».«Heaviside».«Loop»
 
@@ -241,10 +230,10 @@ def «heaviside» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) (�
   let gt_result : Tensor Bool [] := fun i => decide ((squeeze_result_3 ()) > ((Tensor.scalar (0 : R)) ()))
   -- code.py:244 (loop_heaviside)
   -- call fn__where
-  let call_fn__where_result : Tensor R [] := «fn__where» (R := R) (gt_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where» (R := R) (gt_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   -- code.py:244 (loop_heaviside)
   -- call fn__where_2
-  let call_fn__where_2_result : Tensor R [] := «fn__where_2» (R := R) (eq_result) (squeeze_result_2) (call_fn__where_result)
+  let call_fn__where_2_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where_2» (R := R) (eq_result) (squeeze_result_2) (call_fn__where_result)
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (call_fn__where_2_result ())
   -- code.py:244 (loop_heaviside)
@@ -273,10 +262,10 @@ def «heaviside» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) (�
   let gt_result_2 : Tensor Bool [] := fun i => decide ((squeeze_result_6 ()) > ((Tensor.scalar (0 : R)) ()))
   -- code.py:244 (loop_heaviside)
   -- call fn__where
-  let call_fn__where_result_2 : Tensor R [] := «fn__where» (R := R) (gt_result_2) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where» (R := R) (gt_result_2) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   -- code.py:244 (loop_heaviside)
   -- call fn__where_2
-  let call_fn__where_2_result_2 : Tensor R [] := «fn__where_2» (R := R) (eq_result_2) (squeeze_result_5) (call_fn__where_result_2)
+  let call_fn__where_2_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where_2» (R := R) (eq_result_2) (squeeze_result_5) (call_fn__where_result_2)
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (call_fn__where_2_result_2 ())
   -- code.py:244 (loop_heaviside)
@@ -305,10 +294,10 @@ def «heaviside» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) (�
   let gt_result_3 : Tensor Bool [] := fun i => decide ((squeeze_result_9 ()) > ((Tensor.scalar (0 : R)) ()))
   -- code.py:244 (loop_heaviside)
   -- call fn__where
-  let call_fn__where_result_3 : Tensor R [] := «fn__where» (R := R) (gt_result_3) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where» (R := R) (gt_result_3) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   -- code.py:244 (loop_heaviside)
   -- call fn__where_2
-  let call_fn__where_2_result_3 : Tensor R [] := «fn__where_2» (R := R) (eq_result_3) (squeeze_result_8) (call_fn__where_result_3)
+  let call_fn__where_2_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where_2» (R := R) (eq_result_3) (squeeze_result_8) (call_fn__where_result_3)
   -- scatter
   let scatter_result_3 : Tensor R [3] := Tensor.scatterSet scatter_result_2 (2, ()) (call_fn__where_2_result_3 ())
   scatter_result_3
@@ -361,12 +350,9 @@ def heaviside_ir : Jaxpr.Program [(.real, [3]), (.real, [3])] (.real, [3]) :=
 set_option maxRecDepth 4096 in
 set_option linter.unusedSimpArgs false in
 theorem heaviside_translation_correct («a» : Tensor ℝ [3]) («b» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) heaviside_ir = «heaviside» (R := ℝ) «a» «b» := by
+    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».heaviside_ir = _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«heaviside» (R := ℝ) «a» «b» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [heaviside_ir, «heaviside», ↓fn__where_translation_correct, ↓fn__where_2_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [heaviside_ir, «heaviside», fn__where_translation_correct, fn__where_2_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Heaviside».«Loop».heaviside_ir, _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«heaviside», _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».fn__where_translation_correct, _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».fn__where_2_translation_correct]
 
 end «JaxLean».«Puzzles».«Heaviside».«Loop»

@@ -37,12 +37,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, [2, 3]), (.real, [2, 3]), (.real, [])]
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool [2, 3]) («x» : Tensor ℝ [2, 3]) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».fn__where_ir = _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«SequenceMask».«Array».fn__where_ir, _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».«fn__where»]
 
 end «JaxLean».«Puzzles».«SequenceMask».«Array»
 
@@ -72,7 +70,7 @@ def «sequence_mask» {R : Type} [Field R] [LinearOrder R] («values» : Tensor 
   let lt_result : Tensor Bool [2, 3] := fun i => decide ((broadcast_in_dim_result (0, i.2.1, ())) < (cast_result (i.1, 0, ())))
   -- code.py:176 (puzzle_sequence_mask)
   -- call fn__where
-  let call_fn__where_result : Tensor R [2, 3] := «fn__where» (R := R) (lt_result) («values») ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [2, 3] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».«fn__where» (R := R) (lt_result) («values») ((Tensor.scalar (0 : R)))
   call_fn__where_result
 
 end «JaxLean».«Puzzles».«SequenceMask».«Array»
@@ -91,13 +89,10 @@ def sequence_mask_ir : Jaxpr.Program [(.real, [2, 3]), (.int, [2])] (.real, [2, 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem sequence_mask_translation_correct («values» : Tensor ℝ [2, 3]) («length» : Tensor Int32 [2]) :
-    Jaxpr.Program.eval (.cons «values» (.cons «length» .nil)) sequence_mask_ir = «sequence_mask» (R := ℝ) «values» «length» := by
+    Jaxpr.Program.eval (.cons «values» (.cons «length» .nil)) _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».sequence_mask_ir = _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».«sequence_mask» (R := ℝ) «values» «length» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [sequence_mask_ir, «sequence_mask», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [sequence_mask_ir, «sequence_mask», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«SequenceMask».«Array».sequence_mask_ir, _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».«sequence_mask», _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«SequenceMask».«Array»
 
@@ -131,12 +126,10 @@ def fn__where_ir : Jaxpr.Program [(.bool, []), (.real, []), (.real, [])] (.real,
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem fn__where_translation_correct («condition» : Tensor Bool []) («x» : Tensor ℝ []) («y» : Tensor ℝ []) :
-    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) fn__where_ir = «fn__where» (R := ℝ) «condition» «x» «y» := by
+    Jaxpr.Program.eval (.cons «condition» (.cons «x» (.cons «y» .nil))) _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».fn__where_ir = _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«fn__where» (R := ℝ) «condition» «x» «y» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [fn__where_ir, «fn__where», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [fn__where_ir, «fn__where», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».fn__where_ir, _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«fn__where»]
 
 end «JaxLean».«Puzzles».«SequenceMask».«Loop»
 
@@ -166,7 +159,7 @@ def «loop_sequence_row» {R : Type} [Field R] [LinearOrder R] («values» : Ten
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
   -- code.py:183 (loop_sequence_row)
   -- call fn__where
-  let call_fn__where_result : Tensor R [] := «fn__where» (R := R) (gt_result) (squeeze_result) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«fn__where» (R := R) (gt_result) (squeeze_result) ((Tensor.scalar (0 : R)))
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (call_fn__where_result ())
   -- code.py:183 (loop_sequence_row)
@@ -183,7 +176,7 @@ def «loop_sequence_row» {R : Type} [Field R] [LinearOrder R] («values» : Ten
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
   -- code.py:183 (loop_sequence_row)
   -- call fn__where
-  let call_fn__where_result_2 : Tensor R [] := «fn__where» (R := R) (gt_result_2) (squeeze_result_2) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«fn__where» (R := R) (gt_result_2) (squeeze_result_2) ((Tensor.scalar (0 : R)))
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (call_fn__where_result_2 ())
   -- code.py:183 (loop_sequence_row)
@@ -200,7 +193,7 @@ def «loop_sequence_row» {R : Type} [Field R] [LinearOrder R] («values» : Ten
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
   -- code.py:183 (loop_sequence_row)
   -- call fn__where
-  let call_fn__where_result_3 : Tensor R [] := «fn__where» (R := R) (gt_result_3) (squeeze_result_3) ((Tensor.scalar (0 : R)))
+  let call_fn__where_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«fn__where» (R := R) (gt_result_3) (squeeze_result_3) ((Tensor.scalar (0 : R)))
   -- scatter
   let scatter_result_3 : Tensor R [3] := Tensor.scatterSet scatter_result_2 (2, ()) (call_fn__where_result_3 ())
   scatter_result_3
@@ -237,13 +230,10 @@ def loop_sequence_row_ir : Jaxpr.Program [(.real, [3]), (.int, [])] (.real, [3])
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem loop_sequence_row_translation_correct («values» : Tensor ℝ [3]) («length» : Tensor Int32 []) :
-    Jaxpr.Program.eval (.cons «values» (.cons «length» .nil)) loop_sequence_row_ir = «loop_sequence_row» (R := ℝ) «values» «length» := by
+    Jaxpr.Program.eval (.cons «values» (.cons «length» .nil)) _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».loop_sequence_row_ir = _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«loop_sequence_row» (R := ℝ) «values» «length» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [loop_sequence_row_ir, «loop_sequence_row», ↓fn__where_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [loop_sequence_row_ir, «loop_sequence_row», fn__where_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».loop_sequence_row_ir, _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«loop_sequence_row», _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».fn__where_translation_correct]
 
 end «JaxLean».«Puzzles».«SequenceMask».«Loop»
 
@@ -273,7 +263,7 @@ def «sequence_mask» {R : Type} [Field R] [LinearOrder R] («values» : Tensor 
   let squeeze_result_2 : Tensor Int32 [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
   -- code.py:190 (loop_sequence_mask)
   -- call loop_sequence_row
-  let call_loop_sequence_row_result : Tensor R [3] := «loop_sequence_row» (R := R) (squeeze_result) (squeeze_result_2)
+  let call_loop_sequence_row_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«loop_sequence_row» (R := R) (squeeze_result) (squeeze_result_2)
   -- scatter
   let scatter_result : Tensor R [2, 3] := Tensor.scatterSet broadcast_in_dim_result (0, 0, ()) (call_loop_sequence_row_result (0, ()))
   -- scatter
@@ -294,7 +284,7 @@ def «sequence_mask» {R : Type} [Field R] [LinearOrder R] («values» : Tensor 
   let squeeze_result_4 : Tensor Int32 [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
   -- code.py:190 (loop_sequence_mask)
   -- call loop_sequence_row
-  let call_loop_sequence_row_result_2 : Tensor R [3] := «loop_sequence_row» (R := R) (squeeze_result_3) (squeeze_result_4)
+  let call_loop_sequence_row_result_2 : Tensor R [3] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«loop_sequence_row» (R := R) (squeeze_result_3) (squeeze_result_4)
   -- scatter
   let scatter_result_4 : Tensor R [2, 3] := Tensor.scatterSet scatter_result_3 (1, 0, ()) (call_loop_sequence_row_result_2 (0, ()))
   -- scatter
@@ -328,12 +318,9 @@ def sequence_mask_ir : Jaxpr.Program [(.real, [2, 3]), (.int, [2])] (.real, [2, 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem sequence_mask_translation_correct («values» : Tensor ℝ [2, 3]) («length» : Tensor Int32 [2]) :
-    Jaxpr.Program.eval (.cons «values» (.cons «length» .nil)) sequence_mask_ir = «sequence_mask» (R := ℝ) «values» «length» := by
+    Jaxpr.Program.eval (.cons «values» (.cons «length» .nil)) _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».sequence_mask_ir = _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«sequence_mask» (R := ℝ) «values» «length» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [sequence_mask_ir, «sequence_mask», ↓loop_sequence_row_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [sequence_mask_ir, «sequence_mask», loop_sequence_row_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».sequence_mask_ir, _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«sequence_mask», _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».loop_sequence_row_translation_correct]
 
 end «JaxLean».«Puzzles».«SequenceMask».«Loop»

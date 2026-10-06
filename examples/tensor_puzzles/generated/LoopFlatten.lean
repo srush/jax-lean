@@ -98,11 +98,9 @@ def loop_flatten_ir : Jaxpr.Program [(.real, [2, 3])] (.real, [6]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem loop_flatten_translation_correct («a» : Tensor ℝ [2, 3]) :
-    Jaxpr.Program.eval (.cons «a» .nil) loop_flatten_ir = «loop_flatten» (R := ℝ) «a» := by
+    Jaxpr.Program.eval (.cons «a» .nil) _root_.«JaxLean».«PuzzleJax».loop_flatten_ir = _root_.«JaxLean».«PuzzleJax».«loop_flatten» (R := ℝ) «a» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [loop_flatten_ir, «loop_flatten», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [loop_flatten_ir, «loop_flatten», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«PuzzleJax».loop_flatten_ir, _root_.«JaxLean».«PuzzleJax».«loop_flatten»]
 
 end «JaxLean».«PuzzleJax»

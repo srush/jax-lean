@@ -24,8 +24,9 @@ def test_generated_module_and_boundary_proofs():
     assert code.count('def «project»') == 1  # Repeated calls share one certificate.
     assert code.count('def «transformer_block»') == 1
     assert '.call transformer_block_ir' in code
-    assert ('jaxpr_certificate [transformer_ir, transformer, '
-            'transformer_block_translation_correct]') in code
+    assert ('jaxpr_certificate [_root_.«JaxLean».«TransformerJax».transformer_ir, '
+            '_root_.«JaxLean».«TransformerJax».«transformer», '
+            '_root_.«JaxLean».«TransformerJax».transformer_block_translation_correct]') in code
     assert '(«w0» : Tensor ℝ [2, 2])' in code
     result = lean('''import examples.transformer.proofs.TransformerProofs
 #print axioms JaxLean.TransformerJax.certified_transformer_permute
@@ -142,6 +143,6 @@ def test_other_transformer_shapes_certify(tokens, hidden):
 def test_explicit_trailing_broadcast_certificate():
     jp = jax.make_jaxpr(lambda x: jnp.broadcast_to(x, (2, 3)))(jnp.ones((2, 1)))
     code = certify(jp)
-    assert '.expandLast 3' in code
+    assert '.broadcast_in_dim [2, 3] [0, 1]' in code
     result = lean(code, 'ExplicitTrailingBroadcast.lean')
     assert result.returncode == 0, result.stdout + result.stderr

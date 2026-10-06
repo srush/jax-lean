@@ -28,11 +28,9 @@ def replace_column_ir : Jaxpr.Program [(.real, [2, 3]), (.real, [2])] (.real, [2
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem replace_column_translation_correct («x» : Tensor ℝ [2, 3]) («values» : Tensor ℝ [2]) :
-    Jaxpr.Program.eval (.cons «x» (.cons «values» .nil)) replace_column_ir = «replace_column» (R := ℝ) «x» «values» := by
+    Jaxpr.Program.eval (.cons «x» (.cons «values» .nil)) _root_.«JaxLean».«ScatterJax».replace_column_ir = _root_.«JaxLean».«ScatterJax».«replace_column» (R := ℝ) «x» «values» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [replace_column_ir, «replace_column», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [replace_column_ir, «replace_column», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«ScatterJax».replace_column_ir, _root_.«JaxLean».«ScatterJax».«replace_column»]
 
 end «JaxLean».«ScatterJax»

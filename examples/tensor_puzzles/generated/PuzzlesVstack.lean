@@ -36,12 +36,10 @@ def vstack_ir : Jaxpr.Program [(.real, [3]), (.real, [3])] (.real, [2, 3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem vstack_translation_correct («a» : Tensor ℝ [3]) («b» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) vstack_ir = «vstack» (R := ℝ) «a» «b» := by
+    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) _root_.«JaxLean».«Puzzles».«Vstack».«Array».vstack_ir = _root_.«JaxLean».«Puzzles».«Vstack».«Array».«vstack» (R := ℝ) «a» «b» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [vstack_ir, «vstack», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [vstack_ir, «vstack», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Vstack».«Array».vstack_ir, _root_.«JaxLean».«Puzzles».«Vstack».«Array».«vstack»]
 
 end «JaxLean».«Puzzles».«Vstack».«Array»
 
@@ -156,11 +154,9 @@ def vstack_ir : Jaxpr.Program [(.real, [3]), (.real, [3])] (.real, [2, 3]) :=
 set_option maxRecDepth 4096 in
 set_option linter.unusedSimpArgs false in
 theorem vstack_translation_correct («a» : Tensor ℝ [3]) («b» : Tensor ℝ [3]) :
-    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) vstack_ir = «vstack» (R := ℝ) «a» «b» := by
+    Jaxpr.Program.eval (.cons «a» (.cons «b» .nil)) _root_.«JaxLean».«Puzzles».«Vstack».«Loop».vstack_ir = _root_.«JaxLean».«Puzzles».«Vstack».«Loop».«vstack» (R := ℝ) «a» «b» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [vstack_ir, «vstack», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [vstack_ir, «vstack», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«Puzzles».«Vstack».«Loop».vstack_ir, _root_.«JaxLean».«Puzzles».«Vstack».«Loop».«vstack»]
 
 end «JaxLean».«Puzzles».«Vstack».«Loop»

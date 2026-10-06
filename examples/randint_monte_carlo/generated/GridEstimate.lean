@@ -30,12 +30,10 @@ def grid_square_ir : Jaxpr.Program [(.real, [8])] (.real, [8]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem grid_square_translation_correct («index» : Tensor ℝ [8]) :
-    Jaxpr.Program.eval (.cons «index» .nil) grid_square_ir = «grid_square» (R := ℝ) «index» := by
+    Jaxpr.Program.eval (.cons «index» .nil) _root_.«JaxLean».«MCJax».grid_square_ir = _root_.«JaxLean».«MCJax».«grid_square» (R := ℝ) «index» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [grid_square_ir, «grid_square», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [grid_square_ir, «grid_square», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«MCJax».grid_square_ir, _root_.«JaxLean».«MCJax».«grid_square»]
 
 end «JaxLean».«MCJax»
 
@@ -50,7 +48,7 @@ namespace «JaxLean».«MCJax»
 def «grid_estimate» {R : Type} [Field R] [LinearOrder R] («indices» : Tensor R [8]) : Tensor R [] :=
   -- code.py:29 (grid_estimate)
   -- call grid_square
-  let call_grid_square_result : Tensor R [8] := «grid_square» (R := R) («indices»)
+  let call_grid_square_result : Tensor R [8] := _root_.«JaxLean».«MCJax».«grid_square» (R := R) («indices»)
   -- code.py:29 (grid_estimate)
   -- reduce_sum
   let reduce_sum_result : Tensor R [] := Tensor.sumFirst call_grid_square_result
@@ -72,12 +70,9 @@ def grid_estimate_ir : Jaxpr.Program [(.real, [8])] (.real, []) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem grid_estimate_translation_correct («indices» : Tensor ℝ [8]) :
-    Jaxpr.Program.eval (.cons «indices» .nil) grid_estimate_ir = «grid_estimate» (R := ℝ) «indices» := by
+    Jaxpr.Program.eval (.cons «indices» .nil) _root_.«JaxLean».«MCJax».grid_estimate_ir = _root_.«JaxLean».«MCJax».«grid_estimate» (R := ℝ) «indices» := by
   funext i
   rcases i with ⟨⟩
-  simp (config := { implicitDefEqProofs := false }) only [grid_estimate_ir, «grid_estimate», ↓grid_square_translation_correct, ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    (try dsimp (config := { instances := true }) only [List.foldl, Jaxpr.Comparison.scalar, Jaxpr.Comparison.eval, Tensor.scatterSet, Tensor.reindex, Tensor.scalar]) <;>
-    jaxpr_certificate [grid_estimate_ir, «grid_estimate», grid_square_translation_correct, Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«MCJax».grid_estimate_ir, _root_.«JaxLean».«MCJax».«grid_estimate», _root_.«JaxLean».«MCJax».grid_square_translation_correct]
 
 end «JaxLean».«MCJax»

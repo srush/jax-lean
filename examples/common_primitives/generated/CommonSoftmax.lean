@@ -54,11 +54,9 @@ def row_softmax_ir : Jaxpr.Program [(.real, [2, 3])] (.real, [2, 3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem row_softmax_translation_correct («x» : Tensor ℝ [2, 3]) :
-    Jaxpr.Program.eval (.cons «x» .nil) row_softmax_ir = «row_softmax» (R := ℝ) «x» := by
+    Jaxpr.Program.eval (.cons «x» .nil) _root_.«JaxLean».«CommonJax».«Softmax».row_softmax_ir = _root_.«JaxLean».«CommonJax».«Softmax».«row_softmax» (R := ℝ) «x» := by
   funext i
   rcases i with ⟨j0, ⟨j1, ⟨⟩⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [row_softmax_ir, «row_softmax», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [row_softmax_ir, «row_softmax», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«CommonJax».«Softmax».row_softmax_ir, _root_.«JaxLean».«CommonJax».«Softmax».«row_softmax»]
 
 end «JaxLean».«CommonJax».«Softmax»

@@ -34,11 +34,9 @@ def extrema_ir : Jaxpr.Program [(.real, [2, 3, 4])] (.real, [3]) :=
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
 set_option linter.unusedSimpArgs false in
 theorem extrema_translation_correct («x» : Tensor ℝ [2, 3, 4]) :
-    Jaxpr.Program.eval (.cons «x» .nil) extrema_ir = «extrema» (R := ℝ) «x» := by
+    Jaxpr.Program.eval (.cons «x» .nil) _root_.«JaxLean».«CommonJax».«Extrema».extrema_ir = _root_.«JaxLean».«CommonJax».«Extrema».«extrema» (R := ℝ) «x» := by
   funext i
   rcases i with ⟨j0, ⟨⟩⟩
-  simp (config := { implicitDefEqProofs := false }) only [extrema_ir, «extrema», ↓Jaxpr.eval_bind, ↓Jaxpr.eval_ret, ↓Jaxpr.eval_call, ↓Jaxpr.Args.eval, ↓Jaxpr.Op.eval, ↓Jaxpr.Atom.eval, ↓Jaxpr.Env.get, Jaxpr.broadcastIndex, Jaxpr.coordinate, Jaxpr.DType.add, Jaxpr.DType.sub, Jaxpr.DType.mul, Jaxpr.Conversion.eval] <;>
-    (try simp (config := { implicitDefEqProofs := false }) only [Jaxpr.Env.read_dite]) <;>
-    jaxpr_certificate [extrema_ir, «extrema», Jaxpr.Comparison.eval, Jaxpr.Comparison.intEval]
+  jaxpr_certificate [_root_.«JaxLean».«CommonJax».«Extrema».extrema_ir, _root_.«JaxLean».«CommonJax».«Extrema».«extrema»]
 
 end «JaxLean».«CommonJax».«Extrema»
