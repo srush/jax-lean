@@ -11,6 +11,13 @@ namespace JaxLean.Jaxpr
     (actual : Args ctx args) (rest : Program (s :: ctx) t) :
     (Program.call callee actual rest).eval env =
       rest.eval (.cons (callee.eval (actual.eval env)) env) := rfl
+/-- The coordinate sequence used by `eye`, directly from the evaluator. -/
+theorem eval_iota (env : Env ctx)
+    (shape : Shape) (axis : Nat)
+    (valid : axis < shape.length) (i : Index shape) :
+    (Op.iota shape axis valid).eval env i =
+      ((coordinate shape i axis).val : ℝ) := rfl
+
 open scoped BigOperators
 
 theorem sum_index_cons (f : Index (n :: s) → ℝ) :

@@ -24,7 +24,7 @@ def binder_type(aval):
 
 
 class JaxprImporter:
-    def __init__(self, closed, calls=None):
+    def __init__(self, closed, calls=None, *, named_vars=False):
         self.jp = closed.jaxpr
         if self.jp.effects or len(self.jp.outvars) != 1:
             raise TranslationError('certificates require one pure output')
@@ -36,6 +36,19 @@ class JaxprImporter:
         if any(np.asarray(c).dtype.kind not in 'iub' for c in closed.consts):
             raise TranslationError('captured floating arrays are not yet certified')
         self.lines = []
+        self.named_vars = named_vars
+        # Stable SSA names, independent of Python source and operand traversal order.
+        variables = [*self.jp.invars, *(v for eq in self.jp.eqns for v in eq.outvars)]
+        self.names = {v: self.variable_name(i) for i, v in enumerate(variables)}
+
+    @staticmethod
+    def variable_name(i):
+        name = ''
+        while True:
+            name = chr(ord('a') + i % 26) + name
+            i = i // 26 - 1
+            if i < 0:
+                return name
 
     def atom(self, v):
         if isinstance(v, core.Literal) or (v in self.constants and v not in self.env):
@@ -65,10 +78,15 @@ class JaxprImporter:
         ref = '.here'
         for _ in range(self.env[v]):
             ref = f'(.there {ref})'
+        if self.named_vars:
+            return self.names[v]
         return f'(.var {ref})'
 
     def emit(self, expr, out):
-        self.lines.append(f'  .bind ({expr}) <|')
+        if self.named_vars:
+            self.lines.append(f'    {self.names[out]} : {ty(out.aval)} := {expr};')
+        else:
+            self.lines.append(f'  .bind ({expr}) <|')
         self.env = {v: i + 1 for v, i in self.env.items()}
         self.env[out] = 0
 
@@ -94,13 +112,18 @@ class JaxprImporter:
             finite = identity_extreme(eq)
             if finite is not None:
                 self.env[out] = self.env[finite]
+                self.names[out] = self.names[finite]
                 continue
             if op == 'jit' and id(p['jaxpr']) in self.calls:
                 callee = self.calls[id(p['jaxpr'])]
                 args = '.nil'
                 for v in reversed(eq.invars):
                     args = f'(.cons {self.atom(v)} {args})'
-                self.lines.append(f'  .call {callee}_ir {args} <|')
+                if self.named_vars:
+                    self.lines.append(
+                        f'    {self.names[out]} : {ty(out.aval)} := call {callee}_ir with {args};')
+                else:
+                    self.lines.append(f'  .call {callee}_ir {args} <|')
                 self.env = {v: i+1 for v, i in self.env.items()}
                 self.env[out] = 0
                 continue
@@ -161,7 +184,11 @@ class JaxprImporter:
             else:
                 raise TranslationError(f'no certificate rule for {op}')
             self.emit(expr, out)
-        return '\n'.join([*self.lines, f'  .ret {self.atom(self.jp.outvars[0])}'])
+        result = self.atom(self.jp.outvars[0])
+        if self.named_vars:
+            inputs = ', '.join(f'{self.names[v]} : {ty(v.aval)}' for v in self.jp.invars)
+            return '\n'.join([f'  jaxpr% ({inputs}) {{', *self.lines, f'    return {result}', '  }'])
+        return '\n'.join([*self.lines, f'  .ret {result}'])
 
     def emit_numeric(self, eq):
         from ..static_index import scatter_plan
@@ -182,6 +209,7 @@ class JaxprImporter:
         finite = identity_extreme(eq)
         if finite is not None:
             self.env[out] = self.env[finite]
+            self.names[out] = self.names[finite]
             return
         s = shape(out.aval)
         if op in ("add", "add_any", "sub", "mul", "div", "min", "max"):

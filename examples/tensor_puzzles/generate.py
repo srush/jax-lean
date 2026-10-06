@@ -33,10 +33,12 @@ def puzzle_artifacts():
             sources.append(certify_module(
                 closed, name=case.name,
                 namespace=f'JaxLean.Puzzles.{case.module}.{layer}',
+                named_vars=case.name == 'eye',  # The blog displays this IR directly.
             ))
         lines = '\n'.join(sources).splitlines()
         imports = list(dict.fromkeys(line for line in lines if line.startswith('import ')))
-        options = ['set_option maxRecDepth 4096', 'set_option maxHeartbeats 2000000']
+        options = ([] if case.name == 'eye' else
+                   ['set_option maxRecDepth 4096', 'set_option maxHeartbeats 2000000'])
         body = [line for line in lines if not line.startswith('import ')]
         yield 'Puzzles' + case.module, '\n'.join(imports + options + body) + '\n'
 

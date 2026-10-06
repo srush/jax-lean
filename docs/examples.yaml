@@ -85,20 +85,20 @@ pages:
         known as [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html).
         We will focus particularly on the process in which they trace Python code to IR.
 
-        Let's begin with a simple function that adds two vectors. 
+        Let's begin with a simple function that adds two vectors and multiplies the result by 2.
 
       marker: Jax IR; addition of two vectors
 
     - type: python
       file: examples/blog/code.py
-      name: add_vectors
+      name: add_then_scale
     - type: text
       text: | 
         We can run this function in the standard manner. When we run it 
         JAX is behind the scenes tracing the code and producing its 
         own representation of what going on. 
         
-      marker: after add_vectors
+      marker: after add_then_scale
     - type: trace_code
       example: add
     - type: diagram
@@ -110,7 +110,7 @@ pages:
         the mathematical operations on hardware. We can even print it out for our function. 
 
         In this case it looks quite similar. It takes two args, float32 size 3 vectors. 
-        Creates a temp variable that adds them. And then returns the result. 
+        Creates a temporary variable that adds them, multiplies it by 2, and returns the result.
         
       marker: before Jaxpr output
     - type: trace_output
@@ -119,20 +119,19 @@ pages:
       text: |
         We map these Jaxpr's directly into a Lean data structure. 
         It looks mostly similar to the representation above. 
-        The here / there notation is used to avoid naming the args 
-        explicitly.  
+        Typed SSA names keep the inputs and intermediate values explicit.
          
         
       marker: after Jaxpr output
 
     - type: lean
-      module: examples.blog.generated.AddVectors
-      name: JaxLean.Blog.add_vectors_ir
+      module: examples.blog.generated.AddScale
+      name: JaxLean.Blog.add_then_scale_ir
       section: Lean IR
     - type: text
       text: |
         
-      marker: after JaxLean.Blog.add_vectors_ir
+      marker: after JaxLean.Blog.add_then_scale_ir
     - type: datatype
       file: JaxLean/Core/Jaxpr.lean
       name: Shape
@@ -272,6 +271,18 @@ pages:
         theorem shows that the code matches its IR.
 
       marker: after JaxLean.Puzzles.Eye.Array.fn__where
+    - type: lean
+      module: JaxLean.Core.Jaxpr
+      name: JaxLean.Jaxpr.Program.eval
+      section: Semantics · execute bindings and calls
+    - type: lean
+      module: JaxLean.Verification.JaxprRules
+      name: JaxLean.Jaxpr.eval_iota
+      section: Semantics · iota reads a coordinate
+    - type: lean
+      module: JaxLean.Verification.JaxprRules
+      name: JaxLean.Jaxpr.eval_bind
+      section: Certificate rule · evaluate one binding
     - type: lean
       module: examples.tensor_puzzles.generated.PuzzlesEye
       name: JaxLean.Puzzles.Eye.Array.eye_translation_correct

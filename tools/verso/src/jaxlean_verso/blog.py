@@ -97,7 +97,7 @@ def render(page, parsed, assets, root, extract, *, execute=subprocess.run):
             elif kind == 'trace_code':
                 source = 'print(jax.make_jaxpr(eye, static_argnums=(0,))(3))\nprint(eye(3))'
                 if item['example'] == 'add':
-                    source = 'a = jnp.array([1., 2., 3.], dtype=jnp.float32)\nb = jnp.array([4., 5., 6.], dtype=jnp.float32)\nprint(jax.make_jaxpr(add_vectors)(a, b))'
+                    source = 'a = jnp.array([1., 2., 3.], dtype=jnp.float32)\nb = jnp.array([4., 5., 6.], dtype=jnp.float32)\nprint(jax.make_jaxpr(add_then_scale)(a, b))'
                 chunks.append('<div class="code-box">' + code(source) + '</div>')
             elif kind == 'trace_output':
                 arguments = ['add'] if item['example'] == 'add' else []

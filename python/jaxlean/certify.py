@@ -12,19 +12,22 @@ from .jaxpr import TranslationError, shape, argument_labels
 from .importers.jaxpr import JaxprImporter, ty, binder_type
 
 
-def certify(closed_jaxpr, *, name="program", namespace="Generated", readable=False, _calls=None):
+def certify(closed_jaxpr, *, name="program", namespace="Generated", readable=False, _calls=None, named_vars=False):
     """Emit the normal tensor translation, imported IR and a Lean proof obligation.
 
+    named_vars emits typed, named SSA syntax that expands to the same imported IR.
     The returned source is certified only after Lean successfully checks it.
     No fallback: operations outside the certificate fragment raise an error even
     if the ordinary transpiler supports them. No Python source is inspected.
     """
     if not isinstance(closed_jaxpr, core.ClosedJaxpr):
         raise TranslationError("certify requires a ClosedJaxpr")
-    importer = JaxprImporter(closed_jaxpr, _calls)
+    importer = JaxprImporter(closed_jaxpr, _calls, named_vars=named_vars)
     # Run the ordinary translator (including its version and Jaxpr checks).
     target = translate(closed_jaxpr, name=name, namespace=namespace, readable=readable,
                        _certified_calls=_calls)
+    if named_vars:
+        target = target.replace("set_option linter.unusedVariables false\n", "")
     ir_body = importer.run()
     inputs = closed_jaxpr.jaxpr.invars
     ir_type = ty
@@ -59,6 +62,7 @@ def certify(closed_jaxpr, *, name="program", namespace="Generated", readable=Fal
              + (normalize if _calls else "")
              + f"    jaxpr_certificate [{name}_ir, {reference}{call_rules}]")
     depth_option = "set_option maxRecDepth 4096 in\n" if len(closed_jaxpr.jaxpr.eqns) >= 32 else ""
+    linter_option = "" if named_vars else "set_option linter.unusedSimpArgs false in\n"
     certificate = f"""
 -- IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.
 namespace {ns}
@@ -66,8 +70,7 @@ def {name}_ir : {ir_namespace}.Program {ctx} {out} :=
 {ir_body}
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
-{depth_option}set_option linter.unusedSimpArgs false in
-theorem {name}_translation_correct {binders} :
+{depth_option}{linter_option}theorem {name}_translation_correct {binders} :
     {ir_namespace}.Program.eval {env} {name}_ir = {reference} (R := ℝ) {args} := by
   funext i
   rcases i with {pattern}
@@ -75,12 +78,14 @@ theorem {name}_translation_correct {binders} :
 
 end {ns}
 """
-    return "import JaxLean.Verification.Certificate\n" + target + certificate
+    syntax_import = "import JaxLean.Verification.Syntax\n" if named_vars else ""
+    return syntax_import + "import JaxLean.Verification.Certificate\n" + target + certificate
 
 
-def certify_module(closed_jaxpr, *, name="program", namespace="Generated"):
+def certify_module(closed_jaxpr, *, name="program", namespace="Generated", named_vars=False):
     """Certify a call graph, retaining pure single-result jit boundaries.
 
+    named_vars is propagated to every child certificate.
     Names and argument labels come only from Jaxpr metadata, never Python source.
     Children are certified before parents. Each parent uses child certificates,
     without unfolding child definitions. All shapes remain trace-specialized.
@@ -110,7 +115,7 @@ def certify_module(closed_jaxpr, *, name="program", namespace="Generated"):
         direct = {id(eq.params["jaxpr"]): calls[id(eq.params["jaxpr"])]
                   for eq in closed.jaxpr.eqns if eq.primitive.name == "jit"}
         pieces.append(certify(closed, name=label, namespace=namespace,
-                              readable=True, _calls=direct))
+                              readable=True, _calls=direct, named_vars=named_vars))
 
     visit(closed_jaxpr, name)
     imports = []

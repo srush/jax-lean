@@ -2,8 +2,9 @@ import jax
 import jax.numpy as jnp
 
 
-def add_vectors(a, b):
-    return a + b
+def add_then_scale(a, b):
+    total = a + b
+    return total * 2.0
 
 
 def eye(n):
@@ -16,7 +17,7 @@ if __name__ == '__main__':
     if sys.argv[1:] == ['add']:
         a = jnp.array([1., 2., 3.], dtype=jnp.float32)
         b = jnp.array([4., 5., 6.], dtype=jnp.float32)
-        print(jax.make_jaxpr(add_vectors)(a, b))
+        print(jax.make_jaxpr(add_then_scale)(a, b))
         raise SystemExit
     from examples.tensor_puzzles.code import puzzle_eye
     traced = jax.make_jaxpr(eye, static_argnums=(0,))(3)

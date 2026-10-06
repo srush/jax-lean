@@ -553,6 +553,25 @@ closed = jax.make_jaxpr(lambda x: jnp.mean(x))(jnp.ones(2))
 code = certify(closed, name="certified_mean", namespace="JaxLean.Generated")
 ```
 
+Pass `named_vars=True` to `certify` or `certify_module` for typed, named SSA
+syntax. The names follow Jaxpr input/equation order, without reading Python source:
+
+```lean
+jaxpr% (a : (.real, [3]), b : (.real, [3])) {
+  c : (.real, [3]) := .add a b (t := [3]);
+  d : (.real, [3]) := .mul c a (t := [3]);
+  return d
+}
+```
+
+Names keep referring to the same values across bindings. The syntax expands to
+the existing `Jaxpr.Program`, so its evaluator and certificates are unchanged.
+Lean checks each variable's dtype and shape; new bindings cannot reuse an SSA
+name. Calls use `c : resultType := call callee_ir with arguments;` and preserve
+function boundaries. The [syntax implementation](JaxLean/Verification/Syntax.lean)
+lives outside Core. The blog's [add-and-scale example](examples/blog/generated/AddScale.lean)
+uses this option. Positional output remains available with `named_vars=False`.
+
 Write the returned source to a Lean file and check it with `lake env lean`.
 **Producing this source is not itself successful certification.** Lean must
 accept the emitted theorem. `python -m examples.certificates.generate` generates the checked-in
@@ -1015,13 +1034,13 @@ functions and declarations, so code is not copied into the manifest:
 blocks:
 - type: python
   file: examples/blog/code.py
-  name: add_vectors
+  name: add_then_scale
 - type: text
   text: |
-  marker: after add_vectors
+  marker: after add_then_scale
 - type: lean
-  module: examples.blog.generated.AddVectors
-  name: JaxLean.Blog.add_vectors_ir
+  module: examples.blog.generated.AddScale
+  name: JaxLean.Blog.add_then_scale_ir
   section: Lean IR
 ```
 
