@@ -21,7 +21,7 @@ pages:
         [tensor puzzles](https://github.com/srush/tensor-puzzles).
         Over time, they have become popular job interview prep
         for wannabe MsTS. The puzzles give the user a specification
-        written as easy-to-read Python and ask them to
+        written in easy-to-read Python and ask them to
         generate a vectorized implementation.
 
     - type: python
@@ -36,11 +36,11 @@ pages:
     - type: text
       text: |
 
-        Recently, I have been thinking about formally verification and
-        envisioning what it might look like for every day coders. This seemed like 
-        a good place to start. 
-        In this blog, we walkthrough how to do prove puzzle correct, 
-        and build a library for proving properties of arbitrary JAX code, [srush/jax-lean](https://github.com/srush/jax-lean).
+        Recently, I have been thinking about formal verification and
+        envisioning what it might look like for everyday coders. This seemed like
+        a good place to start.
+        In this blog, we walk through how to prove puzzle solutions correct
+        and build a library for proving properties of arbitrary JAX code: [srush/jax-lean](https://github.com/srush/jax-lean).
         It was inspired by conversations with [pmocz](https://github.com/pmocz/), [nielstron](https://github.com/nielstron), and these projects:
 
         * [Noether on GitHub](https://github.com/pmocz/noether)
