@@ -13,3 +13,7 @@ def jvp_tangent(x, v):
 
 def gradient(x):
     return jax.grad(quadratic)(x)
+
+
+if __name__ == '__main__':
+    print(jax.make_jaxpr(gradient)(jax.ShapeDtypeStruct((), jnp.float32)))

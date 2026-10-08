@@ -16,28 +16,26 @@ pages:
     blocks:
     - type: text
       text: |
-        A couple of years ago, [jxnop](https://x.com/jxmnop) talked me 
+        A couple of years ago, [jxmnop](https://x.com/jxmnop) talked me
         into writing a collection of
         [tensor puzzles](https://github.com/srush/tensor-puzzles).
-        Over time, they have a become a popular job interview prep
-        for wannabe Members of Technical Staff. 
+        Over time, they have become popular job interview prep
+        for wannabe Members of Technical Staff.
 
-        The puzzles give the user a specification 
-        written as an easy to read Python loop.
-        Here the function is a cumulative sum. 
+        The puzzles give the user a specification
+        written as an easy-to-read Python loop.
+        Here, the function is a cumulative sum.
 
-      marker: Goal; certified solutions
     - type: python
       file: examples/tensor_puzzles/code.py
       name: loop_cumsum
       section: Pseudocode
     - type: text
-      text: | 
-        Given this code, the pre-MTS is tasked with generating a vectorized implementation. 
-        Many of these are quite strange looking as they use all the fun (or 
-        horrible) Numpy tricks.
-        
-      marker: after cumsum pseudocode
+      text: |
+        Given this code, the pre-MTS is tasked with generating a vectorized implementation.
+        Many of these are quite strange-looking as they use all the fun (or
+        horrible) NumPy tricks.
+
     - type: python
       file: examples/tensor_puzzles/code.py
       name: puzzle_cumsum
@@ -45,57 +43,51 @@ pages:
     - type: text
       text: |
 
-        When I wrote the puzzles originally, the answers were checked using randomized 
-        tests. 
-        Recently though I have been thinking about a future where almost all code is 
-        provably verified. This seems like a nice example trying out that future. 
+        When I wrote the puzzles originally, the answers were checked using randomized
+        tests.
+        Recently, though, I have been thinking about a future where almost all code is
+        formally verified. This seems like a nice example for trying out that future.
 
-        In this blog we are going to develop a library for 
+        In this blog, we are going to develop a library for
         proving properties of arbitrary JAX code, [srush/jax-lean](https://github.com/srush/jax-lean).
-        and was inspired by conversations with [pmocz](https://github.com/pmocz/), [nielstron](https://github.com/nielstron), and these projects,
+        It was inspired by conversations with [pmocz](https://github.com/pmocz/), [nielstron](https://github.com/nielstron), and these projects:
 
         * [Noether on GitHub](https://github.com/pmocz/noether)
         * [Aeneas](https://lean-lang.org/use-cases/aeneas/)
         * [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html)
 
         The code and proofs are
-        written by AI, the writing is human. This is a followup on [Lean-Verified Transformers](https://srush.github.io/lean-transformer/), 
-        
+        written by AI; the writing is human. This is a follow-up to [Lean-Verified Transformers](https://srush.github.io/lean-transformer/).
 
-      marker: Introduction
-
-  - title: 'Background: Jax IR'
+  - title: 'Background: JAX IR'
     id: jax-ir
     blocks:
     - type: text
       text: |
         [JAX](http://github.com/google/jax) is a numerical transformation system
-        that utilizes a near 1-to-1 Numpy interface. While the primary use of JAX is machine
-        learning, the core framework has remained impressively ML agnostic. Instead it focuses on
-        a core set of transformation that can be reduced to a simple numerical operations.
+        that utilizes a nearly one-to-one NumPy interface. While the primary use of JAX is machine
+        learning, the core framework has remained impressively ML-agnostic. Instead, it focuses on
+        a core set of transformations that can be reduced to simple numerical operations.
 
-        JAX is also a magic trick. The user thinks they are writing Python, while actually 
-        it is pulling out code using a minimal core of numerical operations  Proving properties 
-        of Python is nearly impossible, but proofs using this intermediate representation 
-        are more tractable. 
+        JAX is also a magic trick. The user thinks they are writing Python, while actually
+        it is pulling out code using a minimal core of numerical operations. Proving properties
+        of Python is nearly impossible, but proofs using this intermediate representation
+        are more tractable.
 
-        If you are interested in the details of how Jax works they have an amazing tutorial
+        If you are interested in the details of how JAX works, they have an amazing tutorial
         known as [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html).
-        Here we will just briefly overview the process. 
+        Here we will just briefly outline the process.
 
         Let's begin with a simple function that adds two vectors and multiplies the result by 2.
-
-      marker: Jax IR; addition of two vectors
 
     - type: python
       file: examples/blog/code.py
       name: add_then_scale
     - type: text
-      text: | 
-        When we run this Python code, JAX is tracing the path and producing its 
-        own representation of what operations were called. 
-        
-      marker: after add_then_scale
+      text: |
+        When we run this Python code, JAX is tracing the path and producing its
+        own representation of what operations were called.
+
     - type: code
       language: python
       text: |
@@ -108,31 +100,29 @@ pages:
 
     - type: text
       text: |
-        The intermediate representation is known as Jaxpr. It lives 
+        The intermediate representation is known as Jaxpr. It lives
         between your Python code and the final lower-level representations that execute
-        the mathematical operations on hardware. 
-        
-        One day, we hope to have specs all the way down to the GPU. However we are going 
-        to focus on this Jaxpr level and assume everything below roughly follows what it says.
-        This is a horrible assumption for ML code, as numerical precision is of huge importance. 
-        Hopefully we can cover this in future blogs. 
+        the mathematical operations on hardware.
 
-        Let's look at the Jaxpr output from our function. It should look familar. It takes two args, float32 size 3 vectors. 
-        Creates a temporary variable that adds them, multiplies it by 2, and returns the result.
-        
-      marker: before Jaxpr output
+        One day, we hope to have specs all the way down to the GPU. However, we are going
+        to focus on this Jaxpr level and assume everything below roughly follows what it says.
+        This is a horrible assumption for ML code, as numerical precision is of huge importance.
+        Hopefully we can cover this in future blogs.
+
+        Let's look at the Jaxpr output from our function. It should look familiar. It takes two arguments: float32 vectors of size 3.
+        It adds them into a temporary variable, multiplies it by 2, and returns the result.
+
     - type: output
       runtime: python
       module: examples.blog.code
       args: [add]
     - type: text
       text: |
-        Of course this code will get more complex with more realistic examples.
-        There are a set of operations that specify the core numerical transformations 
-        needed. The core idea though is that it will remain a sequence of these operations, 
-        without loops or other control flow. 
-        
-      marker: Eye; static n = 3
+        Of course, this code will get more complex with more realistic examples.
+        There is a set of operations that specify the core numerical transformations
+        needed. The core idea, though, is that it will remain a sequence of these operations,
+        without loops or other control flow.
+
     - type: python
       file: examples/blog/code.py
       name: eye
@@ -155,55 +145,49 @@ pages:
     - type: text
       text: |
 
-        Our strategy to prove the correctness of this code 
-        is to transpile it over to Lean and then write proofs 
-        for the Lean version of the code. We do this with three 
+        Our strategy to prove the correctness of this code
+        is to transpile it over to Lean and then write proofs
+        for the Lean version of the code. We do this with three
         Lean modules.
 
-        1. A mapping of the low-level Jaxpr 
-        2. An implementation of a Jaxpr interpreter  
-        3. A mapping of the high-level Jaxpr code. 
-         
-        If we trust of Jaxpr interpreter we can then 
-        prove things about out JAX code in Lean and then 
-        prove that it also applies to the original Python code. 
+        1. A mapping of the low-level Jaxpr
+        2. An implementation of a Jaxpr interpreter
+        3. A mapping of the high-level Jaxpr code.
 
-        Let's walk through each of the steps. 
+        If we trust our Jaxpr interpreter, we can then
+        prove things about our JAX code in Lean and then
+        prove that those properties also apply to the original Python code.
 
-      marker: after Jaxpr output
+        Let's walk through each of the steps.
+
     - type: text
       text: |
-        First we are going to
+        First, we are going to
         map over the Jaxpr from the first section to Lean. Lean has a powerful
-        macro system, so we can make the mapping 
-        look nearly identical to the original representation. We follow the specified 
-        syntax of the original, propagating forward some additional guarentees about 
-        bounds and dimentions.  
+        macro system, so we can make the mapping
+        look nearly identical to the original representation. We follow the specified
+        syntax of the original, propagating forward some additional guarantees about
+        bounds and dimensions.
 
-      marker: "Stage 1: explain the direct Jaxpr-to-Lean encoding; use add_then_scale throughout all three stages."
     - type: lean
       module: examples.blog.generated.AddScale
       name: JaxLean.Blog.add_then_scale_ir
       section: Lean IR
     - type: text
       text: |
-        Next we need an implementation of the Jaxpr IR in Lean. 
-        As far as I know, there is not a formal specification of this 
-        language, but each part is well documented. In a more realistic 
-        setting we would want to match the lower-level instructions exactly. 
+        Next, we need an implementation of the Jaxpr IR in Lean.
+        As far as I know, there is not a formal specification of this
+        language, but each part is well documented. In a more realistic
+        setting, we would want to match the lower-level instructions exactly.
 
-        In addition to trusting that this interpreter matches, we are also 
-        going to relax the floating-point challenges at this stage. Our 
-        interpreter will just pretend things work like the reals. 
+        In addition to trusting that this interpreter matches, we are also
+        going to relax the floating-point challenges at this stage. Our
+        interpreter will just pretend things work like the reals.
 
-      marker: "Stage 2: explain how the interpreter evaluates ret, bind, and call; distinguish the program data from its meaning."
     - type: lean
       module: JaxLean.Core.Jaxpr
       name: JaxLean.Jaxpr.Program.eval
       section: Semantics · execute bindings and calls
-    - type: text
-      text: ""
-      marker: "Explain the addition case of Op.eval used by Program.eval: evaluate the two operands, broadcast their indices, and add their values."
     - type: code
       language: lean-source
       file: JaxLean/Core/Jaxpr.lean
@@ -213,53 +197,43 @@ pages:
     - type: text
       text: |
 
-        Given the source of truth of the Jaxpr representation, we can now 
-        transpile the Jaxpr into something that is a bit more readable. 
-        This will look kind of like line-aligned Lean implementation of the 
-        original code. Since this code will not be executed we can apply transformation
-        to make it a bit easier to use for our proofs (for instance see the variance example 
-        below.)
+        Given the source of truth of the Jaxpr representation, we can now
+        transpile the Jaxpr into something that is a bit more readable.
+        This will look kind of like a line-aligned Lean implementation of the
+        original code. Since this code will not be executed, we can apply transformations
+        to make it a bit easier to use for our proofs (for instance, see the variance example
+        below).
 
-      marker: Aeneas; translation; trusted importer; ideal-real semantics and floating-point boundary
-    - type: text
-      text: ""
-      marker: "Stage 3: explain the readable tensor function emitted independently from the same Jaxpr; compare its two operations with stage 1."
     - type: lean
       module: examples.blog.generated.AddScale
       name: JaxLean.Blog.add_then_scale
     - type: text
       text: |
-        Since this implementation is generated, we shouldn't trust that it is correct. 
-        We therefore need to actually prove this. 
+        Since this implementation is generated, we shouldn't trust that it is correct.
+        We therefore need to actually prove this.
         The following theorem shows that the code matches its IR.
 
-      marker: after JaxLean.Puzzles.Eye.Array.fn__where
     - type: lean
       module: examples.blog.generated.AddScale
       name: JaxLean.Blog.add_then_scale_translation_correct
-        
-      marker: after JaxLean.Puzzles.Eye.Array.eye_translation_correct
+
     - type: text
       text: |
-        If we can complete each of these three steps, we know that we have passed the implementation across 
-        the language barrier. Our implementation does this for most of the core Jaxpr IR with the assumption 
-        that we are working with the reals. From here on out we can assume we are working with implementations 
-        in the proof language Lean. 
-
-      marker: "Clarify the trust boundary: imported Jaxpr and ideal-real primitive semantics; the certificate does not establish Python importer or floating-point correctness."
+        If we can complete each of these three steps, we know that we have passed the implementation across
+        the language barrier. Our implementation does this for most of the core Jaxpr IR with the assumption
+        that we are working with the reals. From here on out, we can assume we are working with implementations
+        in the proof language Lean.
 
   - title: 'Puzzle Proofs'
     id: certification
     blocks:
     - type: text
       text: |
-        We now can go back to the puzzles.
-        We consider an example of the original `outer` puzzle which 
-        asks the user to produce the outer product of two vectors. 
-        Here's the original code and the transpiled Lean. 
+        We can now go back to the puzzles.
+        We consider an example of the original `outer` puzzle, which
+        asks the user to produce the outer product of two vectors.
+        Here's the original code and the transpiled Lean.
 
-      
-      marker: "State the puzzle certification goal: the readable vectorized solution equals the readable loop specification for all inputs of the traced shapes [2] and [3]."
     - type: python
       file: examples/tensor_puzzles/code.py
       name: puzzle_outer
@@ -267,42 +241,39 @@ pages:
       module: examples.tensor_puzzles.generated.PuzzleOuterFlatten
       name: JaxLean.PuzzleJax.puzzle_outer
     - type: text
-      text: 'In a similar way we convert the loop version to Lean. This one is a bit long since JAX unrolls the loop to a sequence of instructions, so I am omitting the Lean code.'
-      marker: Introduce the transpiled original outer loop.
+      text: 'In a similar way, we convert the loop version to Lean. This one is a bit long since JAX unrolls the loop to a sequence of instructions, so I am omitting the Lean code.'
     - type: python
       file: examples/tensor_puzzles/code.py
       name: loop_outer
     - type: text
       text: |
-        The goal is to certify that this produces the same output as 
-        the vectorized version. Once we are in Lean proving this kind of thing 
-        is actually relatively straightforword. The code below automatically converts 
-        the broadcasting operations into expanded cases and enumerates all the 2x3 cases
-        to match that they produce the same result as the loop. 
+        The goal is to certify that this produces the same output as
+        the vectorized version. Once we are in Lean, proving this kind of thing
+        is actually relatively straightforward. The code below automatically converts
+        the broadcasting operations into expanded cases and enumerates all 2 × 3 cases
+        to check that they produce the same result as the loop.
 
-      marker: Compare the vectorized outer implementation with the loop.
     - type: lean
       module: examples.tensor_puzzles.proofs.TensorLoopProofs
       name: JaxLean.PuzzleJax.outer_matches_loop
     - type: text
       text: "We combine this with the proof that the Jaxpr matches the above functions. We now have a full proof that the puzzle was correct!"
-      marker: "Walk through how the proof equates puzzle_outer with loop_outer; explain how the translation certificates from the previous section connect this code equivalence back to the imported programs."
     - type: lean
       module: examples.tensor_puzzles.proofs.TensorLoopProofs
       name: JaxLean.PuzzleJax.certified_outer_loop
 
   - title: 'Verified Properties'
     id: verified-properties
-    blocks: 
+    blocks:
     - type: text
       text: |
-        Of course, just proving the correctness of puzzles is not that useful. 
-        Things become more interesting when we want to complete arbitrary ad hoc 
+        Of course, just proving the correctness of puzzles is not that useful.
+        Things become more interesting when we want to complete arbitrary ad hoc
         proofs about our code. To illustrate roughly what this might look like,
-        let's walk through a couple properties and look at,
+        let's walk through a few properties and look at:
 
         * The JAX code
-        * The spec to proof
+        * The spec to prove
         * An example of the proof (that an LLM might write for us)
 
   - title: 'Transformer Properties'
@@ -311,33 +282,29 @@ pages:
     blocks:
     - type: text
       text: |
-        Recently, I wrote a blog post on 
+        Recently, I wrote a blog post on
         [Lean-Verified Transformers](https://srush.github.io/lean-transformer/)
-        that implemented several equivariants of transformers directly in Lean. 
-        Probably we don't want to write the code in Lean, so we can write it in 
-        JAX and transpile it over. 
+        that implemented several equivariance properties of transformers directly in Lean.
+        Probably we don't want to write the code in Lean, so we can write it in
+        JAX and transpile it over.
 
-        We first define equivariance as. 
+        We first define equivariance as:
 
     - type: math
       text: B(PX; W) = P B(X; W)
     - type: text
-      text: 'The goal is to prove that a transformer without positional encoding is position equivariant. Starting with the attention in JAX.'
-      marker: Explain token permutation equivariance with fixed weights and no positional encoding.
-      marker: Transformer properties; architecture subset and token permutations
+      text: 'The goal is to prove that a transformer without positional encoding is position-equivariant. We start with the transformer block in JAX.'
 
     - type: python
       file: examples/transformer/code.py
       name: transformer_block
     - type: text
       text: 'A proof of part of this property would look like this.'
-      marker: Describe the block and its normalization, attention, and feed-forward helpers.
     - type: lean
       module: examples.transformer.proofs.TransformerProofs
       name: JaxLean.TransformerJax.attention_permute
     - type: text
-      text: 'And then this can be propagate this through the whole stack. '
-      marker: 'Explain the compositional machinery: the block proof reuses contracts for its children.'
+      text: 'And then we can propagate this through the whole stack. '
     - type: code
       language: lean-source
       file: examples/transformer/proofs/TransformerProofs.lean
@@ -352,18 +319,16 @@ pages:
     - type: text
       text: |
         Let's consider another simple, but common, example in ML.
-        We want to guarantee that after applying norm clipping in our 
-        code that we arrive at a gradiant norm that less than our fixed bound.
+        We want to guarantee that, after applying norm clipping in our
+        code, we arrive at a gradient norm that is at most our fixed bound.
 
-      marker: Explain the Euclidean norm guarantee and the positive-radius assumption.
     - type: math
       text: r > 0 ⟹ ‖norm_clip(x, r)‖₂ ≤ min(r, ‖x‖₂)
     - type: python
       file: examples/norms/code.py
       name: norm_clip
     - type: text
-      text: 'The proof definition here is to get the following certificate.'
-      marker: Describe norm clipping.
+      text: 'The goal here is to obtain the following certificate.'
     - type: code
       language: lean-source
       file: examples/norms/proofs/NormProofs.lean
@@ -371,8 +336,7 @@ pages:
         start: 'theorem norm_clip_bound '
         end: ' := by'
     - type: text
-      text: 'For a simple example this is a mechanical calculation. But if you imagine an optimized implementation we would need to push this through the whole neural network.'
-      marker: 'Explain the reusable norm machinery: homogeneity and bounds on the scale factor.'
+      text: 'For a simple example, this is a mechanical calculation. But if you imagine an optimized implementation, we would need to push this through the whole neural network.'
     - type: code
       language: lean-source
       file: JaxLean/Stdlib/NormRules.lean
@@ -388,26 +352,21 @@ pages:
     blocks:
     - type: text
       text: |
-        As a final example, we can consider the use of JAX for non-ML projects. 
-        The inspiration for this blog is the 
-        [Noether](https://github.com/pmocz/noether) project which aimed to 
-        guarantee similar properties of mathematical code. The motivating 
-        example is conservation of properties through code.  
+        As a final example, we can consider the use of JAX for non-ML projects.
+        The inspiration for this blog is the
+        [Noether](https://github.com/pmocz/noether) project, which aimed to
+        guarantee similar properties of mathematical code. The motivating
+        example is conservation of properties through code.
 
-      marker: Noether; periodic flux; conservation and equivariance
     - type: math
       text: F(u)ᵢ = uᵢ − λ (½uᵢ² − ½uᵢ₋₁²);  ∑ᵢ F(u)ᵢ = ∑ᵢ uᵢ
-    - type: text
-      text: ''
-      marker: Explain the periodic boundary and cancellation of fluxes.
     - type: python
       file: examples/noether/code.py
       name: burgers
     - type: text
       text: |
-        The conservation law can be written with following 
-        guarentee, which propagates through the system. 
-      marker: Describe the conservative update.
+        The conservation law can be written with the following
+        guarantee, which propagates through the system.
     - type: code
       language: lean-source
       file: examples/noether/proofs/NoetherProofs.lean
@@ -423,23 +382,21 @@ pages:
     blocks:
     - type: text
       text: |
-        One thing that I have personally wanted for years is better 
-        guarantees for code that uses sampling, such as RL. Techniques 
+        One thing that I have personally wanted for years is better
+        guarantees for code that uses sampling, such as RL. Techniques
         like probabilistic programming provide these, but are not typically
-        used in scaled systems. One solution might be to implement the Jax 
-        code as is, and prove that it matches a clean spec on its probabilistic 
-        properties. 
+        used in scaled systems. One solution might be to implement the JAX
+        code as is and prove that it matches a clean spec for its probabilistic
+        properties.
 
         As a simple example, let us imagine doing Monte Carlo sampling
-        that takes 16 samples of a dice roll. We would like to prove 
+        that takes 16 samples of a die roll. We would like to establish
         the variance of our estimator.
 
-        
     - type: math
       text: Xᵢ ∼ Uniform{1, …, 6}, independent;  Var[(X₁ + ⋯ + X₁₆) / 16]
     - type: text
       text: 'The code itself will just be an imperative sampling implementation in JAX. '
-      marker: State the ideal independent-draw model and its boundary with the concrete PRNG.
     - type: python
       file: examples/randint_monte_carlo/code.py
       name: die_draw
@@ -451,7 +408,6 @@ pages:
       name: mc_die_16
     - type: text
       text: 'The Lean theorem will be like the math above.'
-      marker: Explain mc_die_16.
     - type: code
       language: lean-source
       file: examples/randint_monte_carlo/proofs/RandintMonteCarloProofs.lean
@@ -459,57 +415,78 @@ pages:
         start: 'theorem mc_die_variance :'
         end: ' := by'
     - type: text
-      text: 'In this case, the proof is just pushes through the variance over the cases.'
-      marker: Explain variance propagation through an independent sum and division by the sample count.
+      text: 'In this case, the proof just propagates the variance through the operations.'
     - type: lean
       module: examples.randint_monte_carlo.proofs.RandintMonteCarloProofs
       name: JaxLean.MCJax.mc_die_variance_reduction
 
-  - title: 'Gradients And Mathlib'
+  - title: 'Derivatives and Mathlib'
     id: autodiff
     blocks:
     - type: text
       text: |
-        As a final example, let's consider how these proofs might actually interact 
-        with all the work going on in formalizing mathematics. This is a toy example 
-        where we verify that the real version of our JAX code produces the mathematically 
-        correct gradient.  
-        
-        For deeper examples of this see the text on 
-        [Verified Deep Learning with Lean 4](https://lean.brettkoonce.com/blueprint/). 
+        As a final example, let's consider how these proofs might actually interact
+        with all the work going on in formalizing mathematics. This is a toy example
+        where we verify that the real-valued version of our JAX code produces the mathematically
+        correct gradient.
+
+        For deeper examples of this, see the text on
+        [Verified Deep Learning with Lean 4](https://lean.brettkoonce.com/blueprint/).
 
     - type: math
       text: f(x) = x² + 3x;  f′(x) = 2x + 3
     - type: text
       text:  |
-        We are going to do the autodiff in JAX. 
-        
+        We first define the function is JAX and then perform autodiff 
+        in the standard JAX manner to create a function for its derivative. 
 
-      marker: Explain the derivative of the scalar function and how JAX computes it.
+
     - type: python
       file: examples/autodiff/code.py
       name: quadratic
-    - type: text
-      text: ''
-      marker: Explain quadratic.
     - type: python
       file: examples/autodiff/code.py
       name: gradient
     - type: text
-      text: ''
-      marker: Explain how jax.grad computes the derivative.
+      text:  |
+        JAX will then lower the new function to Jaxpr that we can apply our 
+        method to. It goes through the conversion to Lean in the standard way. 
+
+    - type: output
+      runtime: python
+      module: examples.autodiff.code
+
+    - type: text
+      text:  |
+        There are many things we might prove here, but to keep things simple 
+        let's just get a certificate that the autodiff Jaxpr is equivalent to the 
+        mathematical derivative of the original function. We are using `mathlib` 
+        here with the `deriv` operator to get produce that function directly. 
     - type: code
       language: lean-source
       file: examples/autodiff/proofs/Jvp.lean
       excerpt:
         start: 'theorem gradient_correct '
         end: ' := by'
-    - type: text
-      text: ''
-      marker: Explain how analytic differentiation supplies the derivative used to certify the generated gradient.
     - type: lean
       module: examples.autodiff.proofs.Jvp
       name: JaxLean.Autodiff.quadratic_hasDerivAt
+  - title: 'Conclusion'
+    id: autodiff
+    blocks:
+    - type: text
+      text: |
+        This library provides a working version of the conversion between 
+        JAX and Lean with the ability to write non-trivial proofs. 
+        This is meant as a glance at what a full verifiable ML might allow
+        for checking core properties like faithfulness, numerical stability, and 
+        statistical correctness. However, there is still lots to do here including
+        dealing with numerical precision, distributed components, making certificates more readable, and 
+        handling the devex of changing code and proofs. As in many areas, the future here 
+        will be quite unpredictable.  
+
+
+
 
 - slug: puzzles
   title: Tensor puzzles
