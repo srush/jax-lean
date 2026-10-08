@@ -920,7 +920,7 @@ into writing a collection of
 <a href="https://github.com/srush/tensor-puzzles">tensor puzzles</a>.
 Over time, they have become popular job interview prep
 for wannabe MsTS. The puzzles give the user a specification
-written as easy-to-read Python and ask them to
+written in easy-to-read Python and ask them to
 generate a vectorized implementation.</p>
 </div><div class="code-box"><pre class="python"><code><span class="py-keyword">def</span> <span class="py-function">loop_cumsum</span><span class="py-operator">(</span>a<span class="py-operator">)</span><span class="py-operator">:</span>
     out <span class="py-operator">=</span> jnp<span class="py-operator">.</span>zeros_like<span class="py-operator">(</span>a<span class="py-operator">)</span>
@@ -931,11 +931,11 @@ generate a vectorized implementation.</p>
     <span class="py-keyword">return</span> out</code></pre></div><div class="code-box"><pre class="python"><code><span class="py-operator">@</span>jax<span class="py-operator">.</span>jit
 <span class="py-keyword">def</span> <span class="py-function">puzzle_cumsum</span><span class="py-operator">(</span>a<span class="py-operator">)</span><span class="py-operator">:</span>
     i <span class="py-operator">=</span> arange<span class="py-operator">(</span>a<span class="py-operator">.</span>shape<span class="py-operator">[</span><span class="py-number">0</span><span class="py-operator">]</span><span class="py-operator">)</span>
-    <span class="py-keyword">return</span> jnp<span class="py-operator">.</span><span class="py-builtin">sum</span><span class="py-operator">(</span>jnp<span class="py-operator">.</span>where<span class="py-operator">(</span>i<span class="py-operator">[</span><span class="py-operator">:</span><span class="py-operator">,</span> <span class="py-keyword">None</span><span class="py-operator">]</span> <span class="py-operator">&gt;=</span> i<span class="py-operator">[</span><span class="py-keyword">None</span><span class="py-operator">,</span> <span class="py-operator">:</span><span class="py-operator">]</span><span class="py-operator">,</span> a<span class="py-operator">[</span><span class="py-keyword">None</span><span class="py-operator">,</span> <span class="py-operator">:</span><span class="py-operator">]</span><span class="py-operator">,</span> <span class="py-number">0.</span><span class="py-operator">)</span><span class="py-operator">,</span> axis<span class="py-operator">=</span><span class="py-number">1</span><span class="py-operator">)</span></code></pre></div><div class="prose"><p>Recently, I have been thinking about formally verification and
-envisioning what it might look like for every day coders. This seemed like
+    <span class="py-keyword">return</span> jnp<span class="py-operator">.</span><span class="py-builtin">sum</span><span class="py-operator">(</span>jnp<span class="py-operator">.</span>where<span class="py-operator">(</span>i<span class="py-operator">[</span><span class="py-operator">:</span><span class="py-operator">,</span> <span class="py-keyword">None</span><span class="py-operator">]</span> <span class="py-operator">&gt;=</span> i<span class="py-operator">[</span><span class="py-keyword">None</span><span class="py-operator">,</span> <span class="py-operator">:</span><span class="py-operator">]</span><span class="py-operator">,</span> a<span class="py-operator">[</span><span class="py-keyword">None</span><span class="py-operator">,</span> <span class="py-operator">:</span><span class="py-operator">]</span><span class="py-operator">,</span> <span class="py-number">0.</span><span class="py-operator">)</span><span class="py-operator">,</span> axis<span class="py-operator">=</span><span class="py-number">1</span><span class="py-operator">)</span></code></pre></div><div class="prose"><p>Recently, I have been thinking about formal verification and
+envisioning what it might look like for everyday coders. This seemed like
 a good place to start.
-In this blog, we walkthrough how to do prove puzzle correct,
-and build a library for proving properties of arbitrary JAX code, <a href="https://github.com/srush/jax-lean">srush/jax-lean</a>.
+In this blog, we walk through how to prove puzzle solutions correct
+and build a library for proving properties of arbitrary JAX code: <a href="https://github.com/srush/jax-lean">srush/jax-lean</a>.
 It was inspired by conversations with <a href="https://github.com/pmocz/">pmocz</a>, <a href="https://github.com/nielstron">nielstron</a>, and these projects:</p>
 <ul>
 <li><a href="https://github.com/pmocz/noether">Noether on GitHub</a></li>

@@ -97,7 +97,7 @@
             "blocks": [
               {
                 "type": "text",
-                "text": "A couple of years ago, [@jxmnop](https://x.com/jxmnop) talked me\ninto writing a collection of\n[tensor puzzles](https://github.com/srush/tensor-puzzles).\nOver time, they have become popular job interview prep\nfor wannabe MsTS. The puzzles give the user a specification\nwritten as easy-to-read Python and ask them to\ngenerate a vectorized implementation.\n"
+                "text": "A couple of years ago, [@jxmnop](https://x.com/jxmnop) talked me\ninto writing a collection of\n[tensor puzzles](https://github.com/srush/tensor-puzzles).\nOver time, they have become popular job interview prep\nfor wannabe MsTS. The puzzles give the user a specification\nwritten in easy-to-read Python and ask them to\ngenerate a vectorized implementation.\n"
               },
               {
                 "type": "python",
@@ -113,7 +113,7 @@
               },
               {
                 "type": "text",
-                "text": "\nRecently, I have been thinking about formally verification and\nenvisioning what it might look like for every day coders. This seemed like \na good place to start. \nIn this blog, we walkthrough how to do prove puzzle correct, \nand build a library for proving properties of arbitrary JAX code, [srush/jax-lean](https://github.com/srush/jax-lean).\nIt was inspired by conversations with [pmocz](https://github.com/pmocz/), [nielstron](https://github.com/nielstron), and these projects:\n\n* [Noether on GitHub](https://github.com/pmocz/noether)\n* [Aeneas](https://lean-lang.org/use-cases/aeneas/)\n* [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html)\n\nThe code and proofs are\nwritten by AI; the writing is human. This is a follow-up to [Lean-Verified Transformers](https://srush.github.io/lean-transformer/).\n"
+                "text": "\nRecently, I have been thinking about formal verification and\nenvisioning what it might look like for everyday coders. This seemed like\na good place to start.\nIn this blog, we walk through how to prove puzzle solutions correct\nand build a library for proving properties of arbitrary JAX code: [srush/jax-lean](https://github.com/srush/jax-lean).\nIt was inspired by conversations with [pmocz](https://github.com/pmocz/), [nielstron](https://github.com/nielstron), and these projects:\n\n* [Noether on GitHub](https://github.com/pmocz/noether)\n* [Aeneas](https://lean-lang.org/use-cases/aeneas/)\n* [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html)\n\nThe code and proofs are\nwritten by AI; the writing is human. This is a follow-up to [Lean-Verified Transformers](https://srush.github.io/lean-transformer/).\n"
               }
             ],
             "python": [
