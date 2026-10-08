@@ -1,8 +1,8 @@
 import JaxLean.Stdlib
 import examples.norms.generated.VectorNorm
 import examples.norms.generated.LinearClip
-import examples.norms.generated.RadialClip
-import examples.norms.generated.BatchRadialClip
+import examples.norms.generated.NormClip
+import examples.norms.generated.BatchNormClip
 
 /-! Application proofs about generated JAX definitions. No new norm laws here. -/
 namespace JaxLean.NormProofs
@@ -27,18 +27,18 @@ theorem linear_clip_radius_bound (x : Tensor ℝ [3]) (w : Tensor ℝ [3, 2])
     Tensor.vectorNorm (linear_clip x w (Tensor.scalar r)) ≤ r * Real.sqrt 2 := by
   exact Tensor.vectorNorm_clip_le_radius r hr (Tensor.vecmat x w)
 
-/-- The actual radial-clipping program stays inside the L2 ball and never grows the input norm. -/
-theorem radial_clip_bound (x : Tensor ℝ [3]) (r : ℝ) (hr : 0 < r) :
-    Tensor.vectorNorm (radial_clip x (Tensor.scalar r)) ≤ min r (Tensor.vectorNorm x) := by
-  simpa only [radial_clip, Tensor.vectorNorm, Tensor.map, Tensor.map₂, Tensor.scalar,
+/-- The actual norm-clipping program stays inside the L2 ball and never grows the input norm. -/
+theorem norm_clip_bound (x : Tensor ℝ [3]) (r : ℝ) (hr : 0 < r) :
+    Tensor.vectorNorm (norm_clip x (Tensor.scalar r)) ≤ min r (Tensor.vectorNorm x) := by
+  simpa only [norm_clip, Tensor.vectorNorm, Tensor.map, Tensor.map₂, Tensor.scalar,
     Tensor.sumFirst, RealOps.sqrt, Batch.clipL2, Batch.l2, pow_two] using
     Batch.l2_clipL2_le r hr (fun i : Fin 3 => x (i, ()))
 
 /-- Each row of a vmapped program inherits the same bound, without probability. -/
-theorem batch_radial_clip_bound (x : Tensor ℝ [4, 3]) (r : ℝ) (hr : 0 < r) (row : Fin 4) :
-    Batch.l2 (fun i : Fin 3 => batch_radial_clip x (Tensor.scalar r) (row, i, ())) ≤
+theorem batch_norm_clip_bound (x : Tensor ℝ [4, 3]) (r : ℝ) (hr : 0 < r) (row : Fin 4) :
+    Batch.l2 (fun i : Fin 3 => batch_norm_clip x (Tensor.scalar r) (row, i, ())) ≤
       min r (Batch.l2 (fun i : Fin 3 => x (row, i, ()))) := by
-  simpa only [batch_radial_clip, Tensor.map, Tensor.map₂, Tensor.scalar, Tensor.reindex,
+  simpa only [batch_norm_clip, Tensor.map, Tensor.map₂, Tensor.scalar, Tensor.reindex,
     RealOps.sqrt, Batch.clipL2, Batch.l2, pow_two] using
     Batch.l2_clipL2_le r hr (fun i : Fin 3 => x (row, i, ()))
 

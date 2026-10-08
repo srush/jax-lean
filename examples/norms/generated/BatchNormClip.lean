@@ -7,8 +7,8 @@ open scoped BigOperators
 set_option linter.unusedVariables false
 namespace «JaxLean».«Generated»
 
-def «batch_radial_clip» {R : Type} [Field R] [LinearOrder R] [RealOps R] («x» : Tensor R [4, 3]) («radius» : Tensor R []) : Tensor R [4, 3] :=
-  -- code.py:16 (radial_clip)
+def «batch_norm_clip» {R : Type} [Field R] [LinearOrder R] [RealOps R] («x» : Tensor R [4, 3]) («radius» : Tensor R []) : Tensor R [4, 3] :=
+  -- code.py:16 (norm_clip)
   -- begin jit (inlined)
   -- code.py:7 (vector_norm)
   -- mul
@@ -19,16 +19,16 @@ def «batch_radial_clip» {R : Type} [Field R] [LinearOrder R] [RealOps R] («x�
   -- code.py:7 (vector_norm)
   -- sqrt
   let sqrt_result : Tensor R [4] := Tensor.map (RealOps.sqrt) reduce_sum_result
-  -- code.py:16 (radial_clip)
+  -- code.py:16 (norm_clip)
   -- max
   let max_result : Tensor R [4] := Tensor.map (fun a0 => max («radius» ()) a0) sqrt_result
-  -- code.py:16 (radial_clip)
+  -- code.py:16 (norm_clip)
   -- div
   let div_result : Tensor R [4] := Tensor.map (fun a0 => («radius» ()) / a0) max_result
-  -- code.py:16 (radial_clip)
+  -- code.py:16 (norm_clip)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [4, 1] := Tensor.reindex (s := [4]) (fun i => (i.1, ())) div_result
-  -- code.py:16 (radial_clip)
+  -- code.py:16 (norm_clip)
   -- mul
   let mul_result_2 : Tensor R [4, 3] := Tensor.map₂ (fun a0 a1 => a0 * a1) «x» (fun i => (broadcast_in_dim_result (i.1, 0, ())))
   mul_result_2

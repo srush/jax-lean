@@ -7,8 +7,8 @@ open scoped BigOperators
 set_option linter.unusedVariables false
 namespace «JaxLean».«Generated»
 
-def «radial_clip» {R : Type} [Field R] [LinearOrder R] [RealOps R] («x» : Tensor R [3]) («radius» : Tensor R []) : Tensor R [3] :=
-  -- code.py:16 (radial_clip)
+def «norm_clip» {R : Type} [Field R] [LinearOrder R] [RealOps R] («x» : Tensor R [3]) («radius» : Tensor R []) : Tensor R [3] :=
+  -- code.py:16 (norm_clip)
   -- begin jit (inlined)
   -- code.py:7 (vector_norm)
   -- mul
@@ -19,13 +19,13 @@ def «radial_clip» {R : Type} [Field R] [LinearOrder R] [RealOps R] («x» : Te
   -- code.py:7 (vector_norm)
   -- sqrt
   let sqrt_result : Tensor R [] := Tensor.map (RealOps.sqrt) reduce_sum_result
-  -- code.py:16 (radial_clip)
+  -- code.py:16 (norm_clip)
   -- max
   let max_result : Tensor R [] := Tensor.scalar (max («radius» ()) (sqrt_result ()))
-  -- code.py:16 (radial_clip)
+  -- code.py:16 (norm_clip)
   -- div
   let div_result : Tensor R [] := Tensor.scalar ((«radius» ()) / (max_result ()))
-  -- code.py:16 (radial_clip)
+  -- code.py:16 (norm_clip)
   -- mul
   let mul_result_2 : Tensor R [3] := Tensor.map (fun a0 => a0 * (div_result ())) «x»
   mul_result_2

@@ -88,16 +88,16 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Heaviside».«Array»
 
 def «heaviside» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) («b» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:238 (puzzle_heaviside)
+  -- code.py:240 (puzzle_heaviside)
   -- eq
   let eq_result : Tensor Bool [3] := fun i => decide ((«a» (i.1, ())) = ((Tensor.scalar (0 : R)) ()))
-  -- code.py:238 (puzzle_heaviside)
+  -- code.py:240 (puzzle_heaviside)
   -- gt
   let gt_result : Tensor Bool [3] := fun i => decide ((«a» (i.1, ())) > ((Tensor.scalar (0 : R)) ()))
-  -- code.py:238 (puzzle_heaviside)
+  -- code.py:240 (puzzle_heaviside)
   -- call fn__where
   let call_fn__where_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«fn__where» (R := R) (gt_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:238 (puzzle_heaviside)
+  -- code.py:240 (puzzle_heaviside)
   -- call fn__where_2
   let call_fn__where_2_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«Heaviside».«Array».«fn__where_2» (R := R) (eq_result) («b») (call_fn__where_result)
   call_fn__where_2_result
@@ -201,101 +201,101 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Heaviside».«Loop»
 
 def «heaviside» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) («b» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:242 (loop_heaviside)
+  -- code.py:244 (loop_heaviside)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- eq
   let eq_result : Tensor Bool [] := fun i => decide ((squeeze_result ()) = ((Tensor.scalar (0 : R)) ()))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- gt
   let gt_result : Tensor Bool [] := fun i => decide ((squeeze_result_3 ()) > ((Tensor.scalar (0 : R)) ()))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- call fn__where
   let call_fn__where_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where» (R := R) (gt_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- call fn__where_2
   let call_fn__where_2_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where_2» (R := R) (eq_result) (squeeze_result_2) (call_fn__where_result)
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (call_fn__where_2_result ())
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result_4 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result_4 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- eq
   let eq_result_2 : Tensor Bool [] := fun i => decide ((squeeze_result_4 ()) = ((Tensor.scalar (0 : R)) ()))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result_5 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result_5 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_5
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result_6 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result_6 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_6
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- gt
   let gt_result_2 : Tensor Bool [] := fun i => decide ((squeeze_result_6 ()) > ((Tensor.scalar (0 : R)) ()))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- call fn__where
   let call_fn__where_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where» (R := R) (gt_result_2) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- call fn__where_2
   let call_fn__where_2_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where_2» (R := R) (eq_result_2) (squeeze_result_5) (call_fn__where_result_2)
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (call_fn__where_2_result_2 ())
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result_7 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result_7 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_7
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- eq
   let eq_result_3 : Tensor Bool [] := fun i => decide ((squeeze_result_7 ()) = ((Tensor.scalar (0 : R)) ()))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result_8 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result_8 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_8
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- slice
   let slice_result_9 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- squeeze
   let squeeze_result_9 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_9
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- gt
   let gt_result_3 : Tensor Bool [] := fun i => decide ((squeeze_result_9 ()) > ((Tensor.scalar (0 : R)) ()))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- call fn__where
   let call_fn__where_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where» (R := R) (gt_result_3) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:244 (loop_heaviside)
+  -- code.py:246 (loop_heaviside)
   -- call fn__where_2
   let call_fn__where_2_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Heaviside».«Loop».«fn__where_2» (R := R) (eq_result_3) (squeeze_result_8) (call_fn__where_result_3)
   -- scatter

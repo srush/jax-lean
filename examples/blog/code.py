@@ -1,6 +1,8 @@
 import jax
 import jax.numpy as jnp
 
+from examples.arrays import arange
+
 
 def add_then_scale(a, b):
     total = a + b
@@ -8,7 +10,7 @@ def add_then_scale(a, b):
 
 
 def eye(n):
-    i = jnp.arange(n, dtype=jnp.float32)
+    i = arange(n)
     return jnp.where(i[:, None] == i[None, :], 1., 0.)
 
 

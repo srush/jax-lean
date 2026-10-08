@@ -10,7 +10,7 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«PuzzleJax»
 
 def «puzzle_flip» {R : Type} [Field R] («a» : Tensor R [4]) : Tensor R [4] :=
-  -- code.py:23 (puzzle_flip)
+  -- code.py:25 (puzzle_flip)
   -- rev
   let rev_result : Tensor R [4] := Tensor.reindex (s := [4]) (fun i => (i.1.rev, ())) «a»
   rev_result

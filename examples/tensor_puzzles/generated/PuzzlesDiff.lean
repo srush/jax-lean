@@ -12,19 +12,19 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Diff».«Array»
 
 def «diff» {R : Type} [Field R] («a» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:129 (puzzle_diff)
+  -- code.py:131 (puzzle_diff)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:129 (puzzle_diff)
+  -- code.py:131 (puzzle_diff)
   -- slice
   let slice_result_2 : Tensor R [2] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:129 (puzzle_diff)
+  -- code.py:131 (puzzle_diff)
   -- slice
   let slice_result_3 : Tensor R [2] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:129 (puzzle_diff)
+  -- code.py:131 (puzzle_diff)
   -- sub
   let sub_result : Tensor R [2] := Tensor.map₂ (fun a0 a1 => a0 - a1) slice_result_2 slice_result_3
-  -- code.py:129 (puzzle_diff)
+  -- code.py:131 (puzzle_diff)
   -- concatenate
   let concatenate_result : Tensor R [3] := (Tensor.concatenate (s := [1]) (u := [2]) (t := [3]) (fun i => if h : i.1.val < 1 then Sum.inl (⟨i.1.val, by omega⟩, ()) else Sum.inr (⟨i.1.val - 1, by omega⟩, ())) slice_result sub_result)
   concatenate_result
@@ -61,47 +61,47 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Diff».«Loop»
 
 def «diff» {R : Type} [Field R] («a» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:133 (loop_diff)
+  -- code.py:135 (loop_diff)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:134 (loop_diff)
+  -- code.py:136 (loop_diff)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:134 (loop_diff)
+  -- code.py:136 (loop_diff)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (squeeze_result ())
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- sub
   let sub_result : Tensor R [] := Tensor.scalar ((squeeze_result_2 ()) - (squeeze_result_3 ()))
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (sub_result ())
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- slice
   let slice_result_4 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- squeeze
   let squeeze_result_4 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- slice
   let slice_result_5 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- squeeze
   let squeeze_result_5 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_5
-  -- code.py:136 (loop_diff)
+  -- code.py:138 (loop_diff)
   -- sub
   let sub_result_2 : Tensor R [] := Tensor.scalar ((squeeze_result_4 ()) - (squeeze_result_5 ()))
   -- scatter

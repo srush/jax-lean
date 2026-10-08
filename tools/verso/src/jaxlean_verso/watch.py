@@ -1,27 +1,16 @@
 """Local editing preview with debounced builds and last-good-page reloads."""
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
 import time
-from html.parser import HTMLParser
 from .notebook import VersoPage, python_function, load_manifest
-from .blog import render
+from . import blog
+from .preview import publish_reload
 
-RELOAD = '''<script>(()=>{let version;setInterval(async()=>{try{const r=await fetch('/preview-version.json',{cache:'no-store'});if(!r.ok)return;const v=await r.text();if(version!==undefined&&v!==version)location.reload();version=v;}catch{}},1000);})();</script>'''
-
-class Outputs(HTMLParser):
-    def __init__(self, source):
-        super().__init__(); self.values=[]; self.current=None; self.feed(source)
-    def handle_starttag(self, tag, attrs):
-        if tag=='pre' and dict(attrs).get('class')=='output': self.current=[]
-    def handle_data(self, value):
-        if self.current is not None:self.current.append(value)
-    def handle_endtag(self, tag):
-        if tag=='pre' and self.current is not None:
-            self.values.append(''.join(self.current));self.current=None
 
 def snapshot(root):
     paths=[]
@@ -30,48 +19,53 @@ def snapshot(root):
     paths.extend(root/p for p in ('lakefile.toml','lake-manifest.json','lean-toolchain','JaxLean.lean','JaxLeanExamples.lean'))
     return {str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths if p.is_file()}
 
-def publish_reload(output):
-    for path in output.glob('*.html'):
-        source=path.read_text()
-        if RELOAD not in source:path.write_text(source.replace('</body>',RELOAD+'</body>'))
-    (output/'preview-version.json').write_text(json.dumps(time.time_ns()))
-
 def refresh(root, output):
-    config=load_manifest(root/'docs/examples.yaml')
-    page=next(p for p in config['pages'] if p.get('layout')=='blog')
-    record=json.loads((output/'build.json').read_text())
-    modules={i['module'] for c in page['cards'] for i in c['lean']}
-    if not modules <= set(record['lean_modules']):raise ValueError('New Lean module requires a build')
-    parsed={m:VersoPage((output/Path(*m.split('.'))/'index.html').read_text()) for m in modules}
-    old=next(p for p in record['manifest']['pages'] if p.get('layout')=='blog')
-    keys=[]
-    for c in old['cards']:
-        if 'blocks' in c:
-            for b in c['blocks']:
-                if b['type'] == 'trace_output': keys.append(b['example'])
-                if b['type'] == 'eval_output': keys.append('eval')
-        else:
-            if c.get('trace'):keys.append('add' if c['trace']=='add' else 'eye')
-            if c.get('evaluate'):keys.append('eval')
-    values=Outputs((output/'blog.html').read_text()).values
-    if len(keys)!=len(values):raise ValueError('Missing checked execution output')
-    cached=dict(zip(keys,values))
+    from types import SimpleNamespace
+    config = load_manifest(root / 'docs/examples.yaml')
+    record = json.loads((output / 'build.json').read_text())
+    cached = record.get('execution_outputs', {})
+
     def execute(args, **kwargs):
-        from types import SimpleNamespace
-        key='eval' if args[0]=='lake' else 'add' if args[-1]=='add' else 'eye'
+        key = json.dumps(args)
+        if key not in cached:
+            raise ValueError('New execution output requires a build')
         return SimpleNamespace(stdout=cached[key])
-    assets='\n'.join(parsed[sorted(modules)[0]].assets)
-    document=render(page,parsed,assets,root,python_function,execute=execute)
-    for name in ('blog.html','index.html'):
-        temp=output/(name+'.tmp');temp.write_text(document);os.replace(temp,output/name)
-    for name in ('blog.css','notebook.css','jax-pipeline.svg'):
-        (output/name).write_bytes((root/'docs'/name).read_bytes())
-    record['manifest']=config
-    (output/'build.json').write_text(json.dumps(record,indent=2)+'\n')
+
+    renderer = importlib.reload(blog)
+    documents = {}
+    for page in config['pages']:
+        if page.get('layout') != 'blog':
+            previous = next((p for p in record['manifest']['pages']
+                             if p['slug'] == page['slug']), None)
+            if previous != page:
+                raise ValueError('Changed notebook page requires a build')
+            continue
+        modules = {i['module'] for c in page['cards'] for i in c['lean']}
+        if not modules <= set(record['lean_modules']):
+            raise ValueError('New Lean module requires a build')
+        parsed = {m: VersoPage((output / Path(*m.split('.')) / 'index.html').read_text())
+                  for m in modules}
+        assets = '\n'.join(parsed[sorted(modules)[0]].assets) if modules else ''
+        documents[page['slug'] + '.html'] = renderer.render(
+            page, parsed, assets, root, python_function, execute=execute)
+        for asset in renderer.page_assets(page):
+            target = output / asset
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((root / asset).read_bytes())
+    first = config['pages'][0]['slug'] + '.html'
+    documents['index.html'] = documents[first] if first in documents else (output / first).read_text()
+    record['manifest'] = config
+    (output / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
+    publish_reload(output, documents)
 
 def main():
     root=Path.cwd();output=root/'.lake/build/proof-notebook'
-    seen=snapshot(root);publish_reload(output)
+    seen=snapshot(root)
+    try:
+        refresh(root,output)
+    except Exception as error:
+        print(f'Initial refresh deferred: {error}',flush=True)
+        publish_reload(output)
     print('Watching source files; prose/style edits reuse checked Lean output.',flush=True)
     needs_build=False
     while True:
@@ -87,14 +81,14 @@ def main():
             if needs_build:raise ValueError('Code changed')
             refresh(root,output)
         except ValueError:
-            result=subprocess.run([sys.executable,'-m','jaxlean_verso','build'],cwd=root)
+            result=subprocess.run([sys.executable,'-m','jaxlean_verso','build'],cwd=root,
+                                  env={**os.environ, 'JAXLEAN_LIVE_PREVIEW': '1'})
             if result.returncode:
                 needs_build=True
                 print('Build failed; keeping the last successful preview.',flush=True);continue
             needs_build=False
         except Exception as error:
             print(f'Preview unchanged: {error}',flush=True);continue
-        publish_reload(output)
         print('Preview updated: '+', '.join(sorted(changed)),flush=True)
 
 if __name__=='__main__':main()

@@ -52,28 +52,28 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Diag».«Array»
 
 def «diag» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3, 3]) : Tensor R [3] :=
-  -- code.py:88 (puzzle_eye)
+  -- code.py:90 (puzzle_eye)
   -- iota
   let iota_result : Tensor R [3] := fun i => (i.1.val : R)
-  -- code.py:89 (puzzle_eye)
+  -- code.py:91 (puzzle_eye)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3, 1] := Tensor.reindex (s := [3]) (fun i => (i.1, ())) iota_result
-  -- code.py:89 (puzzle_eye)
+  -- code.py:91 (puzzle_eye)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) iota_result
-  -- code.py:89 (puzzle_eye)
+  -- code.py:91 (puzzle_eye)
   -- eq
   let eq_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (i.1, 0, ())) = (broadcast_in_dim_result_2 (0, i.2.1, ())))
-  -- code.py:89 (puzzle_eye)
+  -- code.py:91 (puzzle_eye)
   -- call fn__where
   let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Diag».«Array».«fn__where» (R := R) (eq_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:77 (puzzle_diag)
+  -- code.py:79 (puzzle_diag)
   -- convert_element_type
   let cast_result : Tensor R [3, 3] := call_fn__where_result
-  -- code.py:77 (puzzle_diag)
+  -- code.py:79 (puzzle_diag)
   -- mul
   let mul_result : Tensor R [3, 3] := Tensor.map₂ (fun a0 a1 => a0 * a1) «a» cast_result
-  -- code.py:77 (puzzle_diag)
+  -- code.py:79 (puzzle_diag)
   -- reduce_sum
   let reduce_sum_result : Tensor R [3] := fun i => ∑ k0 : Fin 3, (mul_result (i.1, k0, ()))
   reduce_sum_result
@@ -113,29 +113,29 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Diag».«Loop»
 
 def «diag» {R : Type} [Field R] («a» : Tensor R [3, 3]) : Tensor R [3] :=
-  -- code.py:81 (loop_diag)
+  -- code.py:83 (loop_diag)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:83 (loop_diag)
+  -- code.py:85 (loop_diag)
   -- slice
   let slice_result : Tensor R [1, 1] := Tensor.reindex (s := [3, 3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ⟨0 + 1 * i.2.1.val, by omega⟩, ())) «a»
-  -- code.py:83 (loop_diag)
+  -- code.py:85 (loop_diag)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1, 1]) (fun i => (0, 0, ())) slice_result
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (squeeze_result ())
-  -- code.py:83 (loop_diag)
+  -- code.py:85 (loop_diag)
   -- slice
   let slice_result_2 : Tensor R [1, 1] := Tensor.reindex (s := [3, 3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ⟨1 + 1 * i.2.1.val, by omega⟩, ())) «a»
-  -- code.py:83 (loop_diag)
+  -- code.py:85 (loop_diag)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1, 1]) (fun i => (0, 0, ())) slice_result_2
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (squeeze_result_2 ())
-  -- code.py:83 (loop_diag)
+  -- code.py:85 (loop_diag)
   -- slice
   let slice_result_3 : Tensor R [1, 1] := Tensor.reindex (s := [3, 3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ⟨2 + 1 * i.2.1.val, by omega⟩, ())) «a»
-  -- code.py:83 (loop_diag)
+  -- code.py:85 (loop_diag)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1, 1]) (fun i => (0, 0, ())) slice_result_3
   -- scatter

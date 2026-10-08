@@ -12,4 +12,4 @@ def jvp_tangent(x, v):
 
 
 def gradient(x):
-    return jvp_tangent(x, jnp.ones_like(x))
+    return jax.grad(quadratic)(x)

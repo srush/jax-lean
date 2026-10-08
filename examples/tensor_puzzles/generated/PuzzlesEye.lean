@@ -53,19 +53,19 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Eye».«Array»
 
 def «eye» {R : Type} [Field R] [LinearOrder R]  : Tensor R [3, 3] :=
-  -- code.py:88 (puzzle_eye)
+  -- code.py:90 (puzzle_eye)
   -- iota
   let iota_result : Tensor R [3] := fun i => (i.1.val : R)
-  -- code.py:89 (puzzle_eye)
+  -- code.py:91 (puzzle_eye)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3, 1] := Tensor.reindex (s := [3]) (fun i => (i.1, ())) iota_result
-  -- code.py:89 (puzzle_eye)
+  -- code.py:91 (puzzle_eye)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) iota_result
-  -- code.py:89 (puzzle_eye)
+  -- code.py:91 (puzzle_eye)
   -- eq
   let eq_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (i.1, 0, ())) = (broadcast_in_dim_result_2 (0, i.2.1, ())))
-  -- code.py:89 (puzzle_eye)
+  -- code.py:91 (puzzle_eye)
   -- call fn__where
   let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Eye».«Array».«fn__where» (R := R) (eq_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   call_fn__where_result
@@ -104,7 +104,7 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Eye».«Loop»
 
 def «eye» {R : Type} [Field R]  : Tensor R [3, 3] :=
-  -- code.py:93 (loop_eye)
+  -- code.py:95 (loop_eye)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3, 3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
   -- scatter

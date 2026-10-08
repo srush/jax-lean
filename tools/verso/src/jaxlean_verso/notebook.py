@@ -11,13 +11,14 @@ import html
 from html.parser import HTMLParser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 from functools import partial
-from .blog import highlight_python, render as render_blog
+from .blog import highlight_python, render as render_blog, page_assets
 
 MARKER = "jaxlean-verso-notebook-v1"
 
@@ -135,6 +136,11 @@ def build(manifest: Path, output: Path, *, root: Path | None = None):
           });
         });</script>"""
         hashes = {}
+        execution_outputs = {}
+        def execute(args, **kwargs):
+            result = subprocess.run(args, **kwargs)
+            execution_outputs[json.dumps(args)] = result.stdout
+            return result
         for page in config["pages"]:
             if page.get("layout") == "blog":
                 for card in page["cards"]:
@@ -147,9 +153,12 @@ def build(manifest: Path, output: Path, *, root: Path | None = None):
                         hashes[item["file"]] = hashlib.sha256((root / item["file"]).read_bytes()).hexdigest()
                     for item in card["python"]:
                         hashes[item["file"]] = hashlib.sha256((root / item["file"]).read_bytes()).hexdigest()
-                for path in ("examples/blog/proofs/Eye.lean", "docs/blog.css", "docs/jax-pipeline.svg"):
+                paths = page_assets(page) + [
+                    b['file'] for c in page['cards'] for b in c['blocks']
+                    if b['type'] in ('code', 'output') and 'file' in b]
+                for path in paths:
                     hashes[path] = hashlib.sha256((root / path).read_bytes()).hexdigest()
-                document = render_blog(page, parsed, assets, root, python_function)
+                document = render_blog(page, parsed, assets, root, python_function, execute=execute)
                 (site / f'{page["slug"]}.html').write_text(document)
                 continue
             cards = []
@@ -203,9 +212,15 @@ def build(manifest: Path, output: Path, *, root: Path | None = None):
             (site / f'{page["slug"]}.html').write_text(document)
         shutil.copy2(site / f'{config["pages"][0]["slug"]}.html', site / "index.html")
         shutil.copy2(root / "docs/notebook.css", site / "notebook.css")
-        for asset in ("blog.css", "jax-pipeline.svg"):
-            shutil.copy2(root / "docs" / asset, site / asset)
-        (site / "build.json").write_text(json.dumps({"generator": MARKER, "lean_modules": modules, "source_sha256": hashes, "manifest": config}, indent=2) + "\n")
+        for page in config['pages']:
+            for asset in page_assets(page):
+                target = site / asset
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(root / asset, target)
+        (site / "build.json").write_text(json.dumps({"generator": MARKER, "lean_modules": modules, "source_sha256": hashes, "execution_outputs": execution_outputs, "manifest": config}, indent=2) + "\n")
+        if os.environ.get('JAXLEAN_LIVE_PREVIEW') == '1':
+            from .preview import publish_reload
+            publish_reload(site)
         if output.exists():
             shutil.rmtree(output)
         shutil.move(str(site), output)

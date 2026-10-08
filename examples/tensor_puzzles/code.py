@@ -7,6 +7,8 @@ are not entries in the original restricted-operator competition.
 import jax
 import jax.numpy as jnp
 
+from examples.arrays import arange
+
 
 @jax.jit
 def puzzle_sum(a):
@@ -85,7 +87,7 @@ def loop_diag(a):
 
 
 def puzzle_eye(n):
-    i = jnp.arange(n, dtype=jnp.float32)
+    i = arange(n)
     return jnp.where(i[:, None] == i[None, :], 1., 0.)
 
 
@@ -97,7 +99,7 @@ def loop_eye(n):
 
 
 def puzzle_triu(n):
-    i = jnp.arange(n, dtype=jnp.float32)
+    i = arange(n)
     return jnp.where(i[:, None] <= i[None, :], 1., 0.)
 
 
@@ -112,7 +114,7 @@ def loop_triu(n):
 
 @jax.jit
 def puzzle_cumsum(a):
-    i = jnp.arange(a.shape[0], dtype=jnp.float32)
+    i = arange(a.shape[0])
     return jnp.sum(jnp.where(i[:, None] >= i[None, :], a[None, :], 0.), axis=1)
 
 
@@ -172,7 +174,7 @@ def loop_pad_to(a, n):
 
 
 def puzzle_sequence_mask(values, length):
-    columns = jnp.arange(values.shape[1], dtype=jnp.float32)
+    columns = arange(values.shape[1])
     return jnp.where(columns[None, :] < length[:, None].astype(jnp.float32), values, 0.)
 
 
@@ -192,7 +194,7 @@ def loop_sequence_mask(values, length):
 
 
 def puzzle_bincount(a, n):
-    bins = jnp.arange(n, dtype=jnp.float32)
+    bins = arange(n)
     return jnp.sum(jnp.where(a.astype(jnp.float32)[None, :] == bins[:, None], 1., 0.), axis=1)
 
 
@@ -212,7 +214,7 @@ def loop_bincount(a, n):
 
 
 def puzzle_scatter_add(values, link, n):
-    bins = jnp.arange(n, dtype=jnp.float32)
+    bins = arange(n)
     return jnp.sum(jnp.where(link.astype(jnp.float32)[None, :] == bins[:, None], values[None, :], 0.), axis=1)
 
 
@@ -224,7 +226,7 @@ def loop_scatter_add(values, link, n):
 
 
 def puzzle_linspace(start, stop, n):
-    return start + (stop - start) * jnp.arange(n, dtype=jnp.float32) / max(1, n - 1)
+    return start + (stop - start) * arange(n) / max(1, n - 1)
 
 
 def loop_linspace(start, stop, n):
@@ -258,7 +260,7 @@ def loop_repeat(a, n):
 
 
 def puzzle_bucketize(v, boundaries):
-    positions = jnp.arange(boundaries.shape[0], dtype=jnp.float32) + 1.
+    positions = arange(boundaries.shape[0]) + 1.
     return jnp.max(jnp.where(v[:, None] >= boundaries[None, :], positions[None, :], 0.), axis=1)
 
 

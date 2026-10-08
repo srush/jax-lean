@@ -98,6 +98,7 @@ def test_blog_renders_interleaved_blocks_in_manifest_order(tmp_path):
     manifest = tmp_path / 'manifest.yaml'
     manifest.write_text('''pages:
 - layout: blog
+  title: 'Custom title & subtitle'
   cards:
   - id: example
     title: Example
@@ -115,6 +116,8 @@ def test_blog_renders_interleaved_blocks_in_manifest_order(tmp_path):
     assert page['cards'][0]['lean'][0]['module'] == 'Sample'
     parsed = {'Sample': SimpleNamespace(blocks={'proof': '<code>checked_proof</code>'})}
     output = render(page, parsed, '', tmp_path, python_function)
+    assert '<title>Custom title &amp; subtitle</title>' in output
+    assert '<h1>Custom title &amp; subtitle</h1>' in output
     assert output.index('checked_proof') < output.index('Between snippets') < output.index('py-function')
     page['cards'][0]['blocks'].reverse()
     output = render(page, parsed, '', tmp_path, python_function)
@@ -140,18 +143,45 @@ def evaluator := 0
     assert 'Op.extra' not in rendered
 
 
-def test_blog_manifest_includes_unified_types_and_autodiff():
-    from jaxlean_verso.notebook import load_manifest
+def test_unified_types_render_from_source():
     from jaxlean_verso.blog import render_datatypes
 
     root = Path(__file__).resolve().parents[3]
-    pages = load_manifest(root / 'docs/examples.yaml')['pages']
-    blog = next(page for page in pages if page['slug'] == 'blog')
-    cards = {card.get('id'): card for card in blog['cards']}
-    assert 'autodiff' in cards
-    datatypes = cards['jax-ir']['datatypes']
-    assert {'DType', 'Ty', 'Value', 'Var', 'Atom', 'Op', 'Args', 'Program'} <= {
-        item['name'] for item in datatypes}
+    datatypes = [{'file': 'JaxLean/Core/Jaxpr.lean', 'name': name}
+                 for name in ('DType', 'Ty', 'Value', 'Var', 'Atom', 'Op', 'Args', 'Program')]
     rendered = render_datatypes(datatypes, root)
     assert '| select_n' in rendered
     assert '| call' in rendered
+
+
+def test_article_content_and_placement_come_from_manifest(tmp_path):
+    from types import SimpleNamespace
+    from jaxlean_verso.blog import render, page_assets
+    commands = []
+    page = {
+        'title': 'A different article',
+        'stylesheets': ['assets/custom.css'],
+        'contents_title': 'On this page',
+        'cards': [
+            {'id': 'opening', 'title': 'Hidden heading', 'position': 'before_contents',
+             'show_heading': False, 'toc': False, 'blocks': [
+                 {'type': 'text', 'text': 'Opening prose'},
+             ]},
+            {'id': 'demo', 'title': 'Demo', 'blocks': [
+                {'type': 'diagram', 'file': 'assets/other.svg', 'alt': 'Other diagram'},
+                {'type': 'code', 'language': 'python', 'text': 'print(42)'},
+                {'type': 'output', 'runtime': 'python', 'module': 'other.example', 'args': ['custom']},
+            ]},
+        ],
+    }
+    def execute(args, **kwargs):
+        commands.append(args)
+        return SimpleNamespace(stdout='42\n')
+    document = render(page, {}, '', tmp_path, python_function, execute=execute)
+    assert document.index('Opening prose') < document.index('<nav')
+    assert 'Hidden heading' not in document
+    assert 'assets/other.svg' in document and 'Other diagram' in document
+    assert 'assets/custom.css' in document and 'On this page' in document
+    assert commands[0][1:] == ['-m', 'other.example', 'custom']
+    assert page_assets(page) == ['assets/custom.css', 'assets/other.svg']
+    assert 'source-label' not in document

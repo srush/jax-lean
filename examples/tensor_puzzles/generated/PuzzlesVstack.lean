@@ -12,13 +12,13 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Vstack».«Array»
 
 def «vstack» {R : Type} [Field R] («a» : Tensor R [3]) («b» : Tensor R [3]) : Tensor R [2, 3] :=
-  -- code.py:141 (puzzle_vstack)
+  -- code.py:143 (puzzle_vstack)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) «a»
-  -- code.py:141 (puzzle_vstack)
+  -- code.py:143 (puzzle_vstack)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) «b»
-  -- code.py:141 (puzzle_vstack)
+  -- code.py:143 (puzzle_vstack)
   -- concatenate
   let concatenate_result : Tensor R [2, 3] := (Tensor.concatenate (s := [1, 3]) (u := [1, 3]) (t := [2, 3]) (fun i => if h : i.1.val < 1 then Sum.inl (⟨i.1.val, by omega⟩, i.2.1, ()) else Sum.inr (⟨i.1.val - 1, by omega⟩, i.2.1, ())) broadcast_in_dim_result broadcast_in_dim_result_2)
   concatenate_result
@@ -53,53 +53,53 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Vstack».«Loop»
 
 def «vstack» {R : Type} [Field R] («a» : Tensor R [3]) («b» : Tensor R [3]) : Tensor R [2, 3] :=
-  -- code.py:145 (loop_vstack)
+  -- code.py:147 (loop_vstack)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [2, 3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:147 (loop_vstack)
+  -- code.py:149 (loop_vstack)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:147 (loop_vstack)
+  -- code.py:149 (loop_vstack)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
   -- scatter
   let scatter_result : Tensor R [2, 3] := Tensor.scatterSet broadcast_in_dim_result (0, 0, ()) (squeeze_result ())
-  -- code.py:148 (loop_vstack)
+  -- code.py:150 (loop_vstack)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:148 (loop_vstack)
+  -- code.py:150 (loop_vstack)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
   -- scatter
   let scatter_result_2 : Tensor R [2, 3] := Tensor.scatterSet scatter_result (1, 0, ()) (squeeze_result_2 ())
-  -- code.py:147 (loop_vstack)
+  -- code.py:149 (loop_vstack)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:147 (loop_vstack)
+  -- code.py:149 (loop_vstack)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
   -- scatter
   let scatter_result_3 : Tensor R [2, 3] := Tensor.scatterSet scatter_result_2 (0, 1, ()) (squeeze_result_3 ())
-  -- code.py:148 (loop_vstack)
+  -- code.py:150 (loop_vstack)
   -- slice
   let slice_result_4 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:148 (loop_vstack)
+  -- code.py:150 (loop_vstack)
   -- squeeze
   let squeeze_result_4 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
   -- scatter
   let scatter_result_4 : Tensor R [2, 3] := Tensor.scatterSet scatter_result_3 (1, 1, ()) (squeeze_result_4 ())
-  -- code.py:147 (loop_vstack)
+  -- code.py:149 (loop_vstack)
   -- slice
   let slice_result_5 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:147 (loop_vstack)
+  -- code.py:149 (loop_vstack)
   -- squeeze
   let squeeze_result_5 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_5
   -- scatter
   let scatter_result_5 : Tensor R [2, 3] := Tensor.scatterSet scatter_result_4 (0, 2, ()) (squeeze_result_5 ())
-  -- code.py:148 (loop_vstack)
+  -- code.py:150 (loop_vstack)
   -- slice
   let slice_result_6 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:148 (loop_vstack)
+  -- code.py:150 (loop_vstack)
   -- squeeze
   let squeeze_result_6 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_6
   -- scatter

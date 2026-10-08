@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 180" role="img" aria-labelledby="title desc">
+  <title id="title">Transpilation and certification</title>
+  <desc id="desc">The imported Lean Jaxpr is evaluated by the Jaxpr interpreter. A translation certificate equates that evaluation with the independently transpiled Lean function.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#607080"/></marker></defs>
+  <g fill="#fafafa" stroke="#bac4cb">
+    <rect x="10" y="52" width="250" height="86" rx="4"/>
+    <rect x="355" y="52" width="250" height="86" rx="4"/>
+    <rect x="700" y="52" width="250" height="86" rx="4"/>
+  </g>
+  <path d="M270 95H343" fill="none" stroke="#607080" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <g text-anchor="middle" fill="#404444" font-family="Georgia,serif">
+    <g font-size="22"><text x="135" y="86">1 · Imported Jaxpr</text><text x="480" y="86">2 · Interpreter</text><text x="825" y="86">3 · Transpiled Lean</text></g>
+    <g font-size="15" fill="#607080"><text x="135" y="115">add_then_scale_ir</text><text x="480" y="115">Jaxpr.Program.eval</text><text x="825" y="115">add_then_scale</text><text x="307" y="41">evaluate</text><text x="653" y="41">certificate</text></g>
+    <text x="653" y="106" font-size="34">=</text>
+  </g>
+</svg>

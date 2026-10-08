@@ -57,7 +57,7 @@ def render_datatypes(items, root):
         blocks = re.findall(pattern, path.read_text())
         if len(blocks) != 1:
             raise ValueError(f"Expected one datatype {item['name']} in {path}")
-        panel = '<div class="code-box"><span class="source-label">' + html.escape(item['file']) + '</span>' + code(blocks[0].rstrip(), 'lean-source') + '</div>'
+        panel = '<div class="code-box">' + code(blocks[0].rstrip(), 'lean-source') + '</div>'
         if item.get('detail'):
             panel = '<details><summary>' + html.escape(item['name']) + '</summary>' + panel + '</details>'
         chunks.append(panel)
@@ -65,16 +65,36 @@ def render_datatypes(items, root):
     return "".join(chunks)
 
 
+def output_command(item, root):
+    if item['runtime'] == 'python':
+        return [sys.executable, '-m', item['module'], *map(str, item.get('args', []))]
+    if item['runtime'] == 'lean':
+        return ['lake', 'env', 'lean', str(root / item['file'])]
+    raise ValueError(f"Unknown output runtime: {item['runtime']}")
+
+
+def page_assets(page):
+    return list(dict.fromkeys([
+        *page.get('stylesheets', []),
+        *(b['file'] for c in page['cards'] for b in c.get('blocks', []) if b['type'] == 'diagram'),
+    ]))
+
+
 def render(page, parsed, assets, root, extract, *, execute=subprocess.run):
     def lean(item):
         block = parsed[item['module']].blocks[item['name']]
-        link = item['module'].replace('.', '/') + '/index.html'
-        result = f'<div class="code-box"><a class="source-label" href="{link}">{html.escape(item["section"] if "section" in item else "Lean")} ↗</a>{block}</div>'
+        result = f'<div class="code-box">{block}</div>'
         if item.get('detail'): result=f'<details><summary>{html.escape(item["detail"])}</summary>{result}</details>'
         return result + text_slot(item, 'text_after', 'after ' + item['name'])
-    chunks=[]
+    title = html.escape(page['title'])
+    sections=[]
+    preamble=[]
     for card in page['cards']:
-        if card.get('puzzle'):
+        chunks=[]
+        before_contents = card.get('position') == 'before_contents'
+        if not card.get('show_heading', True):
+            chunks.append(f'<section id="{html.escape(card.get("id", ""))}">')
+        elif card.get('puzzle'):
             chunks.append(f'<details class="puzzle"><summary>{html.escape(card["title"])}</summary>')
         else:
             heading = "h3" if card.get("subheading") else "h2"
@@ -84,32 +104,39 @@ def render(page, parsed, assets, root, extract, *, execute=subprocess.run):
             if kind == 'text':
                 chunks.append(text_slot(item, 'text', item.get('marker', 'text')))
             elif kind == 'diagram':
-                chunks.append('<figure><img src="jax-pipeline.svg" alt="JAX to Jaxpr to StableHLO / XLA, branching to TPU and GPU"></figure>')
+                chunks.append(f'<figure><img src="{html.escape(item["file"])}" alt="{html.escape(item["alt"])}"></figure>')
             elif kind == 'datatype':
                 chunks.append(render_datatypes([item], root))
             elif kind == 'math':
                 chunks.append('<div class="equation">' + html.escape(item['text']) + '</div>')
             elif kind == 'python':
                 source,_ = extract(root/item['file'],item['name'])
-                chunks.append('<div class="code-box"><span class="source-label">' + html.escape(item.get('section', 'Python · JAX')) + '</span>' + code(source) + '</div>')
+                chunks.append('<div class="code-box">' + code(source) + '</div>')
             elif kind == 'lean':
                 chunks.append(lean(item))
-            elif kind == 'trace_code':
-                source = 'print(jax.make_jaxpr(eye, static_argnums=(0,))(3))\nprint(eye(3))'
-                if item['example'] == 'add':
-                    source = 'a = jnp.array([1., 2., 3.], dtype=jnp.float32)\nb = jnp.array([4., 5., 6.], dtype=jnp.float32)\nprint(jax.make_jaxpr(add_then_scale)(a, b))'
-                chunks.append('<div class="code-box">' + code(source) + '</div>')
-            elif kind == 'trace_output':
-                arguments = ['add'] if item['example'] == 'add' else []
-                output = execute([sys.executable, '-m', 'examples.blog.code', *arguments], cwd=root, check=True, capture_output=True, text=True).stdout
-                chunks.append('<div class="code-box">' + code(output, 'output') + '</div>')
-            elif kind == 'eval_code':
-                chunks.append('<div class="code-box">' + code((root/'examples/blog/proofs/Eye.lean').read_text(), 'lean-source') + '</div>')
-            elif kind == 'eval_output':
-                output = execute(['lake', 'env', 'lean', str(root/'examples/blog/proofs/Eye.lean')], cwd=root, check=True, capture_output=True, text=True).stdout
+            elif kind == 'code':
+                source = (root / item['file']).read_text() if 'file' in item else item['text']
+                if 'excerpt' in item:
+                    start, end = item['excerpt']['start'], item['excerpt']['end']
+                    if not start or source.count(start) != 1:
+                        raise ValueError(f'Code excerpt start must match exactly once: {start!r}')
+                    source = source[source.index(start):]
+                    if not end or end not in source:
+                        raise ValueError(f'Code excerpt end must occur after start: {end!r}')
+                    source = source[:source.index(end)].rstrip()
+                chunks.append('<div class="code-box">' + code(source, item['language']) + '</div>')
+            elif kind == 'output':
+                output = execute(output_command(item, root), cwd=root, check=True,
+                                 capture_output=True, text=True).stdout
                 chunks.append('<div class="code-box">' + code(output, 'output') + '</div>')
             else:
                 raise ValueError(f'Unknown blog block type: {kind}')
-        chunks.append('</details>' if card.get('puzzle') else '</section>')
-    toc=''.join(f'<li><a href="#{c["id"]}">{html.escape(c["title"])}</a></li>' for c in page['cards'] if not c.get('puzzle') and not c.get('subheading'))
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lean-Verified Jax</title>{assets}<link rel="stylesheet" href="tippy-border.css"><link rel="stylesheet" href="blog.css"></head><body><main><header><h1>Lean-Verified Jax</h1><a class="repo" href="https://github.com/srush/jax-lean">GitHub ↗</a><p class="text-marker">[TEXT: subtitle / author]</p><nav aria-label="Contents"><ol>{toc}</ol></nav></header>{''.join(chunks)}</main></body></html>'''
+        chunks.append('</details>' if card.get('puzzle') and card.get('show_heading', True) else '</section>')
+        if before_contents:
+            preamble.extend(chunks)
+        else:
+            sections.extend(chunks)
+    toc=''.join(f'<li><a href="#{c["id"]}">{html.escape(c["title"])}</a></li>' for c in page['cards'] if c.get('toc', True) and c.get('position') != 'before_contents' and not c.get('puzzle') and not c.get('subheading'))
+    styles = ''.join(f'<link rel="stylesheet" href="{html.escape(path)}">' for path in page.get('stylesheets', []))
+    contents_title = html.escape(page.get('contents_title', 'Contents'))
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title>{assets}<link rel="stylesheet" href="tippy-border.css">{styles}</head><body><main><header><h1>{title}</h1>{''.join(preamble)}<nav aria-label="{contents_title}"><ol>{toc}</ol></nav></header>{''.join(sections)}</main></body></html>'''

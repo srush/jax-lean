@@ -12,7 +12,7 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Ones».«Array»
 
 def «ones» {R : Type} [Field R]  : Tensor R [3] :=
-  -- code.py:66 (puzzle_ones)
+  -- code.py:68 (puzzle_ones)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (1 : R))
   broadcast_in_dim_result
@@ -45,7 +45,7 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Ones».«Loop»
 
 def «ones» {R : Type} [Field R]  : Tensor R [3] :=
-  -- code.py:70 (loop_ones)
+  -- code.py:72 (loop_ones)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
   -- scatter

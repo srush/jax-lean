@@ -12,19 +12,19 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Linspace».«Array»
 
 def «linspace» {R : Type} [Field R] («start» : Tensor R []) («stop» : Tensor R []) : Tensor R [3] :=
-  -- code.py:227 (puzzle_linspace)
+  -- code.py:229 (puzzle_linspace)
   -- sub
   let sub_result : Tensor R [] := Tensor.scalar ((«stop» ()) - («start» ()))
-  -- code.py:227 (puzzle_linspace)
+  -- code.py:229 (puzzle_linspace)
   -- iota
   let iota_result : Tensor R [3] := fun i => (i.1.val : R)
-  -- code.py:227 (puzzle_linspace)
+  -- code.py:229 (puzzle_linspace)
   -- mul
   let mul_result : Tensor R [3] := Tensor.map (fun a0 => (sub_result ()) * a0) iota_result
-  -- code.py:227 (puzzle_linspace)
+  -- code.py:229 (puzzle_linspace)
   -- div
   let div_result : Tensor R [3] := Tensor.map (fun a0 => a0 / ((Tensor.scalar (2 : R)) ())) mul_result
-  -- code.py:227 (puzzle_linspace)
+  -- code.py:229 (puzzle_linspace)
   -- add
   let add_result : Tensor R [3] := Tensor.map (fun a0 => («start» ()) + a0) div_result
   add_result
@@ -61,47 +61,47 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Linspace».«Loop»
 
 def «linspace» {R : Type} [Field R] («start» : Tensor R []) («stop» : Tensor R []) : Tensor R [3] :=
-  -- code.py:231 (loop_linspace)
+  -- code.py:233 (loop_linspace)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- sub
   let sub_result : Tensor R [] := Tensor.scalar ((«stop» ()) - («start» ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- mul
   let mul_result : Tensor R [] := Tensor.scalar ((sub_result ()) * ((Tensor.scalar (0 : R)) ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- div
   let div_result : Tensor R [] := Tensor.scalar ((mul_result ()) / ((Tensor.scalar (2 : R)) ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- add
   let add_result : Tensor R [] := Tensor.scalar ((«start» ()) + (div_result ()))
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (add_result ())
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- sub
   let sub_result_2 : Tensor R [] := Tensor.scalar ((«stop» ()) - («start» ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- mul
   let mul_result_2 : Tensor R [] := Tensor.scalar ((sub_result_2 ()) * ((Tensor.scalar (1 : R)) ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- div
   let div_result_2 : Tensor R [] := Tensor.scalar ((mul_result_2 ()) / ((Tensor.scalar (2 : R)) ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- add
   let add_result_2 : Tensor R [] := Tensor.scalar ((«start» ()) + (div_result_2 ()))
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (add_result_2 ())
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- sub
   let sub_result_3 : Tensor R [] := Tensor.scalar ((«stop» ()) - («start» ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- mul
   let mul_result_3 : Tensor R [] := Tensor.scalar ((sub_result_3 ()) * ((Tensor.scalar (2 : R)) ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- div
   let div_result_3 : Tensor R [] := Tensor.scalar ((mul_result_3 ()) / ((Tensor.scalar (2 : R)) ()))
-  -- code.py:233 (loop_linspace)
+  -- code.py:235 (loop_linspace)
   -- add
   let add_result_3 : Tensor R [] := Tensor.scalar ((«start» ()) + (div_result_3 ()))
   -- scatter

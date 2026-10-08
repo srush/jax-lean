@@ -56,25 +56,25 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Cumsum».«Array»
 
 def «puzzle_cumsum» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:115 (puzzle_cumsum)
+  -- code.py:117 (puzzle_cumsum)
   -- iota
   let iota_result : Tensor R [3] := fun i => (i.1.val : R)
-  -- code.py:116 (puzzle_cumsum)
+  -- code.py:118 (puzzle_cumsum)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3, 1] := Tensor.reindex (s := [3]) (fun i => (i.1, ())) iota_result
-  -- code.py:116 (puzzle_cumsum)
+  -- code.py:118 (puzzle_cumsum)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) iota_result
-  -- code.py:116 (puzzle_cumsum)
+  -- code.py:118 (puzzle_cumsum)
   -- ge
   let ge_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (i.1, 0, ())) ≥ (broadcast_in_dim_result_2 (0, i.2.1, ())))
-  -- code.py:116 (puzzle_cumsum)
+  -- code.py:118 (puzzle_cumsum)
   -- broadcast_in_dim
   let broadcast_in_dim_result_3 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) «a»
-  -- code.py:116 (puzzle_cumsum)
+  -- code.py:118 (puzzle_cumsum)
   -- call fn__where
   let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Cumsum».«Array».«fn__where» (R := R) (ge_result) (broadcast_in_dim_result_3) ((Tensor.scalar (0 : R)))
-  -- code.py:116 (puzzle_cumsum)
+  -- code.py:118 (puzzle_cumsum)
   -- reduce_sum
   let reduce_sum_result : Tensor R [3] := fun i => ∑ k0 : Fin 3, (call_fn__where_result (i.1, k0, ()))
   reduce_sum_result
@@ -144,38 +144,38 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Cumsum».«Loop»
 
 def «cumsum» {R : Type} [Field R] («a» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:120 (loop_cumsum)
+  -- code.py:122 (loop_cumsum)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- add
   let add_result : Tensor R [] := Tensor.scalar (((Tensor.scalar (0 : R)) ()) + (squeeze_result ()))
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (add_result ())
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- add
   let add_result_2 : Tensor R [] := Tensor.scalar ((add_result ()) + (squeeze_result_2 ()))
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (add_result_2 ())
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
-  -- code.py:123 (loop_cumsum)
+  -- code.py:125 (loop_cumsum)
   -- add
   let add_result_3 : Tensor R [] := Tensor.scalar ((add_result_2 ()) + (squeeze_result_3 ()))
   -- scatter

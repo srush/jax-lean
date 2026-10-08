@@ -10,107 +10,107 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«PuzzleJax»
 
 def «loop_outer» {R : Type} [Field R] («a» : Tensor R [2]) («b» : Tensor R [3]) : Tensor R [2, 3] :=
-  -- code.py:43 (loop_outer)
+  -- code.py:45 (loop_outer)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [2, 3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [2]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- mul
   let mul_result : Tensor R [] := Tensor.scalar ((squeeze_result ()) * (squeeze_result_2 ()))
   -- scatter
   let scatter_result : Tensor R [2, 3] := Tensor.scatterSet broadcast_in_dim_result (0, 0, ()) (mul_result ())
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [2]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_4 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_4 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- mul
   let mul_result_2 : Tensor R [] := Tensor.scalar ((squeeze_result_3 ()) * (squeeze_result_4 ()))
   -- scatter
   let scatter_result_2 : Tensor R [2, 3] := Tensor.scatterSet scatter_result (0, 1, ()) (mul_result_2 ())
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_5 : Tensor R [1] := Tensor.reindex (s := [2]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_5 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_5
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_6 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_6 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_6
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- mul
   let mul_result_3 : Tensor R [] := Tensor.scalar ((squeeze_result_5 ()) * (squeeze_result_6 ()))
   -- scatter
   let scatter_result_3 : Tensor R [2, 3] := Tensor.scatterSet scatter_result_2 (0, 2, ()) (mul_result_3 ())
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_7 : Tensor R [1] := Tensor.reindex (s := [2]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_7 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_7
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_8 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_8 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_8
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- mul
   let mul_result_4 : Tensor R [] := Tensor.scalar ((squeeze_result_7 ()) * (squeeze_result_8 ()))
   -- scatter
   let scatter_result_4 : Tensor R [2, 3] := Tensor.scatterSet scatter_result_3 (1, 0, ()) (mul_result_4 ())
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_9 : Tensor R [1] := Tensor.reindex (s := [2]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_9 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_9
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_10 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_10 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_10
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- mul
   let mul_result_5 : Tensor R [] := Tensor.scalar ((squeeze_result_9 ()) * (squeeze_result_10 ()))
   -- scatter
   let scatter_result_5 : Tensor R [2, 3] := Tensor.scatterSet scatter_result_4 (1, 1, ()) (mul_result_5 ())
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_11 : Tensor R [1] := Tensor.reindex (s := [2]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_11 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_11
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- slice
   let slice_result_12 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «b»
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- squeeze
   let squeeze_result_12 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_12
-  -- code.py:46 (loop_outer)
+  -- code.py:48 (loop_outer)
   -- mul
   let mul_result_6 : Tensor R [] := Tensor.scalar ((squeeze_result_11 ()) * (squeeze_result_12 ()))
   -- scatter

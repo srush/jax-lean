@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 from jaxlean import transpile
-from examples.norms.code import vector_norm, linear_clip, radial_clip, batch_radial_clip
+from examples.norms.code import vector_norm, linear_clip, norm_clip, batch_norm_clip
 from test_random_translation import lean
 
 
@@ -11,9 +11,9 @@ from test_random_translation import lean
 def test_examples_execute_and_proofs_check():
     x = jnp.array([3.0, 4.0, 0.0])
     assert float(jax.jit(vector_norm)(x)) == 5.0
-    assert jnp.allclose(jax.jit(radial_clip)(x, 2.0), jnp.array([1.2, 1.6, 0.0]))
-    assert jnp.all(jax.jit(radial_clip)(jnp.zeros(3), 2.0) == 0)
-    assert jax.jit(batch_radial_clip)(jnp.stack([x, x]), 2.0).shape == (2, 3)
+    assert jnp.allclose(jax.jit(norm_clip)(x, 2.0), jnp.array([1.2, 1.6, 0.0]))
+    assert jnp.all(jax.jit(norm_clip)(jnp.zeros(3), 2.0) == 0)
+    assert jax.jit(batch_norm_clip)(jnp.stack([x, x]), 2.0).shape == (2, 3)
     result = lean('import examples.norms.proofs.NormProofs\n', 'NormExamples.lean')
     assert result.returncode == 0, result.stdout + result.stderr
 
@@ -37,18 +37,18 @@ example (x : Tensor ℝ [{n}]) (w : Tensor ℝ [{n}, {m}]) (r : ℝ) (hr : 0 ≤
 
 @pytest.mark.lean
 @pytest.mark.parametrize('n', [0, 1, 5])
-def test_radial_clipping_new_shapes(n):
-    source = 'import JaxLean.Stdlib\n' + transpile(radial_clip, jnp.ones(n), jnp.float32(1))
+def test_norm_clipping_new_shapes(n):
+    source = 'import JaxLean.Stdlib\n' + transpile(norm_clip, jnp.ones(n), jnp.float32(1))
     source += f"""
 example (x : Tensor ℝ [{n}]) (r : ℝ) (hr : 0 < r) :
-    Tensor.vectorNorm (Generated.radial_clip x (Tensor.scalar r)) ≤
+    Tensor.vectorNorm (Generated.norm_clip x (Tensor.scalar r)) ≤
       min r (Tensor.vectorNorm x) := by
-  simpa only [Generated.radial_clip, Tensor.vectorNorm, Tensor.map, Tensor.map₂,
+  simpa only [Generated.norm_clip, Tensor.vectorNorm, Tensor.map, Tensor.map₂,
     Tensor.scalar, Tensor.sumFirst, Batch.reduceSum, RealOps.sqrt, Batch.clipL2,
     Batch.l2, pow_two] using
     Batch.l2_clipL2_le r hr (fun i : Fin {n} => x (i, ()))
 """
-    result = lean(source, f'NormRadial{n}.lean')
+    result = lean(source, f'NormClip{n}.lean')
     assert result.returncode == 0, result.stdout + result.stderr
 
 

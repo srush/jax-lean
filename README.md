@@ -417,7 +417,7 @@ existing multiplication, sum, square root, minimum and maximum operations.
 def linear_clip(x, weights, radius):
     return jnp.clip(x @ weights, -radius, radius)
 
-def radial_clip(x, radius):
+def norm_clip(x, radius):
     return x * (radius / jnp.maximum(radius, jnp.linalg.norm(x)))
 ```
 
@@ -428,19 +428,19 @@ transpiled definitions. For the first function, `radius ≥ 0` gives both
 bound with the componentwise clipping rule; there is no stdlib theorem for
 this whole program.
 
-For radial clipping, `radius > 0` gives
+For norm clipping, `radius > 0` gives
 `||output||₂ ≤ min(radius, ||x||₂)`, including a zero input vector. This positive
 radius precondition keeps the JAX formula's denominator nonzero. The same rule
-proves the bound for every row of a transpiled `vmap(radial_clip)`.
+proves the bound for every row of a transpiled `vmap(norm_clip)`.
 
-**Componentwise clipping and radial clipping are different.** Clipping both
+**Componentwise clipping and norm clipping are different.** Clipping both
 coordinates of `(1,1)` to `[-1,1]` leaves norm `sqrt(2)`, not a norm at most 1.
 Tests cover this rejected claim, matrices that increase norm, zero vectors,
 empty/singleton vectors and changed matrix dimensions.
 
 These remain exact real-model bounds. Floating-point rounding is not covered;
 arbitrary norm orders, spectral-norm computation, asymmetric clipping and
-radial clipping at a nonpositive radius are not supplied by these proof rules.
+norm clipping at a nonpositive radius are not supplied by these proof rules.
 
 ## Monte Carlo: attach a general theorem to generated code
 
@@ -1029,7 +1029,8 @@ Edit [docs/examples.yaml](docs/examples.yaml). Each blog section has an ordered
 `blocks` list: move entries to reorder the page, and insert a `type: text` entry
 between any two snippets. Text supports Markdown, including inline links; an
 empty text block displays its `marker`. Python and Lean snippets refer to source
-functions and declarations, so code is not copied into the manifest:
+functions and declarations. Use a generic `code` block for inline snippets or
+a complete source file:
 
 ```yaml
 blocks:
@@ -1044,6 +1045,19 @@ blocks:
   name: JaxLean.Blog.add_then_scale_ir
   section: Lean IR
 ```
+
+The page's `title` controls both the heading and browser title. A card with
+`position: before_contents` appears before navigation; `show_heading: false`
+hides its heading and `toc: false` excludes it from navigation. These options
+work with any card ID. Set `stylesheets` to repository-relative CSS paths and
+`contents_title` to the navigation label.
+
+A `diagram` block supplies `file` and `alt`. A `code` block supplies
+`language` and either `text` or `file`. An `output` block specifies
+`runtime: python` with `module` and optional `args`, or `runtime: lean`
+with `file`. Builds execute these configured local programs without a shell;
+the preview reuses outputs keyed by the complete command. Changing the command
+requires a new build. Example names have no special meaning to the renderer.
 
 Use `detail: Label` on a Lean block to make it expandable. Datatype blocks read
 the current declarations from source, including the unified IR's dtype and
@@ -1061,6 +1075,12 @@ HTTP (opening `index.html` as a local file prevents hover data from loading).
 The whole directory can be hosted as a static site; it needs no Lean server at
 runtime. A manifest pairing is editorial, not itself an equivalence proof:
 the displayed certificate states the checked relationship and its model scope.
+
+The [published blog](https://srush.github.io/jax-lean/) is deployed by
+[GitHub Actions](.github/workflows/pages.yml) on pushes to `main` or a manual
+workflow run. The workflow runs the Python tests and builds the checked Verso
+site before deploying to GitHub Pages. Live-preview reload scripts are only
+added by the local watcher, not by the published build.
 
 The [Noether equivariance port](docs/noether.md) adds ordinary JAX advection and
 Burgers examples, reusable permutation lemmas, and function-boundary certificates.

@@ -56,28 +56,28 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Bucketize».«Array»
 
 def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) («boundaries» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:261 (puzzle_bucketize)
+  -- code.py:263 (puzzle_bucketize)
   -- iota
   let iota_result : Tensor R [3] := fun i => (i.1.val : R)
-  -- code.py:261 (puzzle_bucketize)
+  -- code.py:263 (puzzle_bucketize)
   -- add
   let add_result : Tensor R [3] := Tensor.map (fun a0 => a0 + ((Tensor.scalar (1 : R)) ())) iota_result
-  -- code.py:262 (puzzle_bucketize)
+  -- code.py:264 (puzzle_bucketize)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3, 1] := Tensor.reindex (s := [3]) (fun i => (i.1, ())) «v»
-  -- code.py:262 (puzzle_bucketize)
+  -- code.py:264 (puzzle_bucketize)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) «boundaries»
-  -- code.py:262 (puzzle_bucketize)
+  -- code.py:264 (puzzle_bucketize)
   -- ge
   let ge_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (i.1, 0, ())) ≥ (broadcast_in_dim_result_2 (0, i.2.1, ())))
-  -- code.py:262 (puzzle_bucketize)
+  -- code.py:264 (puzzle_bucketize)
   -- broadcast_in_dim
   let broadcast_in_dim_result_3 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) add_result
-  -- code.py:262 (puzzle_bucketize)
+  -- code.py:264 (puzzle_bucketize)
   -- call fn__where
   let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Bucketize».«Array».«fn__where» (R := R) (ge_result) (broadcast_in_dim_result_3) ((Tensor.scalar (0 : R)))
-  -- code.py:262 (puzzle_bucketize)
+  -- code.py:264 (puzzle_bucketize)
   -- reduce_max
   let reduce_max_result : Tensor R [3] := Tensor.reduceMax (s := [3, 3]) (t := [3]) (n := 3) (by decide) (fun i j => (i.1, ((Index.equivFin [3]).symm j).1, ())) call_fn__where_result
   reduce_max_result
@@ -149,182 +149,182 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Bucketize».«Loop»
 
 def «bucketize» {R : Type} [Field R] [LinearOrder R] («v» : Tensor R [3]) («boundaries» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:266 (loop_bucketize)
+  -- code.py:268 (loop_bucketize)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result : Tensor Bool [] := fun i => decide ((squeeze_result ()) ≥ (squeeze_result_2 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_4 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_4 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result_2 : Tensor Bool [] := fun i => decide ((squeeze_result_3 ()) ≥ (squeeze_result_4 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_2) ((Tensor.scalar (2 : R))) (call_fn__where_result)
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_5 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_5 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_5
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_6 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_6 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_6
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result_3 : Tensor Bool [] := fun i => decide ((squeeze_result_5 ()) ≥ (squeeze_result_6 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_3) ((Tensor.scalar (3 : R))) (call_fn__where_result_2)
-  -- code.py:271 (loop_bucketize)
+  -- code.py:273 (loop_bucketize)
   -- convert_element_type
   let cast_result : Tensor R [] := call_fn__where_result_3
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (cast_result ())
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_7 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_7 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_7
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_8 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_8 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_8
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result_4 : Tensor Bool [] := fun i => decide ((squeeze_result_7 ()) ≥ (squeeze_result_8 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result_4 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_4) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_9 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_9 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_9
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_10 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_10 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_10
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result_5 : Tensor Bool [] := fun i => decide ((squeeze_result_9 ()) ≥ (squeeze_result_10 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result_5 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_5) ((Tensor.scalar (2 : R))) (call_fn__where_result_4)
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_11 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_11 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_11
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_12 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_12 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_12
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result_6 : Tensor Bool [] := fun i => decide ((squeeze_result_11 ()) ≥ (squeeze_result_12 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result_6 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_6) ((Tensor.scalar (3 : R))) (call_fn__where_result_5)
-  -- code.py:271 (loop_bucketize)
+  -- code.py:273 (loop_bucketize)
   -- convert_element_type
   let cast_result_2 : Tensor R [] := call_fn__where_result_6
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (cast_result_2 ())
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_13 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_13 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_13
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_14 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_14 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_14
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result_7 : Tensor Bool [] := fun i => decide ((squeeze_result_13 ()) ≥ (squeeze_result_14 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result_7 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_7) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_15 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_15 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_15
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_16 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_16 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_16
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result_8 : Tensor Bool [] := fun i => decide ((squeeze_result_15 ()) ≥ (squeeze_result_16 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result_8 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_8) ((Tensor.scalar (2 : R))) (call_fn__where_result_7)
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_17 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «v»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_17 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_17
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- slice
   let slice_result_18 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «boundaries»
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- squeeze
   let squeeze_result_18 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_18
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- ge
   let ge_result_9 : Tensor Bool [] := fun i => decide ((squeeze_result_17 ()) ≥ (squeeze_result_18 ()))
-  -- code.py:270 (loop_bucketize)
+  -- code.py:272 (loop_bucketize)
   -- call fn__where
   let call_fn__where_result_9 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bucketize».«Loop».«fn__where» (R := R) (ge_result_9) ((Tensor.scalar (3 : R))) (call_fn__where_result_8)
-  -- code.py:271 (loop_bucketize)
+  -- code.py:273 (loop_bucketize)
   -- convert_element_type
   let cast_result_3 : Tensor R [] := call_fn__where_result_9
   -- scatter

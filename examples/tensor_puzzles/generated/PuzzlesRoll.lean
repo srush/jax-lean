@@ -52,7 +52,7 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Roll».«Array»
 
 def «roll» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:153 (puzzle_roll)
+  -- code.py:155 (puzzle_roll)
   -- call fn__roll_static
   let call_fn__roll_static_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«Roll».«Array».«fn__roll_static» (R := R) («a»)
   call_fn__roll_static_result
@@ -85,29 +85,29 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Roll».«Loop»
 
 def «roll» {R : Type} [Field R] («a» : Tensor R [3]) : Tensor R [3] :=
-  -- code.py:157 (loop_roll)
+  -- code.py:159 (loop_roll)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:159 (loop_roll)
+  -- code.py:161 (loop_roll)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:159 (loop_roll)
+  -- code.py:161 (loop_roll)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (squeeze_result ())
-  -- code.py:159 (loop_roll)
+  -- code.py:161 (loop_roll)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:159 (loop_roll)
+  -- code.py:161 (loop_roll)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (squeeze_result_2 ())
-  -- code.py:159 (loop_roll)
+  -- code.py:161 (loop_roll)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «a»
-  -- code.py:159 (loop_roll)
+  -- code.py:161 (loop_roll)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
   -- scatter

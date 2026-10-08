@@ -10,13 +10,13 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«PuzzleJax»
 
 def «puzzle_outer» {R : Type} [Field R] («a» : Tensor R [2]) («b» : Tensor R [3]) : Tensor R [2, 3] :=
-  -- code.py:18 (puzzle_outer)
+  -- code.py:20 (puzzle_outer)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [2, 1] := Tensor.reindex (s := [2]) (fun i => (i.1, ())) «a»
-  -- code.py:18 (puzzle_outer)
+  -- code.py:20 (puzzle_outer)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) «b»
-  -- code.py:18 (puzzle_outer)
+  -- code.py:20 (puzzle_outer)
   -- mul
   let mul_result : Tensor R [2, 3] := Tensor.map₂ (fun a0 a1 => a0 * a1) (fun i => (broadcast_in_dim_result (i.1, 0, ()))) (Tensor.broadcastFirst 2 broadcast_in_dim_result_2)
   mul_result
@@ -50,7 +50,7 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«PuzzleJax»
 
 def «puzzle_flatten» {R : Type} [Field R] («a» : Tensor R [2, 3]) : Tensor R [6] :=
-  -- code.py:28 (puzzle_flatten)
+  -- code.py:30 (puzzle_flatten)
   -- reshape
   let reshape_result : Tensor R [6] := Tensor.reshape (t := [6]) (by decide) («a»)
   reshape_result
@@ -82,10 +82,10 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«PuzzleJax»
 
 def «outer_flatten» {R : Type} [Field R] [LinearOrder R] («a» : Tensor R [2]) («b» : Tensor R [3]) : Tensor R [6] :=
-  -- code.py:32 (outer_flatten)
+  -- code.py:34 (outer_flatten)
   -- call puzzle_outer
   let call_puzzle_outer_result : Tensor R [2, 3] := _root_.«JaxLean».«PuzzleJax».«puzzle_outer» (R := R) («a») («b»)
-  -- code.py:32 (outer_flatten)
+  -- code.py:34 (outer_flatten)
   -- call puzzle_flatten
   let call_puzzle_flatten_result : Tensor R [6] := _root_.«JaxLean».«PuzzleJax».«puzzle_flatten» (R := R) (call_puzzle_outer_result)
   call_puzzle_flatten_result

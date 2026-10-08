@@ -53,22 +53,22 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«SequenceMask».«Array»
 
 def «sequence_mask» {R : Type} [Field R] [LinearOrder R] («values» : Tensor R [2, 3]) («length» : Tensor Int32 [2]) : Tensor R [2, 3] :=
-  -- code.py:175 (puzzle_sequence_mask)
+  -- code.py:177 (puzzle_sequence_mask)
   -- iota
   let iota_result : Tensor R [3] := fun i => (i.1.val : R)
-  -- code.py:176 (puzzle_sequence_mask)
+  -- code.py:178 (puzzle_sequence_mask)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) iota_result
-  -- code.py:176 (puzzle_sequence_mask)
+  -- code.py:178 (puzzle_sequence_mask)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor Int32 [2, 1] := Tensor.reindex (s := [2]) (fun i => (i.1, ())) «length»
-  -- code.py:176 (puzzle_sequence_mask)
+  -- code.py:178 (puzzle_sequence_mask)
   -- convert_element_type
   let cast_result : Tensor R [2, 1] := Tensor.map (fun a0 => (a0.toInt : R)) broadcast_in_dim_result_2
-  -- code.py:176 (puzzle_sequence_mask)
+  -- code.py:178 (puzzle_sequence_mask)
   -- lt
   let lt_result : Tensor Bool [2, 3] := fun i => decide ((broadcast_in_dim_result (0, i.2.1, ())) < (cast_result (i.1, 0, ())))
-  -- code.py:176 (puzzle_sequence_mask)
+  -- code.py:178 (puzzle_sequence_mask)
   -- call fn__where
   let call_fn__where_result : Tensor R [2, 3] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Array».«fn__where» (R := R) (lt_result) («values») ((Tensor.scalar (0 : R)))
   call_fn__where_result
@@ -142,56 +142,56 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«SequenceMask».«Loop»
 
 def «loop_sequence_row» {R : Type} [Field R] [LinearOrder R] («values» : Tensor R [3]) («length» : Tensor Int32 []) : Tensor R [3] :=
-  -- code.py:181 (loop_sequence_row)
+  -- code.py:183 (loop_sequence_row)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- convert_element_type
   let cast_result : Tensor R [] := Tensor.scalar (((«length» ()).toInt : R))
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- gt
   let gt_result : Tensor Bool [] := fun i => decide ((cast_result ()) > ((Tensor.scalar (0 : R)) ()))
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- slice
   let slice_result : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «values»
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- squeeze
   let squeeze_result : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- call fn__where
   let call_fn__where_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«fn__where» (R := R) (gt_result) (squeeze_result) ((Tensor.scalar (0 : R)))
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (call_fn__where_result ())
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- convert_element_type
   let cast_result_2 : Tensor R [] := Tensor.scalar (((«length» ()).toInt : R))
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- gt
   let gt_result_2 : Tensor Bool [] := fun i => decide ((cast_result_2 ()) > ((Tensor.scalar (1 : R)) ()))
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «values»
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- call fn__where
   let call_fn__where_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«fn__where» (R := R) (gt_result_2) (squeeze_result_2) ((Tensor.scalar (0 : R)))
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (call_fn__where_result_2 ())
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- convert_element_type
   let cast_result_3 : Tensor R [] := Tensor.scalar (((«length» ()).toInt : R))
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- gt
   let gt_result_3 : Tensor Bool [] := fun i => decide ((cast_result_3 ()) > ((Tensor.scalar (2 : R)) ()))
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- slice
   let slice_result_3 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «values»
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- squeeze
   let squeeze_result_3 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
-  -- code.py:183 (loop_sequence_row)
+  -- code.py:185 (loop_sequence_row)
   -- call fn__where
   let call_fn__where_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«fn__where» (R := R) (gt_result_3) (squeeze_result_3) ((Tensor.scalar (0 : R)))
   -- scatter
@@ -246,22 +246,22 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«SequenceMask».«Loop»
 
 def «sequence_mask» {R : Type} [Field R] [LinearOrder R] («values» : Tensor R [2, 3]) («length» : Tensor Int32 [2]) : Tensor R [2, 3] :=
-  -- code.py:188 (loop_sequence_mask)
+  -- code.py:190 (loop_sequence_mask)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [2, 3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- slice
   let slice_result : Tensor R [1, 3] := Tensor.reindex (s := [2, 3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ⟨0 + 1 * i.2.1.val, by omega⟩, ())) «values»
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- squeeze
   let squeeze_result : Tensor R [3] := Tensor.reindex (s := [1, 3]) (fun i => (0, i.1, ())) slice_result
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- slice
   let slice_result_2 : Tensor Int32 [1] := Tensor.reindex (s := [2]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «length»
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- squeeze
   let squeeze_result_2 : Tensor Int32 [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- call loop_sequence_row
   let call_loop_sequence_row_result : Tensor R [3] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«loop_sequence_row» (R := R) (squeeze_result) (squeeze_result_2)
   -- scatter
@@ -270,19 +270,19 @@ def «sequence_mask» {R : Type} [Field R] [LinearOrder R] («values» : Tensor 
   let scatter_result_2 : Tensor R [2, 3] := Tensor.scatterSet scatter_result (0, 1, ()) (call_loop_sequence_row_result (1, ()))
   -- scatter
   let scatter_result_3 : Tensor R [2, 3] := Tensor.scatterSet scatter_result_2 (0, 2, ()) (call_loop_sequence_row_result (2, ()))
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- slice
   let slice_result_3 : Tensor R [1, 3] := Tensor.reindex (s := [2, 3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ⟨0 + 1 * i.2.1.val, by omega⟩, ())) «values»
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- squeeze
   let squeeze_result_3 : Tensor R [3] := Tensor.reindex (s := [1, 3]) (fun i => (0, i.1, ())) slice_result_3
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- slice
   let slice_result_4 : Tensor Int32 [1] := Tensor.reindex (s := [2]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «length»
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- squeeze
   let squeeze_result_4 : Tensor Int32 [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
-  -- code.py:190 (loop_sequence_mask)
+  -- code.py:192 (loop_sequence_mask)
   -- call loop_sequence_row
   let call_loop_sequence_row_result_2 : Tensor R [3] := _root_.«JaxLean».«Puzzles».«SequenceMask».«Loop».«loop_sequence_row» (R := R) (squeeze_result_3) (squeeze_result_4)
   -- scatter

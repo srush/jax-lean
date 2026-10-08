@@ -179,7 +179,7 @@ that every desired property has an automatic proof.
 - [NormRules](JaxLean/Stdlib/NormRules.lean) and [TensorNorm](JaxLean/Stdlib/TensorNorm.lean):
   explicit L2 norm, coordinatewise domination, scaling, pointwise contraction,
   composition, matrix bounds using the Frobenius norm, symmetric componentwise
-  clipping (`radius ≥ 0`) and radial clipping (`radius > 0`). The generic rules
+  clipping (`radius ≥ 0`) and norm clipping (`radius > 0`). The generic rules
   apply to all finite dimensions; the examples specialize shapes during tracing.
   Evidence: [JAX source](examples/norms/code.py),
   [generated-program proofs](examples/norms/proofs/NormProofs.lean),

@@ -53,28 +53,28 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Bincount».«Array»
 
 def «bincount» {R : Type} [Field R] [LinearOrder R] («a» : Tensor Int32 [3]) : Tensor R [3] :=
-  -- code.py:195 (puzzle_bincount)
+  -- code.py:197 (puzzle_bincount)
   -- iota
   let iota_result : Tensor R [3] := fun i => (i.1.val : R)
-  -- code.py:196 (puzzle_bincount)
+  -- code.py:198 (puzzle_bincount)
   -- convert_element_type
   let cast_result : Tensor R [3] := Tensor.map (fun a0 => (a0.toInt : R)) «a»
-  -- code.py:196 (puzzle_bincount)
+  -- code.py:198 (puzzle_bincount)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) cast_result
-  -- code.py:196 (puzzle_bincount)
+  -- code.py:198 (puzzle_bincount)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [3, 1] := Tensor.reindex (s := [3]) (fun i => (i.1, ())) iota_result
-  -- code.py:196 (puzzle_bincount)
+  -- code.py:198 (puzzle_bincount)
   -- eq
   let eq_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (0, i.2.1, ())) = (broadcast_in_dim_result_2 (i.1, 0, ())))
-  -- code.py:196 (puzzle_bincount)
+  -- code.py:198 (puzzle_bincount)
   -- call fn__where
   let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Bincount».«Array».«fn__where» (R := R) (eq_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
-  -- code.py:196 (puzzle_bincount)
+  -- code.py:198 (puzzle_bincount)
   -- convert_element_type
   let cast_result_2 : Tensor R [3, 3] := call_fn__where_result
-  -- code.py:196 (puzzle_bincount)
+  -- code.py:198 (puzzle_bincount)
   -- reduce_sum
   let reduce_sum_result : Tensor R [3] := fun i => ∑ k0 : Fin 3, (cast_result_2 (i.1, k0, ()))
   reduce_sum_result
@@ -150,58 +150,58 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Bincount».«Loop»
 
 def «loop_masked_sum» {R : Type} [Field R] [LinearOrder R] («values» : Tensor R [3]) («mask» : Tensor Bool [3]) : Tensor R [] :=
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- slice
   let slice_result : Tensor Bool [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «mask»
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- squeeze
   let squeeze_result : Tensor Bool [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- slice
   let slice_result_2 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨0 + 1 * i.1.val, by omega⟩, ())) «values»
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- squeeze
   let squeeze_result_2 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_2
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- call fn__where
   let call_fn__where_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bincount».«Loop».«fn__where» (R := R) (squeeze_result) (squeeze_result_2) ((Tensor.scalar (0 : R)))
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- add
   let add_result : Tensor R [] := Tensor.scalar (((Tensor.scalar (0 : R)) ()) + (call_fn__where_result ()))
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- slice
   let slice_result_3 : Tensor Bool [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «mask»
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- squeeze
   let squeeze_result_3 : Tensor Bool [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_3
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- slice
   let slice_result_4 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨1 + 1 * i.1.val, by omega⟩, ())) «values»
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- squeeze
   let squeeze_result_4 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_4
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- call fn__where
   let call_fn__where_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bincount».«Loop».«fn__where» (R := R) (squeeze_result_3) (squeeze_result_4) ((Tensor.scalar (0 : R)))
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- add
   let add_result_2 : Tensor R [] := Tensor.scalar ((add_result ()) + (call_fn__where_result_2 ()))
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- slice
   let slice_result_5 : Tensor Bool [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «mask»
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- squeeze
   let squeeze_result_5 : Tensor Bool [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_5
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- slice
   let slice_result_6 : Tensor R [1] := Tensor.reindex (s := [3]) (fun i => (⟨2 + 1 * i.1.val, by omega⟩, ())) «values»
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- squeeze
   let squeeze_result_6 : Tensor R [] := Tensor.reindex (s := [1]) (fun i => (0, ())) slice_result_6
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- call fn__where
   let call_fn__where_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bincount».«Loop».«fn__where» (R := R) (squeeze_result_5) (squeeze_result_6) ((Tensor.scalar (0 : R)))
-  -- code.py:203 (loop_masked_sum)
+  -- code.py:205 (loop_masked_sum)
   -- add
   let add_result_3 : Tensor R [] := Tensor.scalar ((add_result_2 ()) + (call_fn__where_result_3 ()))
   add_result_3
@@ -250,47 +250,47 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Bincount».«Loop»
 
 def «bincount» {R : Type} [Field R] [LinearOrder R] («a» : Tensor Int32 [3]) : Tensor R [3] :=
-  -- code.py:208 (loop_bincount)
+  -- code.py:210 (loop_bincount)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (1 : R))
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- convert_element_type
   let cast_result : Tensor R [3] := Tensor.map (fun a0 => (a0.toInt : R)) «a»
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- eq
   let eq_result : Tensor Bool [3] := fun i => decide ((cast_result (i.1, ())) = ((Tensor.scalar (0 : R)) ()))
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- call loop_masked_sum
   let call_loop_masked_sum_result : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bincount».«Loop».«loop_masked_sum» (R := R) (broadcast_in_dim_result_2) (eq_result)
   -- scatter
   let scatter_result : Tensor R [3] := Tensor.scatterSet broadcast_in_dim_result (0, ()) (call_loop_masked_sum_result ())
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- broadcast_in_dim
   let broadcast_in_dim_result_3 : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (1 : R))
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- convert_element_type
   let cast_result_2 : Tensor R [3] := Tensor.map (fun a0 => (a0.toInt : R)) «a»
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- eq
   let eq_result_2 : Tensor Bool [3] := fun i => decide ((cast_result_2 (i.1, ())) = ((Tensor.scalar (1 : R)) ()))
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- call loop_masked_sum
   let call_loop_masked_sum_result_2 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bincount».«Loop».«loop_masked_sum» (R := R) (broadcast_in_dim_result_3) (eq_result_2)
   -- scatter
   let scatter_result_2 : Tensor R [3] := Tensor.scatterSet scatter_result (1, ()) (call_loop_masked_sum_result_2 ())
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- broadcast_in_dim
   let broadcast_in_dim_result_4 : Tensor R [3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (1 : R))
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- convert_element_type
   let cast_result_3 : Tensor R [3] := Tensor.map (fun a0 => (a0.toInt : R)) «a»
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- eq
   let eq_result_3 : Tensor Bool [3] := fun i => decide ((cast_result_3 (i.1, ())) = ((Tensor.scalar (2 : R)) ()))
-  -- code.py:210 (loop_bincount)
+  -- code.py:212 (loop_bincount)
   -- call loop_masked_sum
   let call_loop_masked_sum_result_3 : Tensor R [] := _root_.«JaxLean».«Puzzles».«Bincount».«Loop».«loop_masked_sum» (R := R) (broadcast_in_dim_result_4) (eq_result_3)
   -- scatter

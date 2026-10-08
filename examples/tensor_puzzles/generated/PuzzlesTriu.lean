@@ -52,19 +52,19 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Triu».«Array»
 
 def «triu» {R : Type} [Field R] [LinearOrder R]  : Tensor R [3, 3] :=
-  -- code.py:100 (puzzle_triu)
+  -- code.py:102 (puzzle_triu)
   -- iota
   let iota_result : Tensor R [3] := fun i => (i.1.val : R)
-  -- code.py:101 (puzzle_triu)
+  -- code.py:103 (puzzle_triu)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3, 1] := Tensor.reindex (s := [3]) (fun i => (i.1, ())) iota_result
-  -- code.py:101 (puzzle_triu)
+  -- code.py:103 (puzzle_triu)
   -- broadcast_in_dim
   let broadcast_in_dim_result_2 : Tensor R [1, 3] := Tensor.reindex (s := [3]) (fun i => (i.2.1, ())) iota_result
-  -- code.py:101 (puzzle_triu)
+  -- code.py:103 (puzzle_triu)
   -- le
   let le_result : Tensor Bool [3, 3] := fun i => decide ((broadcast_in_dim_result (i.1, 0, ())) ≤ (broadcast_in_dim_result_2 (0, i.2.1, ())))
-  -- code.py:101 (puzzle_triu)
+  -- code.py:103 (puzzle_triu)
   -- call fn__where
   let call_fn__where_result : Tensor R [3, 3] := _root_.«JaxLean».«Puzzles».«Triu».«Array».«fn__where» (R := R) (le_result) ((Tensor.scalar (1 : R))) ((Tensor.scalar (0 : R)))
   call_fn__where_result
@@ -101,7 +101,7 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«Puzzles».«Triu».«Loop»
 
 def «triu» {R : Type} [Field R]  : Tensor R [3, 3] :=
-  -- code.py:105 (loop_triu)
+  -- code.py:107 (loop_triu)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [3, 3] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (0 : R))
   -- scatter

@@ -10,10 +10,10 @@ set_option linter.unusedVariables false
 namespace «JaxLean».«PuzzleJax»
 
 def «puzzle_sum» {R : Type} [Field R] («a» : Tensor R [4]) : Tensor R [] :=
-  -- code.py:13 (puzzle_sum)
+  -- code.py:15 (puzzle_sum)
   -- broadcast_in_dim
   let broadcast_in_dim_result : Tensor R [4] := Tensor.reindex (s := []) (fun i => ()) (Tensor.scalar (1 : R))
-  -- code.py:13 (puzzle_sum)
+  -- code.py:15 (puzzle_sum)
   -- dot_general
   let matmul_result : Tensor R [] := Tensor.contract (s := [4]) (u := [4]) (t := []) (k := [4]) (fun i j => (j.1, ())) (fun i j => (j.1, ())) «a» broadcast_in_dim_result
   matmul_result

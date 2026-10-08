@@ -12,19 +12,19 @@ def «gradient» {R : Type} [Field R] (x0 : Tensor R []) : Tensor R [] :=
   -- mul
   let v0 : Tensor R [] := Tensor.scalar ((x0 ()) * (x0 ()))
   -- mul
-  let v1 : Tensor R [] := Tensor.scalar (((Tensor.scalar (1 : R)) ()) * (x0 ()))
+  let v1 : Tensor R [] := Tensor.scalar (((Tensor.scalar (3 : R)) ()) * (x0 ()))
+  -- add
+  let v2 : Tensor R [] := Tensor.scalar ((v0 ()) + (v1 ()))
   -- mul
-  let v2 : Tensor R [] := Tensor.scalar ((x0 ()) * ((Tensor.scalar (1 : R)) ()))
+  let v3 : Tensor R [] := Tensor.scalar (((Tensor.scalar (3 : R)) ()) * ((Tensor.scalar (1 : R)) ()))
+  -- mul
+  let v4 : Tensor R [] := Tensor.scalar ((x0 ()) * ((Tensor.scalar (1 : R)) ()))
   -- add_any
-  let v3 : Tensor R [] := Tensor.scalar ((v1 ()) + (v2 ()))
+  let v5 : Tensor R [] := Tensor.scalar ((v3 ()) + (v4 ()))
   -- mul
-  let v4 : Tensor R [] := Tensor.scalar (((Tensor.scalar (3 : R)) ()) * (x0 ()))
-  -- mul
-  let v5 : Tensor R [] := Tensor.scalar (((Tensor.scalar (3 : R)) ()) * ((Tensor.scalar (1 : R)) ()))
-  -- add
-  let v6 : Tensor R [] := Tensor.scalar ((v0 ()) + (v4 ()))
-  -- add
-  let v7 : Tensor R [] := Tensor.scalar ((v3 ()) + (v5 ()))
+  let v6 : Tensor R [] := Tensor.scalar (((Tensor.scalar (1 : R)) ()) * (x0 ()))
+  -- add_any
+  let v7 : Tensor R [] := Tensor.scalar ((v5 ()) + (v6 ()))
   v7
 
 end «JaxLean».«Autodiff»
@@ -33,13 +33,13 @@ end «JaxLean».«Autodiff»
 namespace «JaxLean».«Autodiff»
 def gradient_ir : Jaxpr.Program [(.real, [])] (.real, []) :=
   .bind (.mul (.var .here) (.var .here) (t := [])) <|
-  .bind (.mul (.literal (1) 1 (by decide)) (.var (.there .here)) (t := [])) <|
-  .bind (.mul (.var (.there (.there .here))) (.literal (1) 1 (by decide)) (t := [])) <|
+  .bind (.mul (.literal (3) 1 (by decide)) (.var (.there .here)) (t := [])) <|
   .bind (.add (.var (.there .here)) (.var .here) (t := [])) <|
-  .bind (.mul (.literal (3) 1 (by decide)) (.var (.there (.there (.there (.there .here))))) (t := [])) <|
   .bind (.mul (.literal (3) 1 (by decide)) (.literal (1) 1 (by decide)) (t := [])) <|
-  .bind (.add (.var (.there (.there (.there (.there (.there .here)))))) (.var (.there .here)) (t := [])) <|
-  .bind (.add (.var (.there (.there (.there .here)))) (.var (.there .here)) (t := [])) <|
+  .bind (.mul (.var (.there (.there (.there (.there .here))))) (.literal (1) 1 (by decide)) (t := [])) <|
+  .bind (.add (.var (.there .here)) (.var .here) (t := [])) <|
+  .bind (.mul (.literal (1) 1 (by decide)) (.var (.there (.there (.there (.there (.there (.there .here))))))) (t := [])) <|
+  .bind (.add (.var (.there .here)) (.var .here) (t := [])) <|
   .ret (.var .here)
 
 -- Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.
