@@ -1076,11 +1076,12 @@ The whole directory can be hosted as a static site; it needs no Lean server at
 runtime. A manifest pairing is editorial, not itself an equivalence proof:
 the displayed certificate states the checked relationship and its model scope.
 
-The [published blog](https://srush.github.io/jax-lean/) is deployed by
-[GitHub Actions](.github/workflows/pages.yml) on pushes to `main` or a manual
-workflow run. The workflow runs the Python tests and builds the checked Verso
-site before deploying to GitHub Pages. Live-preview reload scripts are only
-added by the local watcher, not by the published build.
+The [published blog](https://srush.github.io/jax-lean/) serves the locally
+generated site from the root of the `gh-pages` branch. Build with `make docs`,
+then publish the contents of `.lake/build/proof-notebook/` to that branch with
+a `.nojekyll` file. GitHub does not compile Lean or build the blog. If publishing
+from a running local preview, omit `preview-version.json` and strip the
+`preview-reload` script from the HTML so the public site does not poll for edits.
 
 The [Noether equivariance port](docs/noether.md) adds ordinary JAX advection and
 Burgers examples, reusable permutation lemmas, and function-boundary certificates.

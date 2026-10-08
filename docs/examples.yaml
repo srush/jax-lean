@@ -471,12 +471,20 @@ pages:
     - type: text
       text: |
         As a final example, let's consider how these proofs might actually interact 
-        with all the work going on in formalizing mathematics. 
-        [Verified Deep Learning with Lean 4](https://lean.brettkoonce.com/blueprint/)
+        with all the work going on in formalizing mathematics. This is a toy example 
+        where we verify that the real version of our JAX code produces the mathematically 
+        correct gradient.  
+        
+        For deeper examples of this see the text on 
+        [Verified Deep Learning with Lean 4](https://lean.brettkoonce.com/blueprint/). 
+
     - type: math
       text: f(x) = x² + 3x;  f′(x) = 2x + 3
     - type: text
-      text: ''
+      text:  |
+        We are going to do the autodiff in JAX. 
+        
+
       marker: Explain the derivative of the scalar function and how JAX computes it.
     - type: python
       file: examples/autodiff/code.py
