@@ -143,7 +143,7 @@
             "blocks": [
               {
                 "type": "text",
-                "text": "[JAX](http://github.com/google/jax) is a numerical transformation system\nthat utilizes a nearly one-to-one NumPy interface. While the primary use of JAX is machine\nlearning, the core framework has remained impressively ML-agnostic. Instead, it focuses on\na core set of transformations that can be reduced to simple numerical operations.\n\nJAX is also a magic trick. The user thinks they are writing Python, while actually\nit is pulling out code using a minimal core of numerical operations. Proving properties\nof Python is nearly impossible, but proofs using this intermediate representation\nare more tractable.\n\nIf you are interested in the details of how JAX works, they have an amazing tutorial\nknown as [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html).\nHere we will just briefly outline the process.\n\nLet's begin with a simple function that adds two vectors and multiplies the result by 2.\n"
+                "text": "[JAX](http://github.com/google/jax) is a numerical transformation system\nthat utilizes a nearly one-to-one NumPy interface. While the primary use of JAX is machine\nlearning, the core framework has remained impressively ML-agnostic. Instead, it focuses on\na core set of transformations that can be reduced to simple numerical operations.\n\nJAX is also a magic trick. The user thinks they are writing Python, while actually\nit is pulling out code using a minimal core of numerical operations. Proving properties\nof Python is nearly impossible, but proofs using this intermediate representation\nare more tractable.\n\nIf you are interested in the details of how JAX works, they have an amazing tutorial\nknown as [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html).\nHere, we will just briefly outline the process.\n\nLet's begin with a simple function that adds two vectors and multiplies the result by 2.\n"
               },
               {
                 "type": "python",
@@ -166,7 +166,7 @@
               },
               {
                 "type": "text",
-                "text": "The intermediate representation is known as Jaxpr. It lives\nbetween your Python code and the final lower-level representations that execute\nthe mathematical operations on hardware.\n\nOne day, we hope to have specs all the way down to the GPU. However, we are going\nto focus on this Jaxpr level and assume everything below roughly follows what it says.\nThis is a horrible assumption for ML code, as numerical precision is of huge importance.\nHopefully we can cover this in future blogs.\n\nLet's look at the Jaxpr output from our function. It should look familiar. It takes two arguments: float32 vectors of size 3.\nIt adds them into a temporary variable, multiplies it by 2, and returns the result.\n"
+                "text": "The intermediate representation is known as Jaxpr. It lives\nbetween your Python code and the final lower-level representations that execute\nthe mathematical operations on hardware.\n\nOne day, we hope to have specs all the way down to the GPU. However, we are going\nto focus on this Jaxpr level and assume everything below roughly follows what it says.\nThis is a horrible assumption for ML code, as numerical precision is of huge importance.\nHopefully, we can cover this in future blogs.\n\nLet's look at the Jaxpr output from our function. It should look familiar. It takes two arguments: float32 vectors of size 3.\nIt adds them into a temporary variable, multiplies it by 2, and returns the result.\n"
               },
               {
                 "type": "output",
@@ -236,7 +236,7 @@
               },
               {
                 "type": "text",
-                "text": "Next, we need an implementation of the Jaxpr IR in Lean.\nAs far as I know, there is not a formal specification of this\nlanguage, but each part is well documented. In a more realistic\nsetting, we would want to match the lower-level instructions exactly.\n\nIn addition to trusting that this interpreter matches, we are also\ngoing to relax the floating-point challenges at this stage. Our\ninterpreter will just pretend things work like the reals.\n"
+                "text": "Next, we need an implementation of the Jaxpr IR in Lean.\nAs far as I know, there is not a formal specification of this\nlanguage, but each part is well documented. In a more realistic\nsetting, we would want to match the lower-level instructions exactly.\n\nIn addition to trusting that this interpreter matches Jaxpr, we are also\ngoing to relax the floating-point challenges at this stage. Our\ninterpreter will just pretend things work like the reals.\n"
               },
               {
                 "type": "lean",
@@ -400,7 +400,7 @@
             "blocks": [
               {
                 "type": "text",
-                "text": "Recently, I wrote a blog post on\n[Lean-Verified Transformers](https://srush.github.io/lean-transformer/)\nthat implemented several equivariance properties of transformers directly in Lean.\nProbably we don't want to write the code in Lean, so we can write it in\nJAX and transpile it over.\n\nWe first define equivariance as:\n"
+                "text": "Recently, I wrote a blog post on\n[Lean-Verified Transformers](https://srush.github.io/lean-transformer/)\nthat implemented several equivariance properties of transformers directly in Lean.\nWe probably don't want to write the code in Lean, so we can write it in\nJAX and transpile it over.\n\nWe first define equivariance as:\n"
               },
               {
                 "type": "math",
@@ -426,7 +426,7 @@
               },
               {
                 "type": "text",
-                "text": "And then we can propagate this through the whole stack. "
+                "text": "And then we can propagate this through the whole stack."
               },
               {
                 "type": "code",
@@ -576,7 +576,7 @@
               },
               {
                 "type": "text",
-                "text": "The code itself will just be an imperative sampling implementation in JAX. "
+                "text": "The code itself will just be an imperative sampling implementation in JAX."
               },
               {
                 "type": "python",
@@ -656,7 +656,7 @@
               },
               {
                 "type": "text",
-                "text": "We first define the function is JAX and then perform autodiff \nin the standard JAX manner to create a function for its derivative. \n"
+                "text": "We first define the function in JAX and then perform autodiff \nin the standard JAX manner to create a function for its derivative. \n"
               },
               {
                 "type": "python",
@@ -679,7 +679,7 @@
               },
               {
                 "type": "text",
-                "text": "There are many things we might prove here, but to keep things simple \nlet's just get a certificate that the autodiff Jaxpr is equivalent to the \nmathematical derivative of the original function. We are using `mathlib` \nhere with the `deriv` operator to get produce that function directly. \n"
+                "text": "There are many things we might prove here, but to keep things simple \nlet's just get a certificate that the autodiff Jaxpr is equivalent to the \nmathematical derivative of the original function. We are using `mathlib` \nhere with the `deriv` operator to produce that function directly. \n"
               },
               {
                 "type": "code",
@@ -723,7 +723,7 @@
             "blocks": [
               {
                 "type": "text",
-                "text": "This library provides a working version of the conversion between \nJAX and Lean with the ability to write non-trivial proofs. \nThis is meant as a glance at what a full verifiable ML might allow\nfor checking core properties like faithfulness, numerical stability, and \nstatistical correctness. However, there is still lots to do here including\ndealing with numerical precision, distributed components, making certificates more readable, and \nhandling the devex of changing code and proofs. As in many areas, the future here \nwill be quite unpredictable.  \n"
+                "text": "This library provides a working implementation of the conversion between \nJAX and Lean with the ability to write non-trivial proofs. \nThis is meant as a glance at what fully verifiable ML might allow\nfor checking core properties like faithfulness, numerical stability, and \nstatistical correctness. However, there is still lots to do here, including\ndealing with numerical precision, distributed components, making certificates more readable, and \nhandling the devex of changing code and proofs. As in many areas, the future here\nwill be quite unpredictable.  \n"
               }
             ],
             "python": [],
