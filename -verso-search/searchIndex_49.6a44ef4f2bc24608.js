@@ -1,0 +1,1 @@
+window.docContents[49].resolve({"/JaxLean/Stdlib/ScatterRules/#JaxLean___Tensor___scatterSet_vector":{"contents":"Coordinate form for vector updates; keeps Index abstract during simplification.","context":"","header":"JaxLean.Tensor.scatterSet_vector","id":"/JaxLean/Stdlib/ScatterRules/#JaxLean___Tensor___scatterSet_vector"}});

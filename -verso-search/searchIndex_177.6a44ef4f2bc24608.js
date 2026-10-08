@@ -1,0 +1,1 @@
+window.docContents[177].resolve({"/JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Op":{"contents":"Jaxpr primitives. Layout maps are bounded; scatter plans are validated static metadata.","context":"","header":"JaxLean.Jaxpr.Op","id":"/JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Op"}});

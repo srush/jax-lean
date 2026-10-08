@@ -1,0 +1,1 @@
+window.docContents[13].resolve({"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___advect_roll_spec":{"contents":"Identify the actual slice/concatenate implementation at the roll boundary.","context":"","header":"JaxLean.NoetherProofs.advect_roll_spec","id":"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___advect_roll_spec"}});

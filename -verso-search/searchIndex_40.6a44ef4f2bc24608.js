@@ -1,0 +1,1 @@
+window.docContents[40].resolve({"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___fluxStep_sum":{"contents":"Cancellation of a permuted flux proves conservation without linearity.","context":"","header":"JaxLean.Tensor.fluxStep_sum","id":"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___fluxStep_sum"}});

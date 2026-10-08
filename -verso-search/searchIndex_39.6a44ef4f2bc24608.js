@@ -1,0 +1,1 @@
+window.docContents[39].resolve({"/JaxLean/Stdlib/ScatterRules/#JaxLean___Tensor___scatterAdd_comm":{"contents":"Additive collisions are order-independent in this algebraic model.","context":"","header":"JaxLean.Tensor.scatterAdd_comm","id":"/JaxLean/Stdlib/ScatterRules/#JaxLean___Tensor___scatterAdd_comm"}});

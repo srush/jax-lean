@@ -1,0 +1,1 @@
+window.docContents[26].resolve({"/JaxLean/Stdlib/TensorRules/#JaxLean___Index___equivFin_vector_val":{"contents":"A vector's row-major flat coordinate is just its only coordinate.","context":"","header":"JaxLean.Index.equivFin_vector_val","id":"/JaxLean/Stdlib/TensorRules/#JaxLean___Index___equivFin_vector_val"}});

@@ -1,0 +1,1 @@
+window.docContents[152].resolve({"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___variance_add":{"contents":"No independence assumption: reusing a draw contributes covariance.","context":"","header":"JaxLean.FiniteLaw.variance_add","id":"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___variance_add"}});

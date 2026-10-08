@@ -1,0 +1,1 @@
+window.docContents[253].resolve({"/JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Comparison___intEval":{"contents":"Comparisons on signed machine indices use their signed mathematical values.","context":"","header":"JaxLean.Jaxpr.Comparison.intEval","id":"/JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Comparison___intEval"}});

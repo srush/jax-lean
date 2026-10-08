@@ -1,0 +1,1 @@
+window.docContents[213].resolve({"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___permute_map___":{"contents":"Both operands of a pointwise binary operation transform together.","context":"","header":"JaxLean.Tensor.permute_map₂","id":"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___permute_map___"}});

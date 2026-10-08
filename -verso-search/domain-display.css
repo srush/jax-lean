@@ -1,0 +1,2 @@
+.verso-search-results .search-result.const :first-child { font-family: var(--verso-code-font-family); }
+.verso-search-results .search-result.module :first-child { font-family: var(--verso-code-font-family); }

@@ -1,0 +1,1 @@
+window.docContents[245].resolve({"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___advect_spec":{"contents":"Readable specification of the original Python function.","context":"","header":"JaxLean.NoetherProofs.advect_spec","id":"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___advect_spec"}});

@@ -1,0 +1,1 @@
+window.docContents[178].resolve({"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___variance_div":{"contents":"Constant division scales variance by the squared divisor.","context":"","header":"JaxLean.FiniteLaw.variance_div","id":"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___variance_div"}});

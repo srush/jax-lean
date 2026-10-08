@@ -1,0 +1,1 @@
+window.docContents[116].resolve({"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___fluxStep":{"contents":"A local flux difference along any permutation, with any pointwise flux.","context":"","header":"JaxLean.Tensor.fluxStep","id":"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___fluxStep"}});

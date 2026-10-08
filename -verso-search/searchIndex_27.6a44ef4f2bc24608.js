@@ -1,0 +1,1 @@
+window.docContents[27].resolve({"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___permute":{"contents":"Pull back a vector along a permutation of its coordinates.","context":"","header":"JaxLean.Tensor.permute","id":"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___permute"}});

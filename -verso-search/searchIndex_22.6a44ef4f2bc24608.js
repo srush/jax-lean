@@ -1,0 +1,1 @@
+window.docContents[22].resolve({"/examples/randint_monte_carlo/proofs/RandintMonteCarloProofs/#JaxLean___MCJax___mc_die_mean":{"contents":"Sampling and averaging preserve the one-draw mean.","context":"","header":"JaxLean.MCJax.mc_die_mean","id":"/examples/randint_monte_carlo/proofs/RandintMonteCarloProofs/#JaxLean___MCJax___mc_die_mean"}});

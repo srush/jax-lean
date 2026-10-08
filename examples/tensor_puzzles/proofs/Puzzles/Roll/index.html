@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="../../../../../"><title>examples.tensor_puzzles.proofs.Puzzles.Roll</title><link rel="icon" href="data:,">
+    <script src="popper.js"></script>
+    <script src="tippy.js"></script>
+    <script>
+      
+window.onload = async () => {
+
+    // Don't show hovers inside of closed tactic states
+    function blockedByTactic(elem) {
+      let parent = elem.parentNode;
+      while (parent && "classList" in parent) {
+        if (parent.classList.contains("tactic")) {
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
+          if (toggle) {
+            return !toggle.checked;
+          }
+        }
+        parent = parent.parentNode;
+      }
+      return false;
+    }
+
+    // Track whether any tippy is visible (O(1) check instead of DOM scan)
+    let visibleTippyCount = 0;
+    function blockedByTippy(elem) {
+      return visibleTippyCount > 0;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    let highlightedTokens = [];
+    function getBindingTokens(context, binding) {
+      const key = context + "\0" + binding;
+      let tokens = bindingCache.get(key);
+      if (!tokens) {
+        tokens = [];
+        for (const example of document.querySelectorAll(".hl.lean")) {
+          if (example.dataset.leanContext == context) {
+            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
+              tokens.push(tok);
+            }
+          }
+        }
+        bindingCache.set(key, tokens);
+      }
+      return tokens;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+      container.addEventListener("mouseover", (event) => {
+        const c = event.target.closest(".token");
+        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
+        if (blockedByTactic(c)) return;
+        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
+        for (const tok of tokens) {
+          tok.classList.add("binding-hl");
+        }
+        highlightedTokens = tokens;
+      });
+      container.addEventListener("mouseout", (event) => {
+        const c = event.target.closest(".token");
+        if (!c || !container.contains(c)) return;
+        for (const tok of highlightedTokens) {
+          tok.classList.remove("binding-hl");
+        }
+        highlightedTokens = [];
+      });
+    }
+    /* Render docstrings */
+    if ('undefined' !== typeof marked) {
+        for (const d of document.querySelectorAll("code.docstring, pre.docstring")) {
+            const str = d.innerText;
+            const html = marked.parse(str);
+            const rendered = document.createElement("div");
+            rendered.classList.add("docstring");
+            rendered.innerHTML = html;
+            d.parentNode.replaceChild(rendered, d);
+        }
+    }
+    // Add hovers
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
+
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
+        }
+        parent = parent.parentElement;
+      }
+    }
+
+
+
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
+            return false;
+          }
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
+        }
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
+              }
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
+          }
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
+      });
+  });
+}
+</script>
+    <style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+  font-size: inherit;
+}
+
+.hl.lean .keyword {
+  color: var(--verso-code-keyword-color,);
+  font-weight: var(--verso-code-keyword-weight, bold);
+  font-style: var(--verso-code-keyword-style, normal);
+  font-family: var(--verso-code-keyword-font-family,);
+}
+
+.hl.lean .const {
+  color: var(--verso-code-const-color,);
+  font-weight: var(--verso-code-const-weight, normal);
+  font-style: var(--verso-code-const-style, normal);
+  font-family: var(--verso-code-const-font-family,);
+}
+
+.hl.lean .var {
+  color: var(--verso-code-var-color,);
+  font-weight: var(--verso-code-var-weight, normal);
+  font-style: var(--verso-code-var-style, italic);
+  font-family: var(--verso-code-var-font-family,);
+
+  position: relative;
+}
+
+.hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+  background: none;
+  color: black;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+.hl.lean {
+}
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean * {
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error .verso-message, .error .verso-message .token, .error .verso-message label {
+  color: var(--verso-error-color);
+}
+
+.error .verso-message .case-label:has(input[type="checkbox"])::before {
+  background-color: var(--verso-error-color) !important;
+}
+
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-warning-indicator-color);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color:var(--verso-warning-color);
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: var(--verso-warning-color);
+}
+
+.lean-output {
+  border-left: 0.2em solid transparent;
+  padding: 0 0 0 0.5em;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.lean-output.error {
+  border-color: var(--verso-error-indicator-color);
+}
+
+.lean-output.information {
+  border-color: var(--verso-info-indicator-color);
+}
+
+.lean-output.warning {
+  border-color: var(--verso-warning-indicator-color);
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.information :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-info-indicator-color, blue);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.information:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.information {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.information {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: var(--verso-text-font-family, sans-serif);
+  white-space: normal;
+  max-width: calc(min(40rem, 90vw));
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: var(--verso-code-font-family);
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+  display: inline;
+  vertical-align: top;
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
+}
+
+.hl.lean .tactic > label {
+  position: relative;
+  grid-row: 1;
+  display: inline;
+}
+
+@media (hover: hover) {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
+    background-color: #eeeeee;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  /* These need to be em, not rem, to scale with the font */
+  border-radius: 1em;
+  height: 0.25em;
+  vertical-align: middle;
+  width: 0.6em;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5em;
+}
+
+/*
+Some CSS frameworks customize details/summary in ways not compatible with Verso's output.
+*/
+
+.hl.lean details {
+  display: block !important;
+  margin: 0;
+}
+
+.hl.lean details summary {
+  display: list-item !important;
+  margin: 0;
+}
+
+.hl.lean details summary:focus {
+  outline: none;
+  outline-offset: none;
+  color: inherit;
+}
+
+.hl.lean ul > li {
+  margin-bottom: 0;
+}
+
+.hl.lean details summary::marker {
+  display: inline !important;
+}
+
+.hl.lean details > summary:first-of-type {
+  list-style-type: disclosure-closed;
+  list-style-position: inside;
+}
+
+.hl.lean details[open] > summary:first-of-type {
+  list-style-type: disclosure-open;
+}
+
+.hl.lean details summary::before, .hl.lean details summary::after {
+  content: "" !important;
+  background: none;
+  display: none;
+}
+
+.hl.lean .tactic-state summary {
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: -0.5em;
+}
+
+.hl.lean .tactic-state details {
+  /* These need to be em, not rem, to scale with the font */
+  padding-left: 0.5em;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7em;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6em;
+  height: 0.6em;
+  vertical-align: middle;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: 0.5em;
+  margin-top: 0.1em;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .goal-name {
+  font-style: italic;
+  font-family: var(--verso-code-font-family);
+  color: inherit;
+}
+
+.hl.lean .hypotheses {
+  display: table;
+}
+
+.hl.lean .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .hypotheses .colon {
+  text-align: center;
+  /* This needs to be em, not rem, to scale with the font */
+  min-width: 1em;
+}
+
+.hl.lean .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .hypotheses .name,
+.hl.lean .hypotheses .type,
+.hl.lean .conclusion .type {
+  font-family: var(--verso-code-font-family);
+}
+
+.tippy-box {
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+.extra-doc-links {
+  list-style-type: none;
+  margin-left: 0;
+  padding: 0;
+}
+
+.extra-doc-links > li {
+  display: inline-block;
+}
+
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
+}
+
+.verso-message .trace {
+  display: block;
+}
+
+.verso-message .trace > summary::marker {
+  color: var(--verso-text-color);
+}
+
+.verso-message .trace-children {
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .trace-children > li {
+  list-style-type: none;
+  margin-left: 1.5em;
+}
+
+.verso-message .trace-children > li:not(:has(.trace)) {
+  margin-left: 0;
+}
+
+.verso-message .trace-class {
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .text {
+  white-space: pre-wrap;
+}
+
+</style><link rel="stylesheet" href="tippy-border.css">
+    <link rel="stylesheet" href="code.css">
+    <script defer="defer" src="-verso-search/elasticlunr.min.js"></script>
+    <script defer="defer" src="-verso-search/fuzzysort.min.js"></script>
+    <script defer="defer" src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/search-config.js"></script>
+    <script type="module" src="-verso-search/search-init.js"></script>
+    <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-page.css">
+    <link rel="stylesheet" href="-verso-search/search-highlight.css">
+    <link rel="stylesheet" href="-verso-search/domain-display.css">
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to content</a><input type="checkbox" id="menu-toggle" class="menu-toggle" role="button" aria-label="Menu"><label for="menu-toggle" class="hamburger" aria-label="Toggle navigation"><span></span><span></span><span></span></label><div class="layout">
+      <aside class="sidebar"><div class="sidebar-content">
+          <nav class="module-tree" aria-label="Module navigation">
+            <details><summary>JaxLean</summary><details><summary>Core</summary><div class="leaf">
+                  <a href="JaxLean/Core/Jaxpr/" title="JaxLean.Core.Jaxpr" class="">Jaxpr</a></div>
+                </details><details><summary>Stdlib</summary><div class="leaf">
+                  <a href="JaxLean/Stdlib/Equivariance/" title="JaxLean.Stdlib.Equivariance" class="">Equivariance</a></div>
+                <div class="leaf">
+                  <a href="JaxLean/Stdlib/FiniteLaw/" title="JaxLean.Stdlib.FiniteLaw" class="">FiniteLaw</a></div>
+                <div class="leaf">
+                  <a href="JaxLean/Stdlib/ScatterRules/" title="JaxLean.Stdlib.ScatterRules" class="">ScatterRules</a></div>
+                <div class="leaf">
+                  <a href="JaxLean/Stdlib/TensorRules/" title="JaxLean.Stdlib.TensorRules" class="">TensorRules</a></div>
+                </details></details><details open=""><summary>examples</summary><details><summary>autodiff</summary><details><summary>proofs</summary><div class="leaf">
+                    <a href="examples/autodiff/proofs/Jvp/" title="examples.autodiff.proofs.Jvp" class="">Jvp</a></div>
+                  </details></details><details><summary>blog</summary><details><summary>generated</summary><div class="leaf">
+                    <a href="examples/blog/generated/AddScale/" title="examples.blog.generated.AddScale" class="">AddScale</a></div>
+                  </details></details><details><summary>noether</summary><details><summary>proofs</summary><div class="leaf">
+                    <a href="examples/noether/proofs/NoetherProofs/" title="examples.noether.proofs.NoetherProofs" class="">NoetherProofs</a></div>
+                  </details></details><details><summary>randint_monte_carlo</summary><details><summary>proofs</summary><div class="leaf">
+                    <a href="examples/randint_monte_carlo/proofs/RandintMonteCarloProofs/" title="examples.randint_monte_carlo.proofs.RandintMonteCarloProofs" class="">RandintMonteCarloProofs</a></div>
+                  </details></details><details open=""><summary>tensor_puzzles</summary><details><summary>generated</summary><div class="leaf">
+                    <a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/" title="examples.tensor_puzzles.generated.PuzzleOuterFlatten" class="">PuzzleOuterFlatten</a></div>
+                  </details><details open=""><summary>proofs</summary><details open=""><summary>Puzzles</summary><div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Bincount/" title="examples.tensor_puzzles.proofs.Puzzles.Bincount" class="">Bincount</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Bucketize/" title="examples.tensor_puzzles.proofs.Puzzles.Bucketize" class="">Bucketize</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Cumsum/" title="examples.tensor_puzzles.proofs.Puzzles.Cumsum" class="">Cumsum</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Diag/" title="examples.tensor_puzzles.proofs.Puzzles.Diag" class="">Diag</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Diff/" title="examples.tensor_puzzles.proofs.Puzzles.Diff" class="">Diff</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Eye/" title="examples.tensor_puzzles.proofs.Puzzles.Eye" class="">Eye</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Heaviside/" title="examples.tensor_puzzles.proofs.Puzzles.Heaviside" class="">Heaviside</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Linspace/" title="examples.tensor_puzzles.proofs.Puzzles.Linspace" class="">Linspace</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Ones/" title="examples.tensor_puzzles.proofs.Puzzles.Ones" class="">Ones</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/PadTo/" title="examples.tensor_puzzles.proofs.Puzzles.PadTo" class="">PadTo</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Repeat/" title="examples.tensor_puzzles.proofs.Puzzles.Repeat" class="">Repeat</a></div>
+                    <div class="leaf current">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Roll/" title="examples.tensor_puzzles.proofs.Puzzles.Roll" class="">Roll</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/ScatterAdd/" title="examples.tensor_puzzles.proofs.Puzzles.ScatterAdd" class="">ScatterAdd</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/SequenceMask/" title="examples.tensor_puzzles.proofs.Puzzles.SequenceMask" class="">SequenceMask</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Triu/" title="examples.tensor_puzzles.proofs.Puzzles.Triu" class="">Triu</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Vstack/" title="examples.tensor_puzzles.proofs.Puzzles.Vstack" class="">Vstack</a></div>
+                    </details><div class="leaf">
+                    <a href="examples/tensor_puzzles/proofs/TensorLoopProofs/" title="examples.tensor_puzzles.proofs.TensorLoopProofs" class="">TensorLoopProofs</a></div>
+                  </details></details><details><summary>transformer</summary><details><summary>proofs</summary><div class="leaf">
+                    <a href="examples/transformer/proofs/TransformerProofs/" title="examples.transformer.proofs.TransformerProofs" class="">TransformerProofs</a></div>
+                  </details></details></details></nav>
+          </div>
+        </aside><main class="main-area" id="main-content"><header class="title-bar">
+          <ol class="breadcrumbs" aria-label="Breadcrumb">
+            <li>
+              <a href="examples/"><code>examples</code></a></li>
+            <li>
+              <a href="examples/tensor_puzzles/"><code>tensor_puzzles</code></a></li>
+            <li>
+              <a href="examples/tensor_puzzles/proofs/"><code>proofs</code></a></li>
+            <li>
+              <a href="examples/tensor_puzzles/proofs/Puzzles/"><code>Puzzles</code></a></li>
+            <li>
+              <span class="current"><code>Roll</code></span></li>
+            </ol>
+          </header>
+        <div class="content-wrapper">
+          <section class="code-content" id="examples___tensor_puzzles___proofs___Puzzles___Roll">
+            <code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Module.import-0">import</span><span class="inter-text"> </span><span class="module-name token" data-binding="module-name-JaxLean.Stdlib">JaxLean.Stdlib</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Module.import-22">import</span><span class="inter-text"> </span><span class="module-name token" data-binding="module-name-examples.tensor_puzzles.generated.PuzzlesRoll">examples.tensor_puzzles.generated.PuzzlesRoll</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-76" data-verso-hover="137">set_option</span><span class="inter-text"> </span><span class="option token" data-binding="option-maxRecDepth" data-verso-hover="138">maxRecDepth</span><span class="inter-text"> </span><span class="literal number token" data-binding="">4096</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-104" data-verso-hover="137">set_option</span><span class="inter-text"> </span><span class="option token" data-binding="option-maxHeartbeats" data-verso-hover="139">maxHeartbeats</span><span class="inter-text"> </span><span class="literal number token" data-binding="">2000000</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-137" data-verso-hover="0">namespace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.Puzzles.Roll</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-169">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.matches_loop" data-verso-hover="202" id="JaxLean___Puzzles___Roll___matches_loop">matches_loop</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-190">(</span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-190">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-210">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-210">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-190">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-215">:</span><span class="inter-text">
+    </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-221">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-256">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-8259188131598380961-259-261-365"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-259" data-verso-hover="16">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-8259188131598380961-259-261-365"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-10415774649087996985-264-281-367"><span class="keyword token" data-binding="kw-occ-tacticFunext___-264" data-verso-hover="78">funext</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-271">⟨</span><span class="var token" data-binding="var-_uniq.39.66" data-verso-hover="33">i</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-271">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.67" data-verso-hover="79">u</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.anonymousCtor-271">⟩</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10415774649087996985-264-281-367"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.39.66" data-verso-hover="33">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-Fin" data-verso-hover="34">Fin</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.39.67" data-verso-hover="79">u</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Index" data-verso-hover="26">Index</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.nil" data-verso-hover="80">[</span><span class="const token" data-binding="const-List.nil" data-verso-hover="80">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.39.66" data-verso-hover="33">i</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.67" data-verso-hover="79">u</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.39.66" data-verso-hover="33">i</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.67" data-verso-hover="79">u</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-16886450563560443297-284-291-369"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-284" data-verso-hover="81">cases</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.67" data-verso-hover="79">u</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16886450563560443297-284-291-369"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-370" checked="checked"><span for="--verso-unique-370" class="goal-name">unit</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.39.66" data-verso-hover="33">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-Fin" data-verso-hover="34">Fin</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.39.66" data-verso-hover="33">i</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.39.66" data-verso-hover="33">i</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-2886833775106674167-294-305-371"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.finCases-294" data-verso-hover="98">fin_cases</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.66" data-verso-hover="33">i</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2886833775106674167-294-305-371"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-372" checked="checked"><span for="--verso-unique-372" class="goal-name">unit.«0»</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">0</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">0</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span><span class="goal"><span class="labeled-case"><label class="case-label"><input type="checkbox" id="--verso-unique-373"><span for="--verso-unique-373" class="goal-name">unit.«1»</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">1</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">1</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span><span class="goal"><span class="labeled-case"><label class="case-label"><input type="checkbox" id="--verso-unique-374"><span for="--verso-unique-374" class="goal-name">unit.«2»</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2886833775106674167-306-309-375"><span class="unknown token" data-binding="">&lt;;&gt;</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2886833775106674167-306-309-375"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-376" checked="checked"><span for="--verso-unique-376" class="goal-name">unit.«0»</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">0</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">0</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span><span class="goal"><span class="labeled-case"><label class="case-label"><input type="checkbox" id="--verso-unique-377"><span for="--verso-unique-377" class="goal-name">unit.«1»</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">1</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">1</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span><span class="goal"><span class="labeled-case"><label class="case-label"><input type="checkbox" id="--verso-unique-378"><span for="--verso-unique-378" class="goal-name">unit.«2»</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1242" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39.1255" data-verso-hover="33">i</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟨</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⋯</span><span class="const token" data-binding="const-Fin.mk" data-verso-hover="99">⟩</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-310-313-379"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-310" data-verso-hover="100">rfl</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-310-313-379"><span class="tactic-state">All goals completed! 🐙</span></span></code><code class="hl lean block" data-lean-context="lean"><span class="tactic"><label for="tactic-state-1760985884549394952-485-551-380"><span class="tactic"><label for="tactic-state-1760985884549394952-485-551-381"><span class="inter-text">
+
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-315">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.certificate" data-verso-hover="205" id="JaxLean___Puzzles___Roll___certificate">certificate</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-335">(</span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-335">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-355">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-355">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-335">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-360">:</span><span class="inter-text">
+    </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-385">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">.nil</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-385">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll_ir" data-verso-hover="206">Array.roll_ir</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-366">=</span><span class="inter-text">
+      </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-445">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">.nil</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-445">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">Loop.roll_ir</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-477">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-12371507797960737280-480-482-382"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-480" data-verso-hover="16">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-12371507797960737280-480-482-382"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll_ir" data-verso-hover="206">Array.roll_ir</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text">
+  </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll_ir" data-verso-hover="207">Loop.roll_ir</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-1760985884549394952-485-551-384"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.rwSeq-485" data-verso-hover="28">rw</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rwRuleSeq-488">[</span><span class="tactic"><label for="tactic-state-699275930310310674-489-520-385"><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll_translation_correct" data-verso-hover="208">Array.roll_translation_correct</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Tactic.rwRuleSeq-488">,</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-699275930310310674-489-520-385"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll_ir" data-verso-hover="207">Loop.roll_ir</span></span></span></span></span></span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1760985884549394952-485-551-384"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-1760985884549394952-521-550-388"><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll_translation_correct" data-verso-hover="209">Loop.roll_translation_correct</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1760985884549394952-521-550-388"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span></span></span></span></span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1760985884549394952-485-551-381"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span></span></span></span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rwRuleSeq-488">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1760985884549394952-485-551-380"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Array.roll" data-verso-hover="203">Array.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.Loop.roll" data-verso-hover="204">Loop.roll</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-554-578-392"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.exact-554" data-verso-hover="29">exact</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/proofs/Puzzles/Roll/#JaxLean___Puzzles___Roll___matches_loop" title="Definition of `JaxLean.Puzzles.Roll.matches_loop`"><span class="const token" data-binding="const-JaxLean.Puzzles.Roll.matches_loop" data-verso-hover="202">matches_loop</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="92">a</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-554-578-392"><span class="tactic-state">All goals completed! 🐙</span></span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-580" data-verso-hover="73">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.Puzzles.Roll</span></code></section>
+          </div>
+        </main></div>
+    </body>
+  </html>

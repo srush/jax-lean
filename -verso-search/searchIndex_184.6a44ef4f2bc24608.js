@@ -1,0 +1,1 @@
+window.docContents[184].resolve({"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___permute_map":{"contents":"Pointwise unary operations commute with every coordinate permutation.","context":"","header":"JaxLean.Tensor.permute_map","id":"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___permute_map"}});

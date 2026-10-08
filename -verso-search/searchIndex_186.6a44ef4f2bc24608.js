@@ -1,0 +1,1 @@
+window.docContents[186].resolve({"/JaxLean/Stdlib/TensorRules/#mod-doc-JaxLean___Stdlib___TensorRules-1-0":{"contents":"Reusable tensor and index algebra; no Jaxpr or generated-program imports.","context":"","header":"JaxLean.Stdlib.TensorRules","id":"/JaxLean/Stdlib/TensorRules/#mod-doc-JaxLean___Stdlib___TensorRules-1-0"}});

@@ -1,0 +1,1 @@
+window.docContents[172].resolve({"/examples/randint_monte_carlo/proofs/RandintMonteCarloProofs/#JaxLean___MCJax___die_estimate_spec":{"contents":"Contracts for the deterministic Python functions.","context":"","header":"JaxLean.MCJax.die_estimate_spec","id":"/examples/randint_monte_carlo/proofs/RandintMonteCarloProofs/#JaxLean___MCJax___die_estimate_spec"}});

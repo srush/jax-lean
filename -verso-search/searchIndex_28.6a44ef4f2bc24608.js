@@ -1,0 +1,1 @@
+window.docContents[28].resolve({"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___mean_sum":{"contents":"Reduction commutation is generic linear algebra, without independence.","context":"","header":"JaxLean.FiniteLaw.mean_sum","id":"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___mean_sum"}});

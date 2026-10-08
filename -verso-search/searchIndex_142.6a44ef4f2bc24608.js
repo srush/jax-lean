@@ -1,0 +1,1 @@
+window.docContents[142].resolve({"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___cyclicShift":{"contents":"Positive shifts follow jnp.roll: output i reads input i - k.","context":"","header":"JaxLean.Tensor.cyclicShift","id":"/JaxLean/Stdlib/Equivariance/#JaxLean___Tensor___cyclicShift"}});

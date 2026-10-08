@@ -1,0 +1,1 @@
+window.docContents[195].resolve({"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___meanLinear":{"contents":"Expectation is just a linear functional on a space of value functions.","context":"","header":"JaxLean.FiniteLaw.meanLinear","id":"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___meanLinear"}});

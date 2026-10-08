@@ -1,0 +1,1 @@
+window.docContents[231].resolve({"/examples/randint_monte_carlo/proofs/RandintMonteCarloProofs/#JaxLean___MCJax___die_mean":{"contents":"Only the small, single-draw laws are enumerated; never the product sample space.","context":"","header":"JaxLean.MCJax.die_mean","id":"/examples/randint_monte_carlo/proofs/RandintMonteCarloProofs/#JaxLean___MCJax___die_mean"}});

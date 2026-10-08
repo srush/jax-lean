@@ -1,0 +1,1851 @@
+{
+  "generator": "jaxlean-verso-notebook-v1",
+  "lean_modules": [
+    "JaxLean.Core.Jaxpr",
+    "JaxLean.Stdlib.Equivariance",
+    "JaxLean.Stdlib.FiniteLaw",
+    "JaxLean.Stdlib.ScatterRules",
+    "JaxLean.Stdlib.TensorRules",
+    "examples.autodiff.proofs.Jvp",
+    "examples.blog.generated.AddScale",
+    "examples.noether.proofs.NoetherProofs",
+    "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+    "examples.tensor_puzzles.generated.PuzzleOuterFlatten",
+    "examples.tensor_puzzles.proofs.Puzzles.Bincount",
+    "examples.tensor_puzzles.proofs.Puzzles.Bucketize",
+    "examples.tensor_puzzles.proofs.Puzzles.Cumsum",
+    "examples.tensor_puzzles.proofs.Puzzles.Diag",
+    "examples.tensor_puzzles.proofs.Puzzles.Diff",
+    "examples.tensor_puzzles.proofs.Puzzles.Eye",
+    "examples.tensor_puzzles.proofs.Puzzles.Heaviside",
+    "examples.tensor_puzzles.proofs.Puzzles.Linspace",
+    "examples.tensor_puzzles.proofs.Puzzles.Ones",
+    "examples.tensor_puzzles.proofs.Puzzles.PadTo",
+    "examples.tensor_puzzles.proofs.Puzzles.Repeat",
+    "examples.tensor_puzzles.proofs.Puzzles.Roll",
+    "examples.tensor_puzzles.proofs.Puzzles.ScatterAdd",
+    "examples.tensor_puzzles.proofs.Puzzles.SequenceMask",
+    "examples.tensor_puzzles.proofs.Puzzles.Triu",
+    "examples.tensor_puzzles.proofs.Puzzles.Vstack",
+    "examples.tensor_puzzles.proofs.TensorLoopProofs",
+    "examples.transformer.proofs.TransformerProofs"
+  ],
+  "source_sha256": {
+    "examples/tensor_puzzles/code.py": "b9b038a44f110999549c2bb6a5a3dfdb23f74e15290dadc415dbaf63110b14f9",
+    "examples/blog/code.py": "13e5df40015f53cccae417de819e5fc3c71ebbe7b899e9e5bde1a2b9b15468e9",
+    "examples/blog/generated/AddScale.lean": "afb4a093d117101cbb43a88fb4b958384c903c2f4e706fdc133abfe376873c1a",
+    "JaxLean/Core/Jaxpr.lean": "78587478be120646900eacf9415b047bd0ac5fca711c3552dfda139af0f26be6",
+    "examples/tensor_puzzles/generated/PuzzleOuterFlatten.lean": "c8a9cef97c9cd675957699ac9002ebb753ef047e51072a262daabe870aa89f18",
+    "examples/tensor_puzzles/proofs/TensorLoopProofs.lean": "63339a67aa65eb150d7140f51faf5aab4caddaae17603be97f981f2ff31c6733",
+    "examples/transformer/proofs/TransformerProofs.lean": "235663b30cf48848b6bdf855f200dfa9f85d7e837a24e9534dc4b607d046646d",
+    "examples/transformer/code.py": "5a2fddea77394e5e9c79cd773054f3e70123128a944979b8054ea12e57f5531b",
+    "examples/norms/code.py": "9d8e60984fee4d5d465e49fac72cdfdf4a789a9a4ec444ff25a4eafdc82fdfcd",
+    "examples/noether/proofs/NoetherProofs.lean": "3f835440658399b60b56d3ee86fa2f905342449da7cc1574c5acd23d0108aacc",
+    "examples/noether/code.py": "8134237ba0856f8db7fcc65a44a9f1ac51bd1e28ec31cc34dfae32570d04e604",
+    "examples/randint_monte_carlo/proofs/RandintMonteCarloProofs.lean": "d8665be281e44624467c7543d5bccc8edac19c8fae938035eb95b8608f732173",
+    "examples/randint_monte_carlo/code.py": "e9186b3ba97827f90236fd4cb737c9b34a72c1fd25e509babca6b62331f3c741",
+    "examples/autodiff/proofs/Jvp.lean": "50b5f1834ba98ea487505524d08a28db75e109b4c1619e22c47a0016eb4f9cd2",
+    "examples/autodiff/code.py": "7baa572c1a6774edf5565a7ef86cff1118758dfcdca12ce3c56dc64ca18f9ec1",
+    "docs/blog.css": "9f1756de1fb28dd741aafd90be67f66584758f6237a76b4d51aa4e6e715d89cc",
+    "docs/jax-pipeline.svg": "78b7aa04781c855ba2be754b65658b7d7d65c39063f737dd0f076741dc0700e3",
+    "docs/transpilation-pipeline.svg": "eae27af388fa539971f2a915222b718697692f6251ebc374418b75978c5041f6",
+    "examples/norms/proofs/NormProofs.lean": "f5b258fcccc5b4eaf314295b0cea22c65f3999220626c7914109233086a8e157",
+    "JaxLean/Stdlib/NormRules.lean": "8a46532bcacf35fefcd03a0bed4bb26271750c4a87b1574135b32e3ca6d4522d",
+    "examples/tensor_puzzles/proofs/Puzzles/Ones.lean": "41b786c50826eb907294d126ba0ee78f2d4922e021c2beb31a1ed8200eaac1af",
+    "examples/tensor_puzzles/proofs/Puzzles/Diag.lean": "08e0ebac5393390c083eea72b3221fbbdc5e7844693a46210185e50d9d177f7d",
+    "examples/tensor_puzzles/proofs/Puzzles/Eye.lean": "a391aae85d16e4f7928f53ec79d6098799012c5162001a9fccc9662f8ce44dfa",
+    "examples/tensor_puzzles/proofs/Puzzles/Triu.lean": "146fd1aba135b5a33f0010beaa42d3686008da030c999637f39ca2c371bd829b",
+    "examples/tensor_puzzles/proofs/Puzzles/Cumsum.lean": "bad481ef48074e1bca611f0261ba009b3b428e65e18e1c8137d403333266d21d",
+    "examples/tensor_puzzles/proofs/Puzzles/Diff.lean": "98005e84f595e99ea24956448a12f1bc97c6d1836c19f08f787595e687fe0923",
+    "examples/tensor_puzzles/proofs/Puzzles/Vstack.lean": "f54a45a5de87d57fb66ac2239786068d52757c8ee9ce764d226b6326718baaab",
+    "examples/tensor_puzzles/proofs/Puzzles/Roll.lean": "5a343b0908339572726df9cc454f0c2ee6cada68dec954b20695acd1eebf739a",
+    "examples/tensor_puzzles/proofs/Puzzles/PadTo.lean": "dc70a2ee467d0db9fd8289a9b7de42dab6011c3b0aea9f490c49e3cbc0c275bf",
+    "examples/tensor_puzzles/proofs/Puzzles/SequenceMask.lean": "ca0400f5b2f6254f655327ab4174343d83369abb0e89be5febb886b7f5845d57",
+    "examples/tensor_puzzles/proofs/Puzzles/Bincount.lean": "b8e4329e350581d681c87b1fe37559b2d019759dda9d4809a9c23f519f35f91d",
+    "examples/tensor_puzzles/proofs/Puzzles/ScatterAdd.lean": "d33bc572ae7e9fa75739a25e806faf9b238113a40cadd3eb30310125d51bb240",
+    "examples/tensor_puzzles/proofs/Puzzles/Linspace.lean": "892c202907f8d62d9d51287729e121d21ee32ac969e3f72fad8c1241bd95b1ff",
+    "examples/tensor_puzzles/proofs/Puzzles/Heaviside.lean": "958e0b6a019ff783a7af1cc28745ac0c63358e1d2950b6ba4b1856f3eefb1499",
+    "examples/tensor_puzzles/proofs/Puzzles/Repeat.lean": "424b93b6228a634abd9ab57f2081b0e06d6cb3af28c63c9b3b578c98b5cfd488",
+    "examples/tensor_puzzles/proofs/Puzzles/Bucketize.lean": "2a9bbc2449d79fd38ef19f34d88e60a1951a06453eea51ad824a51d1eec2e4c2",
+    "JaxLean/Stdlib/ScatterRules.lean": "b84a06b787d1ea06e6ffdc070732d5633960884cadfbb5919451c13283c47755",
+    "JaxLean/Stdlib/TensorRules.lean": "13efe80de4c858973312952d7bbdfc88ece488d233ca5de6b1bd9acdedb1378f",
+    "JaxLean/Stdlib/FiniteLaw.lean": "417ed7e658e6742196f41143db77a7fea13161adf2738493c54792a68cc00cdc",
+    "JaxLean/Stdlib/Equivariance.lean": "39a0db55f7460ccf238e0ea0945c06c947853fa5081f5099c3153fae40a7ac9d"
+  },
+  "execution_outputs": {
+    "[\"/Users/srush/Documents/ChatGPT/Jax Lean/.venv/bin/python\", \"-m\", \"examples.blog.code\", \"add\"]": "{ lambda ; a:f32[3] b:f32[3]. let\n    c:f32[3] = add a b\n    d:f32[3] = mul c 2.0:f32[]\n  in (d,) }\n",
+    "[\"/Users/srush/Documents/ChatGPT/Jax Lean/.venv/bin/python\", \"-m\", \"examples.blog.code\"]": "{ lambda ; . let\n    a:f32[3] = iota[dimension=0 dtype=float32 shape=(3,) sharding=None] \n    b:f32[3,1] = broadcast_in_dim[\n      broadcast_dimensions=(0,)\n      shape=(3, 1)\n      sharding=None\n    ] a\n    c:f32[1,3] = broadcast_in_dim[\n      broadcast_dimensions=(1,)\n      shape=(1, 3)\n      sharding=None\n    ] a\n    d:bool[3,3] = eq b c\n    e:f32[3,3] = jit[\n      name=_where\n      jaxpr={ lambda ; d:bool[3,3] f:f32[] g:f32[]. let\n          h:f32[3,3] = broadcast_in_dim[\n            broadcast_dimensions=()\n            shape=(3, 3)\n            sharding=None\n          ] f\n          i:f32[3,3] = broadcast_in_dim[\n            broadcast_dimensions=()\n            shape=(3, 3)\n            sharding=None\n          ] g\n          e:f32[3,3] = select_n d i h\n        in (e,) }\n    ] d 1.0:f32[] 0.0:f32[]\n  in (e,) }\n[[1. 0. 0.]\n [0. 1. 0.]\n [0. 0. 1.]]\n"
+  },
+  "manifest": {
+    "pages": [
+      {
+        "slug": "blog",
+        "title": "Provably Correct Tensor Puzzles",
+        "layout": "blog",
+        "stylesheets": [
+          "docs/blog.css"
+        ],
+        "contents_title": "Contents",
+        "cards": [
+          {
+            "title": "Introduction",
+            "id": "introduction",
+            "position": "before_contents",
+            "show_heading": false,
+            "toc": false,
+            "blocks": [
+              {
+                "type": "text",
+                "text": "A couple of years ago, [jxnop](https://x.com/jxmnop) talked me \ninto writing a collection of\n[tensor puzzles](https://github.com/srush/tensor-puzzles).\nOver time, they have a become a popular job interview prep\nfor wannabe Members of Technical Staff. \n\nThe puzzles give the user a specification \nwritten as an easy to read Python loop.\nHere the function is a cumulative sum. \n",
+                "marker": "Goal; certified solutions"
+              },
+              {
+                "type": "python",
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_cumsum",
+                "section": "Pseudocode"
+              },
+              {
+                "type": "text",
+                "text": "Given this code, the pre-MTS is tasked with generating a vectorized implementation. \nMany of these are quite strange looking as they use all the fun (or \nhorrible) Numpy tricks.\n",
+                "marker": "after cumsum pseudocode"
+              },
+              {
+                "type": "python",
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_cumsum",
+                "section": "JAX solution"
+              },
+              {
+                "type": "text",
+                "text": "\nWhen I wrote the puzzles originally, the answers were checked using randomized \ntests. \nRecently though I have been thinking about a future where almost all code is \nprovably verified. This seems like a nice example trying out that future. \n\nIn this blog we are going to develop a library for \nproving properties of arbitrary JAX code, [srush/jax-lean](https://github.com/srush/jax-lean).\nand was inspired by conversations with [pmocz](https://github.com/pmocz/), [nielstron](https://github.com/nielstron), and these projects,\n\n* [Noether on GitHub](https://github.com/pmocz/noether)\n* [Aeneas](https://lean-lang.org/use-cases/aeneas/)\n* [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html)\n\nThe code and proofs are\nwritten by AI, the writing is human. This is a followup on [Lean-Verified Transformers](https://srush.github.io/lean-transformer/), \n",
+                "marker": "Introduction"
+              }
+            ],
+            "python": [
+              {
+                "type": "python",
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_cumsum",
+                "section": "Pseudocode"
+              },
+              {
+                "type": "python",
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_cumsum",
+                "section": "JAX solution"
+              }
+            ],
+            "lean": [],
+            "datatypes": []
+          },
+          {
+            "title": "Background: Jax IR",
+            "id": "jax-ir",
+            "blocks": [
+              {
+                "type": "text",
+                "text": "[JAX](http://github.com/google/jax) is a numerical transformation system\nthat utilizes a near 1-to-1 Numpy interface. While the primary use of JAX is machine\nlearning, the core framework has remained impressively ML agnostic. Instead it focuses on\na core set of transformation that can be reduced to a simple numerical operations.\n\nJAX is also a magic trick. The user thinks they are writing Python, while actually \nit is pulling out code using a minimal core of numerical operations  Proving properties \nof Python is nearly impossible, but proofs using this intermediate representation \nare more tractable. \n\nIf you are interested in the details of how Jax works they have an amazing tutorial\nknown as [Autodidax](https://docs.jax.dev/en/latest/autodidax2_part1.html).\nHere we will just briefly overview the process. \n\nLet's begin with a simple function that adds two vectors and multiplies the result by 2.\n",
+                "marker": "Jax IR; addition of two vectors"
+              },
+              {
+                "type": "python",
+                "file": "examples/blog/code.py",
+                "name": "add_then_scale"
+              },
+              {
+                "type": "text",
+                "text": "When we run this Python code, JAX is tracing the path and producing its \nown representation of what operations were called. \n",
+                "marker": "after add_then_scale"
+              },
+              {
+                "type": "code",
+                "language": "python",
+                "text": "a = jnp.array([1., 2., 3.], dtype=jnp.float32)\nb = jnp.array([4., 5., 6.], dtype=jnp.float32)\nprint(jax.make_jaxpr(add_then_scale)(a, b))\n"
+              },
+              {
+                "type": "diagram",
+                "file": "docs/jax-pipeline.svg",
+                "alt": "JAX to Jaxpr to StableHLO / XLA, branching to TPU and GPU"
+              },
+              {
+                "type": "text",
+                "text": "The intermediate representation is known as Jaxpr. It lives \nbetween your Python code and the final lower-level representations that execute\nthe mathematical operations on hardware. \n\nOne day, we hope to have specs all the way down to the GPU. However we are going \nto focus on this Jaxpr level and assume everything below roughly follows what it says.\nThis is a horrible assumption for ML code, as numerical precision is of huge importance. \nHopefully we can cover this in future blogs. \n\nLet's look at the Jaxpr output from our function. It should look familar. It takes two args, float32 size 3 vectors. \nCreates a temporary variable that adds them, multiplies it by 2, and returns the result.\n",
+                "marker": "before Jaxpr output"
+              },
+              {
+                "type": "output",
+                "runtime": "python",
+                "module": "examples.blog.code",
+                "args": [
+                  "add"
+                ]
+              },
+              {
+                "type": "text",
+                "text": "Of course this code will get more complex with more realistic examples.\nThere are a set of operations that specify the core numerical transformations \nneeded. The core idea though is that it will remain a sequence of these operations, \nwithout loops or other control flow. \n",
+                "marker": "Eye; static n = 3"
+              },
+              {
+                "type": "python",
+                "file": "examples/blog/code.py",
+                "name": "eye"
+              },
+              {
+                "type": "code",
+                "language": "python",
+                "text": "print(jax.make_jaxpr(eye, static_argnums=(0,))(3))\nprint(eye(3))\n"
+              },
+              {
+                "type": "output",
+                "runtime": "python",
+                "module": "examples.blog.code"
+              }
+            ],
+            "python": [
+              {
+                "type": "python",
+                "file": "examples/blog/code.py",
+                "name": "add_then_scale"
+              },
+              {
+                "type": "python",
+                "file": "examples/blog/code.py",
+                "name": "eye"
+              }
+            ],
+            "lean": [],
+            "datatypes": []
+          },
+          {
+            "title": "Transpilation to Lean",
+            "id": "transpilation",
+            "blocks": [
+              {
+                "type": "diagram",
+                "file": "docs/transpilation-pipeline.svg",
+                "alt": "Imported Lean Jaxpr, its interpreter, and the transpiled Lean function connected by a translation certificate"
+              },
+              {
+                "type": "text",
+                "text": "\nOur strategy to prove the correctness of this code \nis to transpile it over to Lean and then write proofs \nfor the Lean version of the code. We do this with three \nLean modules.\n\n1. A mapping of the low-level Jaxpr \n2. An implementation of a Jaxpr interpreter  \n3. A mapping of the high-level Jaxpr code. \n \nIf we trust of Jaxpr interpreter we can then \nprove things about out JAX code in Lean and then \nprove that it also applies to the original Python code. \n\nLet's walk through each of the steps. \n",
+                "marker": "after Jaxpr output"
+              },
+              {
+                "type": "text",
+                "text": "First we are going to\nmap over the Jaxpr from the first section to Lean. Lean has a powerful\nmacro system, so we can make the mapping \nlook nearly identical to the original representation. We follow the specified \nsyntax of the original, propagating forward some additional guarentees about \nbounds and dimentions.  \n",
+                "marker": "Stage 1: explain the direct Jaxpr-to-Lean encoding; use add_then_scale throughout all three stages."
+              },
+              {
+                "type": "lean",
+                "module": "examples.blog.generated.AddScale",
+                "name": "JaxLean.Blog.add_then_scale_ir",
+                "section": "Lean IR"
+              },
+              {
+                "type": "text",
+                "text": "Next we need an implementation of the Jaxpr IR in Lean. \nAs far as I know, there is not a formal specification of this \nlanguage, but each part is well documented. In a more realistic \nsetting we would want to match the lower-level instructions exactly. \n\nIn addition to trusting that this interpreter matches, we are also \ngoing to relax the floating-point challenges at this stage. Our \ninterpreter will just pretend things work like the reals. \n",
+                "marker": "Stage 2: explain how the interpreter evaluates ret, bind, and call; distinguish the program data from its meaning."
+              },
+              {
+                "type": "lean",
+                "module": "JaxLean.Core.Jaxpr",
+                "name": "JaxLean.Jaxpr.Program.eval",
+                "section": "Semantics \u00b7 execute bindings and calls"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "marker": "Explain the addition case of Op.eval used by Program.eval: evaluate the two operands, broadcast their indices, and add their values."
+              },
+              {
+                "type": "code",
+                "language": "lean-source",
+                "file": "JaxLean/Core/Jaxpr.lean",
+                "excerpt": {
+                  "start": "  | .add x y left right _ =>",
+                  "end": "  | .sub x y left right _ =>"
+                }
+              },
+              {
+                "type": "text",
+                "text": "\nGiven the source of truth of the Jaxpr representation, we can now \ntranspile the Jaxpr into something that is a bit more readable. \nThis will look kind of like line-aligned Lean implementation of the \noriginal code. Since this code will not be executed we can apply transformation\nto make it a bit easier to use for our proofs (for instance see the variance example \nbelow.)\n",
+                "marker": "Aeneas; translation; trusted importer; ideal-real semantics and floating-point boundary"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "marker": "Stage 3: explain the readable tensor function emitted independently from the same Jaxpr; compare its two operations with stage 1."
+              },
+              {
+                "type": "lean",
+                "module": "examples.blog.generated.AddScale",
+                "name": "JaxLean.Blog.add_then_scale"
+              },
+              {
+                "type": "text",
+                "text": "Since this implementation is generated, we shouldn't trust that it is correct. \nWe therefore need to actually prove this. \nThe following theorem shows that the code matches its IR.\n",
+                "marker": "after JaxLean.Puzzles.Eye.Array.fn__where"
+              },
+              {
+                "type": "lean",
+                "module": "examples.blog.generated.AddScale",
+                "name": "JaxLean.Blog.add_then_scale_translation_correct",
+                "marker": "after JaxLean.Puzzles.Eye.Array.eye_translation_correct"
+              },
+              {
+                "type": "text",
+                "text": "If we can complete each of these three steps, we know that we have passed the implementation across \nthe language barrier. Our implementation does this for most of the core Jaxpr IR with the assumption \nthat we are working with the reals. From here on out we can assume we are working with implementations \nin the proof language Lean. \n",
+                "marker": "Clarify the trust boundary: imported Jaxpr and ideal-real primitive semantics; the certificate does not establish Python importer or floating-point correctness."
+              }
+            ],
+            "python": [],
+            "lean": [
+              {
+                "type": "lean",
+                "module": "examples.blog.generated.AddScale",
+                "name": "JaxLean.Blog.add_then_scale_ir",
+                "section": "Lean IR"
+              },
+              {
+                "type": "lean",
+                "module": "JaxLean.Core.Jaxpr",
+                "name": "JaxLean.Jaxpr.Program.eval",
+                "section": "Semantics \u00b7 execute bindings and calls"
+              },
+              {
+                "type": "lean",
+                "module": "examples.blog.generated.AddScale",
+                "name": "JaxLean.Blog.add_then_scale"
+              },
+              {
+                "type": "lean",
+                "module": "examples.blog.generated.AddScale",
+                "name": "JaxLean.Blog.add_then_scale_translation_correct",
+                "marker": "after JaxLean.Puzzles.Eye.Array.eye_translation_correct"
+              }
+            ],
+            "datatypes": []
+          },
+          {
+            "title": "Puzzle Proofs",
+            "id": "certification",
+            "blocks": [
+              {
+                "type": "text",
+                "text": "We now can go back to the puzzles.\nWe consider an example of the original `outer` puzzle which \nasks the user to produce the outer product of two vectors. \nHere's the original code and the transpiled Lean. \n",
+                "marker": "State the puzzle certification goal: the readable vectorized solution equals the readable loop specification for all inputs of the traced shapes [2] and [3]."
+              },
+              {
+                "type": "python",
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_outer"
+              },
+              {
+                "type": "lean",
+                "module": "examples.tensor_puzzles.generated.PuzzleOuterFlatten",
+                "name": "JaxLean.PuzzleJax.puzzle_outer"
+              },
+              {
+                "type": "text",
+                "text": "In a similar way we convert the loop version to Lean. This one is a bit long since JAX unrolls the loop to a sequence of instructions, so I am omitting the Lean code.",
+                "marker": "Introduce the transpiled original outer loop."
+              },
+              {
+                "type": "python",
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_outer"
+              },
+              {
+                "type": "text",
+                "text": "The goal is to certify that this produces the same output as \nthe vectorized version. Once we are in Lean proving this kind of thing \nis actually relatively straightforword. The code below automatically converts \nthe broadcasting operations into expanded cases and enumerates all the 2x3 cases\nto match that they produce the same result as the loop. \n",
+                "marker": "Compare the vectorized outer implementation with the loop."
+              },
+              {
+                "type": "lean",
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.outer_matches_loop"
+              },
+              {
+                "type": "text",
+                "text": "We combine this with the proof that the Jaxpr matches the above functions. We now have a full proof that the puzzle was correct!",
+                "marker": "Walk through how the proof equates puzzle_outer with loop_outer; explain how the translation certificates from the previous section connect this code equivalence back to the imported programs."
+              },
+              {
+                "type": "lean",
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.certified_outer_loop"
+              }
+            ],
+            "python": [
+              {
+                "type": "python",
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_outer"
+              },
+              {
+                "type": "python",
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_outer"
+              }
+            ],
+            "lean": [
+              {
+                "type": "lean",
+                "module": "examples.tensor_puzzles.generated.PuzzleOuterFlatten",
+                "name": "JaxLean.PuzzleJax.puzzle_outer"
+              },
+              {
+                "type": "lean",
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.outer_matches_loop"
+              },
+              {
+                "type": "lean",
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.certified_outer_loop"
+              }
+            ],
+            "datatypes": []
+          },
+          {
+            "title": "Verified Properties",
+            "id": "verified-properties",
+            "blocks": [
+              {
+                "type": "text",
+                "text": "Of course, just proving the correctness of puzzles is not that useful. \nThings become more interesting when we want to complete arbitrary ad hoc \nproofs about our code. To illustrate roughly what this might look like,\nlet's walk through a couple properties and look at,\n\n* The JAX code\n* The spec to proof\n* An example of the proof (that an LLM might write for us)\n"
+              }
+            ],
+            "python": [],
+            "lean": [],
+            "datatypes": []
+          },
+          {
+            "title": "Transformer Properties",
+            "id": "transformer",
+            "subheading": true,
+            "blocks": [
+              {
+                "type": "text",
+                "text": "Recently, I wrote a blog post on \n[Lean-Verified Transformers](https://srush.github.io/lean-transformer/)\nthat implemented several equivariants of transformers directly in Lean. \nProbably we don't want to write the code in Lean, so we can write it in \nJAX and transpile it over. \n\nWe first define equivariance as. \n"
+              },
+              {
+                "type": "math",
+                "text": "B(PX; W) = P B(X; W)"
+              },
+              {
+                "type": "text",
+                "text": "The goal is to prove that a transformer without positional encoding is position equivariant. Starting with the attention in JAX.",
+                "marker": "Transformer properties; architecture subset and token permutations"
+              },
+              {
+                "type": "python",
+                "file": "examples/transformer/code.py",
+                "name": "transformer_block"
+              },
+              {
+                "type": "text",
+                "text": "A proof of part of this property would look like this.",
+                "marker": "Describe the block and its normalization, attention, and feed-forward helpers."
+              },
+              {
+                "type": "lean",
+                "module": "examples.transformer.proofs.TransformerProofs",
+                "name": "JaxLean.TransformerJax.attention_permute"
+              },
+              {
+                "type": "text",
+                "text": "And then this can be propagate this through the whole stack. ",
+                "marker": "Explain the compositional machinery: the block proof reuses contracts for its children."
+              },
+              {
+                "type": "code",
+                "language": "lean-source",
+                "file": "examples/transformer/proofs/TransformerProofs.lean",
+                "excerpt": {
+                  "start": "theorem transformer_block_permute ",
+                  "end": " := by"
+                }
+              }
+            ],
+            "python": [
+              {
+                "type": "python",
+                "file": "examples/transformer/code.py",
+                "name": "transformer_block"
+              }
+            ],
+            "lean": [
+              {
+                "type": "lean",
+                "module": "examples.transformer.proofs.TransformerProofs",
+                "name": "JaxLean.TransformerJax.attention_permute"
+              }
+            ],
+            "datatypes": []
+          },
+          {
+            "title": "Norm Clipping",
+            "id": "norms",
+            "subheading": true,
+            "blocks": [
+              {
+                "type": "text",
+                "text": "Let's consider another simple, but common, example in ML.\nWe want to guarantee that after applying norm clipping in our \ncode that we arrive at a gradiant norm that less than our fixed bound.\n",
+                "marker": "Explain the Euclidean norm guarantee and the positive-radius assumption."
+              },
+              {
+                "type": "math",
+                "text": "r > 0 \u27f9 \u2016norm_clip(x, r)\u2016\u2082 \u2264 min(r, \u2016x\u2016\u2082)"
+              },
+              {
+                "type": "python",
+                "file": "examples/norms/code.py",
+                "name": "norm_clip"
+              },
+              {
+                "type": "text",
+                "text": "The proof definition here is to get the following certificate.",
+                "marker": "Describe norm clipping."
+              },
+              {
+                "type": "code",
+                "language": "lean-source",
+                "file": "examples/norms/proofs/NormProofs.lean",
+                "excerpt": {
+                  "start": "theorem norm_clip_bound ",
+                  "end": " := by"
+                }
+              },
+              {
+                "type": "text",
+                "text": "For a simple example this is a mechanical calculation. But if you imagine an optimized implementation we would need to push this through the whole neural network.",
+                "marker": "Explain the reusable norm machinery: homogeneity and bounds on the scale factor."
+              },
+              {
+                "type": "code",
+                "language": "lean-source",
+                "file": "JaxLean/Stdlib/NormRules.lean",
+                "excerpt": {
+                  "start": "theorem l2_clipL2_le ",
+                  "end": "\nend JaxLean.Batch"
+                }
+              }
+            ],
+            "python": [
+              {
+                "type": "python",
+                "file": "examples/norms/code.py",
+                "name": "norm_clip"
+              }
+            ],
+            "lean": [],
+            "datatypes": []
+          },
+          {
+            "title": "Physics",
+            "id": "physics",
+            "subheading": true,
+            "blocks": [
+              {
+                "type": "text",
+                "text": "As a final example, we can consider the use of JAX for non-ML projects. \nThe inspiration for this blog is the \n[Noether](https://github.com/pmocz/noether) project which aimed to \nguarantee similar properties of mathematical code. The motivating \nexample is conservation of properties through code.  \n",
+                "marker": "Noether; periodic flux; conservation and equivariance"
+              },
+              {
+                "type": "math",
+                "text": "F(u)\u1d62 = u\u1d62 \u2212 \u03bb (\u00bdu\u1d62\u00b2 \u2212 \u00bdu\u1d62\u208b\u2081\u00b2);  \u2211\u1d62 F(u)\u1d62 = \u2211\u1d62 u\u1d62"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "marker": "Explain the periodic boundary and cancellation of fluxes."
+              },
+              {
+                "type": "python",
+                "file": "examples/noether/code.py",
+                "name": "burgers"
+              },
+              {
+                "type": "text",
+                "text": "The conservation law can be written with following \nguarentee, which propagates through the system. \n",
+                "marker": "Describe the conservative update."
+              },
+              {
+                "type": "code",
+                "language": "lean-source",
+                "file": "examples/noether/proofs/NoetherProofs.lean",
+                "excerpt": {
+                  "start": "theorem burgers_conserves_sum ",
+                  "end": " := by"
+                }
+              },
+              {
+                "type": "lean",
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_spec"
+              }
+            ],
+            "python": [
+              {
+                "type": "python",
+                "file": "examples/noether/code.py",
+                "name": "burgers"
+              }
+            ],
+            "lean": [
+              {
+                "type": "lean",
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_spec"
+              }
+            ],
+            "datatypes": []
+          },
+          {
+            "title": "Extension: Variance",
+            "id": "variance",
+            "blocks": [
+              {
+                "type": "text",
+                "text": "One thing that I have personally wanted for years is better \nguarantees for code that uses sampling, such as RL. Techniques \nlike probabilistic programming provide these, but are not typically\nused in scaled systems. One solution might be to implement the Jax \ncode as is, and prove that it matches a clean spec on its probabilistic \nproperties. \n\nAs a simple example, let us imagine doing Monte Carlo sampling\nthat takes 16 samples of a dice roll. We would like to prove \nthe variance of our estimator.\n"
+              },
+              {
+                "type": "math",
+                "text": "X\u1d62 \u223c Uniform{1, \u2026, 6}, independent;  Var[(X\u2081 + \u22ef + X\u2081\u2086) / 16]"
+              },
+              {
+                "type": "text",
+                "text": "The code itself will just be an imperative sampling implementation in JAX. ",
+                "marker": "State the ideal independent-draw model and its boundary with the concrete PRNG."
+              },
+              {
+                "type": "python",
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "die_draw"
+              },
+              {
+                "type": "python",
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "die_estimate"
+              },
+              {
+                "type": "python",
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "mc_die_16"
+              },
+              {
+                "type": "text",
+                "text": "The Lean theorem will be like the math above.",
+                "marker": "Explain mc_die_16."
+              },
+              {
+                "type": "code",
+                "language": "lean-source",
+                "file": "examples/randint_monte_carlo/proofs/RandintMonteCarloProofs.lean",
+                "excerpt": {
+                  "start": "theorem mc_die_variance :",
+                  "end": " := by"
+                }
+              },
+              {
+                "type": "text",
+                "text": "In this case, the proof is just pushes through the variance over the cases.",
+                "marker": "Explain variance propagation through an independent sum and division by the sample count."
+              },
+              {
+                "type": "lean",
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_variance_reduction"
+              }
+            ],
+            "python": [
+              {
+                "type": "python",
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "die_draw"
+              },
+              {
+                "type": "python",
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "die_estimate"
+              },
+              {
+                "type": "python",
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "mc_die_16"
+              }
+            ],
+            "lean": [
+              {
+                "type": "lean",
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_variance_reduction"
+              }
+            ],
+            "datatypes": []
+          },
+          {
+            "title": "Gradients And Mathlib",
+            "id": "autodiff",
+            "blocks": [
+              {
+                "type": "text",
+                "text": "As a final example, let's consider how these proofs might actually interact \nwith all the work going on in formalizing mathematics. This is a toy example \nwhere we verify that the real version of our JAX code produces the mathematically \ncorrect gradient.  \n\nFor deeper examples of this see the text on \n[Verified Deep Learning with Lean 4](https://lean.brettkoonce.com/blueprint/). \n"
+              },
+              {
+                "type": "math",
+                "text": "f(x) = x\u00b2 + 3x;  f\u2032(x) = 2x + 3"
+              },
+              {
+                "type": "text",
+                "text": "We are going to do the autodiff in JAX. \n",
+                "marker": "Explain the derivative of the scalar function and how JAX computes it."
+              },
+              {
+                "type": "python",
+                "file": "examples/autodiff/code.py",
+                "name": "quadratic"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "marker": "Explain quadratic."
+              },
+              {
+                "type": "python",
+                "file": "examples/autodiff/code.py",
+                "name": "gradient"
+              },
+              {
+                "type": "text",
+                "text": "",
+                "marker": "Explain how jax.grad computes the derivative."
+              },
+              {
+                "type": "code",
+                "language": "lean-source",
+                "file": "examples/autodiff/proofs/Jvp.lean",
+                "excerpt": {
+                  "start": "theorem gradient_correct ",
+                  "end": " := by"
+                }
+              },
+              {
+                "type": "text",
+                "text": "",
+                "marker": "Explain how analytic differentiation supplies the derivative used to certify the generated gradient."
+              },
+              {
+                "type": "lean",
+                "module": "examples.autodiff.proofs.Jvp",
+                "name": "JaxLean.Autodiff.quadratic_hasDerivAt"
+              }
+            ],
+            "python": [
+              {
+                "type": "python",
+                "file": "examples/autodiff/code.py",
+                "name": "quadratic"
+              },
+              {
+                "type": "python",
+                "file": "examples/autodiff/code.py",
+                "name": "gradient"
+              }
+            ],
+            "lean": [
+              {
+                "type": "lean",
+                "module": "examples.autodiff.proofs.Jvp",
+                "name": "JaxLean.Autodiff.quadratic_hasDerivAt"
+              }
+            ],
+            "datatypes": []
+          }
+        ]
+      },
+      {
+        "slug": "puzzles",
+        "title": "Tensor puzzles",
+        "layout": "code-only",
+        "cards": [
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_ones",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_ones"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Ones",
+                "name": "JaxLean.Puzzles.Ones.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Ones",
+                "name": "JaxLean.Puzzles.Ones.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "1. ones",
+            "puzzle": true
+          },
+          {
+            "title": "2. sum",
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_sum",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_sum"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.sum_matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.certified_sum_loop",
+                "section": "Certificate"
+              }
+            ],
+            "puzzle": true
+          },
+          {
+            "title": "3. outer",
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_outer",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_outer"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.outer_matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.certified_outer_loop",
+                "section": "Certificate"
+              }
+            ],
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_diag",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_diag"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Diag",
+                "name": "JaxLean.Puzzles.Diag.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Diag",
+                "name": "JaxLean.Puzzles.Diag.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "4. diag",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_eye",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_eye"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Eye",
+                "name": "JaxLean.Puzzles.Eye.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Eye",
+                "name": "JaxLean.Puzzles.Eye.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "5. eye",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_triu",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_triu"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Triu",
+                "name": "JaxLean.Puzzles.Triu.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Triu",
+                "name": "JaxLean.Puzzles.Triu.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "6. triu",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_cumsum",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_cumsum"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Cumsum",
+                "name": "JaxLean.Puzzles.Cumsum.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Cumsum",
+                "name": "JaxLean.Puzzles.Cumsum.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "7. cumsum",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_diff",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_diff"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Diff",
+                "name": "JaxLean.Puzzles.Diff.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Diff",
+                "name": "JaxLean.Puzzles.Diff.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "8. diff",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_vstack",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_vstack"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Vstack",
+                "name": "JaxLean.Puzzles.Vstack.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Vstack",
+                "name": "JaxLean.Puzzles.Vstack.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "9. vstack",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_roll",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_roll"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Roll",
+                "name": "JaxLean.Puzzles.Roll.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Roll",
+                "name": "JaxLean.Puzzles.Roll.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "10. roll",
+            "puzzle": true
+          },
+          {
+            "title": "11. flip",
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_flip",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_flip"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.flip_matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.certified_flip_loop",
+                "section": "Certificate"
+              }
+            ],
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_pad_to",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_pad_to"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.PadTo",
+                "name": "JaxLean.Puzzles.PadTo.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.PadTo",
+                "name": "JaxLean.Puzzles.PadTo.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "13. pad_to",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_sequence_row",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_sequence_mask",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_sequence_mask"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.SequenceMask",
+                "name": "JaxLean.Puzzles.SequenceMask.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.SequenceMask",
+                "name": "JaxLean.Puzzles.SequenceMask.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "14. sequence_mask",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_masked_sum",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_bincount",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_bincount"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Bincount",
+                "name": "JaxLean.Puzzles.Bincount.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Bincount",
+                "name": "JaxLean.Puzzles.Bincount.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "15. bincount",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_masked_sum",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_scatter_add",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_scatter_add"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.ScatterAdd",
+                "name": "JaxLean.Puzzles.ScatterAdd.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.ScatterAdd",
+                "name": "JaxLean.Puzzles.ScatterAdd.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "16. scatter_add",
+            "puzzle": true
+          },
+          {
+            "title": "17. flatten",
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_flatten",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_flatten"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.flatten_matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.TensorLoopProofs",
+                "name": "JaxLean.PuzzleJax.certified_flatten_loop",
+                "section": "Certificate"
+              }
+            ],
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_linspace",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_linspace"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Linspace",
+                "name": "JaxLean.Puzzles.Linspace.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Linspace",
+                "name": "JaxLean.Puzzles.Linspace.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "18. linspace",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_heaviside",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_heaviside"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Heaviside",
+                "name": "JaxLean.Puzzles.Heaviside.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Heaviside",
+                "name": "JaxLean.Puzzles.Heaviside.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "19. heaviside",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_repeat",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_repeat"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Repeat",
+                "name": "JaxLean.Puzzles.Repeat.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Repeat",
+                "name": "JaxLean.Puzzles.Repeat.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "20. repeat",
+            "puzzle": true
+          },
+          {
+            "python": [
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "loop_bucketize",
+                "section": "Pseudocode"
+              },
+              {
+                "file": "examples/tensor_puzzles/code.py",
+                "name": "puzzle_bucketize"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Bucketize",
+                "name": "JaxLean.Puzzles.Bucketize.matches_loop",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.tensor_puzzles.proofs.Puzzles.Bucketize",
+                "name": "JaxLean.Puzzles.Bucketize.certificate",
+                "section": "Certificate"
+              }
+            ],
+            "title": "21. bucketize",
+            "puzzle": true
+          },
+          {
+            "title": "Five shared lemmas",
+            "kind": "lemmas",
+            "python": [],
+            "sections": [
+              "Indexed update",
+              "Nested sum",
+              "Affine variance",
+              "Independent addition",
+              "Flux conservation"
+            ],
+            "lean": [
+              {
+                "module": "JaxLean.Stdlib.ScatterRules",
+                "name": "JaxLean.Tensor.scatterSet_vector",
+                "section": "Indexed update"
+              },
+              {
+                "module": "JaxLean.Stdlib.TensorRules",
+                "name": "JaxLean.Index.sum_cons",
+                "section": "Nested sum"
+              },
+              {
+                "module": "JaxLean.Stdlib.FiniteLaw",
+                "name": "JaxLean.FiniteLaw.variance_affine",
+                "section": "Affine variance"
+              },
+              {
+                "module": "JaxLean.Stdlib.FiniteLaw",
+                "name": "JaxLean.FiniteLaw.variance_independent_add",
+                "section": "Independent addition"
+              },
+              {
+                "module": "JaxLean.Stdlib.Equivariance",
+                "name": "JaxLean.Tensor.fluxStep_sum",
+                "section": "Flux conservation"
+              }
+            ]
+          },
+          {
+            "title": "Variance \u00b7 sixteen independent dice",
+            "kind": "example",
+            "sections": [
+              "JAX NumPy",
+              "Ideal sampling model",
+              "Variance proof",
+              "Certificate"
+            ],
+            "python": [
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "die_draw"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "die_estimate"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "mc_die_16"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.dieLaw",
+                "section": "Ideal sampling model"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_boundary",
+                "section": "Ideal sampling model"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_variance_reduction",
+                "section": "Variance proof"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_variance",
+                "section": "Variance proof"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.certified_die_variance",
+                "section": "Certificate"
+              }
+            ]
+          },
+          {
+            "title": "Variance \u00b7 square then average",
+            "kind": "example",
+            "sections": [
+              "JAX NumPy",
+              "Ideal sampling model",
+              "Variance proof",
+              "Certificate"
+            ],
+            "python": [
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "grid_index"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "grid_square"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "grid_estimate"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "mc_grid_square_8"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.gridIndexLaw",
+                "section": "Ideal sampling model"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.gridValueLaw",
+                "section": "Ideal sampling model"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_grid_boundary",
+                "section": "Ideal sampling model"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_grid_variance_reduction",
+                "section": "Variance proof"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_grid_variance",
+                "section": "Variance proof"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.certified_grid_variance",
+                "section": "Certificate"
+              }
+            ]
+          },
+          {
+            "title": "Physics \u00b7 advect",
+            "python": [
+              {
+                "file": "examples/noether/code.py",
+                "name": "advect"
+              }
+            ],
+            "lean": [
+              {
+                "module": "JaxLean.Stdlib.Equivariance",
+                "name": "JaxLean.Tensor.fluxStep",
+                "section": "Specification"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.neighbor",
+                "section": "Specification"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.advect_spec",
+                "section": "Specification"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.advect_equivariant",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.advect_conserves_sum",
+                "section": "Conservation"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.advect_certificate",
+                "section": "Certificate"
+              }
+            ],
+            "sections": [
+              "JAX NumPy",
+              "Specification",
+              "Correctness proof",
+              "Conservation",
+              "Certificate"
+            ],
+            "kind": "example"
+          },
+          {
+            "title": "Physics \u00b7 burgers",
+            "python": [
+              {
+                "file": "examples/noether/code.py",
+                "name": "burgers"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_spec",
+                "section": "Specification"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_equivariant",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_conserves_sum",
+                "section": "Conservation"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_certificate",
+                "section": "Certificate"
+              }
+            ],
+            "sections": [
+              "JAX NumPy",
+              "Specification",
+              "Correctness proof",
+              "Conservation",
+              "Certificate"
+            ],
+            "kind": "example"
+          }
+        ]
+      },
+      {
+        "slug": "sampling",
+        "title": "Monte Carlo",
+        "cards": [
+          {
+            "title": "Average sixteen die rolls",
+            "description": "In the ideal independent uniform model, averaging preserves the mean and divides the variance by sixteen.",
+            "python": [
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "die_draw"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "die_estimate"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "mc_die_16"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_mean"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_variance_reduction"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_variance"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_die_boundary",
+                "detail": "Sampling function boundary"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.certified_die_variance",
+                "detail": "Estimator Jaxpr variance certificate"
+              }
+            ]
+          },
+          {
+            "title": "A nonlinear discrete estimator",
+            "description": "Square the sampled grid coordinates, then average eight independent values. The expectation is for this finite grid, not a continuous integral.",
+            "python": [
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "grid_index"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "grid_square"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "grid_estimate"
+              },
+              {
+                "file": "examples/randint_monte_carlo/code.py",
+                "name": "mc_grid_square_8"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_grid_mean"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_grid_variance_reduction"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.mc_grid_variance"
+              },
+              {
+                "module": "examples.randint_monte_carlo.proofs.RandintMonteCarloProofs",
+                "name": "JaxLean.MCJax.certified_grid_variance",
+                "detail": "Estimator Jaxpr variance certificate"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "slug": "transformer",
+        "title": "Transformer",
+        "cards": [
+          {
+            "title": "Normalization and attention",
+            "description": "Positive row normalization sums to one. Attention commutes with permutations of the sequence positions.",
+            "python": [
+              {
+                "file": "examples/transformer/code.py",
+                "name": "normalize"
+              },
+              {
+                "file": "examples/transformer/code.py",
+                "name": "attention"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.transformer.proofs.TransformerProofs",
+                "name": "JaxLean.TransformerJax.normalize_sum_one"
+              },
+              {
+                "module": "examples.transformer.proofs.TransformerProofs",
+                "name": "JaxLean.TransformerJax.attention_permute"
+              },
+              {
+                "module": "examples.transformer.proofs.TransformerProofs",
+                "name": "JaxLean.TransformerJax.attention_spec",
+                "detail": "Attention specification"
+              }
+            ]
+          },
+          {
+            "title": "A theorem at the network boundary",
+            "description": "The two-block network inherits permutation equivariance from its component functions. Its final certificate connects the theorem to the Jaxpr evaluator.",
+            "python": [
+              {
+                "file": "examples/transformer/code.py",
+                "name": "transformer_block"
+              },
+              {
+                "file": "examples/transformer/code.py",
+                "name": "transformer"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.transformer.proofs.TransformerProofs",
+                "name": "JaxLean.TransformerJax.transformer_block_permute"
+              },
+              {
+                "module": "examples.transformer.proofs.TransformerProofs",
+                "name": "JaxLean.TransformerJax.transformer_permute"
+              },
+              {
+                "module": "examples.transformer.proofs.TransformerProofs",
+                "name": "JaxLean.TransformerJax.certified_transformer_permute",
+                "detail": "Jaxpr evaluation certificate"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "slug": "noether",
+        "title": "Noether equivariance",
+        "layout": "code-only",
+        "cards": [
+          {
+            "title": "Shared rules",
+            "lean": [
+              {
+                "module": "JaxLean.Stdlib.Equivariance",
+                "name": "JaxLean.Tensor.permute",
+                "section": "Permutation"
+              },
+              {
+                "module": "JaxLean.Stdlib.Equivariance",
+                "name": "JaxLean.Tensor.cyclicShift",
+                "section": "Cyclic shift"
+              },
+              {
+                "module": "JaxLean.Stdlib.Equivariance",
+                "name": "JaxLean.Tensor.fluxStep",
+                "section": "Flux update"
+              },
+              {
+                "module": "JaxLean.Stdlib.Equivariance",
+                "name": "JaxLean.Tensor.fluxStep_equivariant",
+                "section": "Equivariance"
+              },
+              {
+                "module": "JaxLean.Stdlib.Equivariance",
+                "name": "JaxLean.Tensor.fluxStep_sum",
+                "section": "Conservation"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.neighbor",
+                "section": "Four-cell neighbor"
+              }
+            ],
+            "python": [],
+            "sections": [
+              "Permutation",
+              "Cyclic shift",
+              "Flux update",
+              "Equivariance",
+              "Conservation",
+              "Four-cell neighbor"
+            ]
+          },
+          {
+            "title": "advect",
+            "python": [
+              {
+                "file": "examples/noether/code.py",
+                "name": "advect"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.advect_spec",
+                "section": "Specification"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.advect_equivariant",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.advect_conserves_sum",
+                "section": "Conservation"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.advect_certificate",
+                "section": "Certificate"
+              }
+            ],
+            "sections": [
+              "JAX NumPy",
+              "Specification",
+              "Correctness proof",
+              "Conservation",
+              "Certificate"
+            ]
+          },
+          {
+            "title": "burgers",
+            "python": [
+              {
+                "file": "examples/noether/code.py",
+                "name": "burgers"
+              }
+            ],
+            "lean": [
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_spec",
+                "section": "Specification"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_equivariant",
+                "section": "Correctness proof"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_conserves_sum",
+                "section": "Conservation"
+              },
+              {
+                "module": "examples.noether.proofs.NoetherProofs",
+                "name": "JaxLean.NoetherProofs.burgers_certificate",
+                "section": "Certificate"
+              }
+            ],
+            "sections": [
+              "JAX NumPy",
+              "Specification",
+              "Correctness proof",
+              "Conservation",
+              "Certificate"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+window.docContents[194].resolve({"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___neighbor":{"contents":"The four-cell periodic neighbor map: 0 ↦ 3, 1 ↦ 0, 2 ↦ 1, 3 ↦ 2.","context":"","header":"JaxLean.NoetherProofs.neighbor","id":"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___neighbor"}});

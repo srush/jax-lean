@@ -1,0 +1,1 @@
+window.docContents[51].resolve({"/examples/transformer/proofs/TransformerProofs/#JaxLean___TransformerJax___normalize_spec":{"contents":"The mathematical meaning of Python's normalize, including its denominator.","context":"","header":"JaxLean.TransformerJax.normalize_spec","id":"/examples/transformer/proofs/TransformerProofs/#JaxLean___TransformerJax___normalize_spec"}});

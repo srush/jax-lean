@@ -1,0 +1,1 @@
+window.docContents[243].resolve({"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___advect_equivariant":{"contents":"Every cyclic shift, not just the one-cell shift.","context":"","header":"JaxLean.NoetherProofs.advect_equivariant","id":"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___advect_equivariant"}});

@@ -1,0 +1,1 @@
+window.docContents[56].resolve({"/examples/transformer/proofs/TransformerProofs/#JaxLean___TransformerJax___attention_spec":{"contents":"A readable specification at the attention boundary.","context":"","header":"JaxLean.TransformerJax.attention_spec","id":"/examples/transformer/proofs/TransformerProofs/#JaxLean___TransformerJax___attention_spec"}});

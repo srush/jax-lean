@@ -1,0 +1,1 @@
+window.docContents[212].resolve({"/JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___read":{"contents":"Read a variadic operand at the selected bounded coordinate.","context":"","header":"JaxLean.Jaxpr.Env.read","id":"/JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___read"}});

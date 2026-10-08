@@ -1,0 +1,1 @@
+window.docContents[46].resolve({"/examples/transformer/proofs/TransformerProofs/#JaxLean___TransformerJax___project_select":{"contents":"Row-local functions permit repeated or dropped rows as well as permutations.","context":"","header":"JaxLean.TransformerJax.project_select","id":"/examples/transformer/proofs/TransformerProofs/#JaxLean___TransformerJax___project_select"}});

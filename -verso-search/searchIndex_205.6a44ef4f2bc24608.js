@@ -1,0 +1,1 @@
+window.docContents[205].resolve({"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___advect_certificate":{"contents":"Equivariance attached directly to the imported Jaxpr semantics.","context":"","header":"JaxLean.NoetherProofs.advect_certificate","id":"/examples/noether/proofs/NoetherProofs/#JaxLean___NoetherProofs___advect_certificate"}});

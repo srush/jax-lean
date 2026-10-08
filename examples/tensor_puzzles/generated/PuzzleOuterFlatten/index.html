@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="../../../../"><title>examples.tensor_puzzles.generated.PuzzleOuterFlatten</title><link rel="icon" href="data:,">
+    <script src="popper.js"></script>
+    <script src="tippy.js"></script>
+    <script>
+      
+window.onload = async () => {
+
+    // Don't show hovers inside of closed tactic states
+    function blockedByTactic(elem) {
+      let parent = elem.parentNode;
+      while (parent && "classList" in parent) {
+        if (parent.classList.contains("tactic")) {
+          const toggle = parent.querySelector(":scope > input.tactic-toggle");
+          if (toggle) {
+            return !toggle.checked;
+          }
+        }
+        parent = parent.parentNode;
+      }
+      return false;
+    }
+
+    // Track whether any tippy is visible (O(1) check instead of DOM scan)
+    let visibleTippyCount = 0;
+    function blockedByTippy(elem) {
+      return visibleTippyCount > 0;
+    }
+
+    // Binding highlights via event delegation with cached lookups
+    const bindingCache = new Map(); // context+binding -> [token elements]
+    let highlightedTokens = [];
+    function getBindingTokens(context, binding) {
+      const key = context + "\0" + binding;
+      let tokens = bindingCache.get(key);
+      if (!tokens) {
+        tokens = [];
+        for (const example of document.querySelectorAll(".hl.lean")) {
+          if (example.dataset.leanContext == context) {
+            for (const tok of example.querySelectorAll(".token[data-binding=\"" + CSS.escape(binding) + "\"]")) {
+              tokens.push(tok);
+            }
+          }
+        }
+        bindingCache.set(key, tokens);
+      }
+      return tokens;
+    }
+    for (const container of document.querySelectorAll(".hl.lean")) {
+      container.addEventListener("mouseover", (event) => {
+        const c = event.target.closest(".token");
+        if (!c || !c.dataset.binding || c.dataset.binding === "" || !container.contains(c)) return;
+        if (blockedByTactic(c)) return;
+        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
+        for (const tok of tokens) {
+          tok.classList.add("binding-hl");
+        }
+        highlightedTokens = tokens;
+      });
+      container.addEventListener("mouseout", (event) => {
+        const c = event.target.closest(".token");
+        if (!c || !container.contains(c)) return;
+        for (const tok of highlightedTokens) {
+          tok.classList.remove("binding-hl");
+        }
+        highlightedTokens = [];
+      });
+    }
+    /* Render docstrings */
+    if ('undefined' !== typeof marked) {
+        for (const d of document.querySelectorAll("code.docstring, pre.docstring")) {
+            const str = d.innerText;
+            const html = marked.parse(str);
+            const rendered = document.createElement("div");
+            rendered.classList.add("docstring");
+            rendered.innerHTML = html;
+            d.parentNode.replaceChild(rendered, d);
+        }
+    }
+    // Add hovers
+    const versoDocData = await (fetch("-verso-docs.json").then((resp) => resp.json()));
+
+    function hideParentTooltips(element) {
+      let parent = element.parentElement;
+      while (parent) {
+        const tippyInstance = parent._tippy;
+        if (tippyInstance) {
+          tippyInstance.hide();
+        }
+        parent = parent.parentElement;
+      }
+    }
+
+
+
+    const defaultTippyProps = {
+      /* DEBUG -- remove the space: * /
+      onHide(any) { return false; },
+      trigger: "click",
+      // */
+      /* theme: "lean", */
+      maxWidth: "none",
+      appendTo: () => document.body,
+      interactive: true,
+      delay: [100, null],
+      /* ignoreAttributes: true, */
+      followCursor: 'initial',
+      onShow(inst) {
+        if (inst.reference.className == 'tactic') {
+          const toggle = inst.reference.querySelector(":scope > input.tactic-toggle");
+          if (toggle && toggle.checked) {
+            return false;
+          }
+          hideParentTooltips(inst.reference);
+          if (blockedByTippy(inst.reference)) { return false; }
+
+        } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (blockedByTactic(inst.reference)) { return false };
+          if (blockedByTippy(inst.reference)) { return false; }
+        } else { // Nothing to show here!
+          return false;
+        }
+      },
+      onShown(inst) { visibleTippyCount++; },
+      onHidden(inst) { visibleTippyCount = Math.max(0, visibleTippyCount - 1); },
+      content (tgt) {
+        const content = document.createElement("span");
+        if (tgt.className == 'tactic') {
+          const state = tgt.querySelector(":scope > .tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+        } else {
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
+              }
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
+          }
+          const extraLinks = tgt.parentElement.dataset['versoLinks'];
+          if (extraLinks) {
+            try {
+              const extras = JSON.parse(extraLinks);
+              const links = document.createElement('ul');
+              links.className = 'extra-doc-links';
+              extras.forEach((l) => {
+                const li = document.createElement('li');
+                li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                links.appendChild(li);
+              });
+              content.appendChild(links);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+        return content;
+      }
+    };
+
+
+    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'lean');
+    });
+    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'warning message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'info message');
+    });
+    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'error message');
+    });
+    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+      element.setAttribute('data-tippy-theme', 'tactic');
+    });
+    // Skip tokens inside closed tactics — they interfere with tactic tippys
+    const closedTactics = new Set();
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle && !toggle.checked) closedTactics.add(tactic);
+    });
+    function isInsideClosedTactic(el) {
+      const tactic = el.closest('.tactic');
+      return tactic && tactic !== el && closedTactics.has(tactic);
+    }
+
+    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
+    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
+
+    // Create/destroy token tippys when tactic checkbox toggles
+    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
+    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
+      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
+      if (toggle) toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          closedTactics.delete(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (!tok._tippy && tok.matches(tacticTippySelector)) {
+              tippy(tok, defaultTippyProps);
+            }
+          });
+        } else {
+          closedTactics.add(tactic);
+          tactic.querySelectorAll('.token').forEach(tok => {
+            if (tok._tippy) tok._tippy.destroy();
+          });
+        }
+      });
+  });
+}
+</script>
+    <style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+  font-size: inherit;
+}
+
+.hl.lean .keyword {
+  color: var(--verso-code-keyword-color,);
+  font-weight: var(--verso-code-keyword-weight, bold);
+  font-style: var(--verso-code-keyword-style, normal);
+  font-family: var(--verso-code-keyword-font-family,);
+}
+
+.hl.lean .const {
+  color: var(--verso-code-const-color,);
+  font-weight: var(--verso-code-const-weight, normal);
+  font-style: var(--verso-code-const-style, normal);
+  font-family: var(--verso-code-const-font-family,);
+}
+
+.hl.lean .var {
+  color: var(--verso-code-var-color,);
+  font-weight: var(--verso-code-var-weight, normal);
+  font-style: var(--verso-code-var-style, italic);
+  font-family: var(--verso-code-var-font-family,);
+
+  position: relative;
+}
+
+.hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+/* These lexically-classified token kinds default to the `.unknown` appearance. The rule follows
+   `.const` so it wins for the `anon-ctor` tokens, which also carry the `const` class. */
+.hl.lean .anon-ctor,
+.hl.lean .number,
+.hl.lean .char,
+.hl.lean .comment,
+.hl.lean .punctuation,
+.hl.lean .delim,
+.hl.lean .wildcard {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+  background: none;
+  color: black;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+.hl.lean {
+}
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean * {
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error .verso-message, .error .verso-message .token, .error .verso-message label {
+  color: var(--verso-error-color);
+}
+
+.error .verso-message .case-label:has(input[type="checkbox"])::before {
+  background-color: var(--verso-error-color) !important;
+}
+
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-warning-indicator-color);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color:var(--verso-warning-color);
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: var(--verso-warning-color);
+}
+
+.lean-output {
+  border-left: 0.2em solid transparent;
+  padding: 0 0 0 0.5em;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.lean-output.error {
+  border-color: var(--verso-error-indicator-color);
+}
+
+.lean-output.information {
+  border-color: var(--verso-info-indicator-color);
+}
+
+.lean-output.warning {
+  border-color: var(--verso-warning-indicator-color);
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.information :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-info-indicator-color, blue);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.information:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.information {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.information {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: var(--verso-text-font-family, sans-serif);
+  white-space: normal;
+  max-width: calc(min(40rem, 90vw));
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: var(--verso-code-font-family);
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+  display: inline;
+  vertical-align: top;
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.hl.lean .tactic:has(> .tactic-toggle:checked) {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
+}
+
+.hl.lean .tactic > label {
+  position: relative;
+  grid-row: 1;
+  display: inline;
+}
+
+@media (hover: hover) {
+  /* Highlight a region on hover only when its own toggle is unchecked, and only the innermost
+     hovered region: `label:hover` bubbles to ancestor labels, so suppress the highlight on a region
+     whose label contains a more deeply nested hovered tactic label. */
+  .hl.lean .tactic:has(> .tactic-toggle:not(:checked)) > label:hover:not(:has(.tactic > label:hover)) {
+    background-color: #eeeeee;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  /* These need to be em, not rem, to scale with the font */
+  border-radius: 1em;
+  height: 0.25em;
+  vertical-align: middle;
+  width: 0.6em;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5em;
+}
+
+/*
+Some CSS frameworks customize details/summary in ways not compatible with Verso's output.
+*/
+
+.hl.lean details {
+  display: block !important;
+  margin: 0;
+}
+
+.hl.lean details summary {
+  display: list-item !important;
+  margin: 0;
+}
+
+.hl.lean details summary:focus {
+  outline: none;
+  outline-offset: none;
+  color: inherit;
+}
+
+.hl.lean ul > li {
+  margin-bottom: 0;
+}
+
+.hl.lean details summary::marker {
+  display: inline !important;
+}
+
+.hl.lean details > summary:first-of-type {
+  list-style-type: disclosure-closed;
+  list-style-position: inside;
+}
+
+.hl.lean details[open] > summary:first-of-type {
+  list-style-type: disclosure-open;
+}
+
+.hl.lean details summary::before, .hl.lean details summary::after {
+  content: "" !important;
+  background: none;
+  display: none;
+}
+
+.hl.lean .tactic-state summary {
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: -0.5em;
+}
+
+.hl.lean .tactic-state details {
+  /* These need to be em, not rem, to scale with the font */
+  padding-left: 0.5em;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7em;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6em;
+  height: 0.6em;
+  vertical-align: middle;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: 0.5em;
+  margin-top: 0.1em;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .goal-name {
+  font-style: italic;
+  font-family: var(--verso-code-font-family);
+  color: inherit;
+}
+
+.hl.lean .hypotheses {
+  display: table;
+}
+
+.hl.lean .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .hypotheses .colon {
+  text-align: center;
+  /* This needs to be em, not rem, to scale with the font */
+  min-width: 1em;
+}
+
+.hl.lean .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .hypotheses .name,
+.hl.lean .hypotheses .type,
+.hl.lean .conclusion .type {
+  font-family: var(--verso-code-font-family);
+}
+
+.tippy-box {
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+.extra-doc-links {
+  list-style-type: none;
+  margin-left: 0;
+  padding: 0;
+}
+
+.extra-doc-links > li {
+  display: inline-block;
+}
+
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
+}
+
+.verso-message .trace {
+  display: block;
+}
+
+.verso-message .trace > summary::marker {
+  color: var(--verso-text-color);
+}
+
+.verso-message .trace-children {
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .trace-children > li {
+  list-style-type: none;
+  margin-left: 1.5em;
+}
+
+.verso-message .trace-children > li:not(:has(.trace)) {
+  margin-left: 0;
+}
+
+.verso-message .trace-class {
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .text {
+  white-space: pre-wrap;
+}
+
+</style><link rel="stylesheet" href="tippy-border.css">
+    <link rel="stylesheet" href="code.css">
+    <script defer="defer" src="-verso-search/elasticlunr.min.js"></script>
+    <script defer="defer" src="-verso-search/fuzzysort.min.js"></script>
+    <script defer="defer" src="-verso-search/searchIndex.js"></script>
+    <script defer="defer" src="-verso-search/search-config.js"></script>
+    <script type="module" src="-verso-search/search-init.js"></script>
+    <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-page.css">
+    <link rel="stylesheet" href="-verso-search/search-highlight.css">
+    <link rel="stylesheet" href="-verso-search/domain-display.css">
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to content</a><input type="checkbox" id="menu-toggle" class="menu-toggle" role="button" aria-label="Menu"><label for="menu-toggle" class="hamburger" aria-label="Toggle navigation"><span></span><span></span><span></span></label><div class="layout">
+      <aside class="sidebar"><div class="sidebar-content">
+          <nav class="module-tree" aria-label="Module navigation">
+            <details><summary>JaxLean</summary><details><summary>Core</summary><div class="leaf">
+                  <a href="JaxLean/Core/Jaxpr/" title="JaxLean.Core.Jaxpr" class="">Jaxpr</a></div>
+                </details><details><summary>Stdlib</summary><div class="leaf">
+                  <a href="JaxLean/Stdlib/Equivariance/" title="JaxLean.Stdlib.Equivariance" class="">Equivariance</a></div>
+                <div class="leaf">
+                  <a href="JaxLean/Stdlib/FiniteLaw/" title="JaxLean.Stdlib.FiniteLaw" class="">FiniteLaw</a></div>
+                <div class="leaf">
+                  <a href="JaxLean/Stdlib/ScatterRules/" title="JaxLean.Stdlib.ScatterRules" class="">ScatterRules</a></div>
+                <div class="leaf">
+                  <a href="JaxLean/Stdlib/TensorRules/" title="JaxLean.Stdlib.TensorRules" class="">TensorRules</a></div>
+                </details></details><details open=""><summary>examples</summary><details><summary>autodiff</summary><details><summary>proofs</summary><div class="leaf">
+                    <a href="examples/autodiff/proofs/Jvp/" title="examples.autodiff.proofs.Jvp" class="">Jvp</a></div>
+                  </details></details><details><summary>blog</summary><details><summary>generated</summary><div class="leaf">
+                    <a href="examples/blog/generated/AddScale/" title="examples.blog.generated.AddScale" class="">AddScale</a></div>
+                  </details></details><details><summary>noether</summary><details><summary>proofs</summary><div class="leaf">
+                    <a href="examples/noether/proofs/NoetherProofs/" title="examples.noether.proofs.NoetherProofs" class="">NoetherProofs</a></div>
+                  </details></details><details><summary>randint_monte_carlo</summary><details><summary>proofs</summary><div class="leaf">
+                    <a href="examples/randint_monte_carlo/proofs/RandintMonteCarloProofs/" title="examples.randint_monte_carlo.proofs.RandintMonteCarloProofs" class="">RandintMonteCarloProofs</a></div>
+                  </details></details><details open=""><summary>tensor_puzzles</summary><details open=""><summary>generated</summary><div class="leaf current">
+                    <a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/" title="examples.tensor_puzzles.generated.PuzzleOuterFlatten" class="">PuzzleOuterFlatten</a></div>
+                  </details><details><summary>proofs</summary><details><summary>Puzzles</summary><div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Bincount/" title="examples.tensor_puzzles.proofs.Puzzles.Bincount" class="">Bincount</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Bucketize/" title="examples.tensor_puzzles.proofs.Puzzles.Bucketize" class="">Bucketize</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Cumsum/" title="examples.tensor_puzzles.proofs.Puzzles.Cumsum" class="">Cumsum</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Diag/" title="examples.tensor_puzzles.proofs.Puzzles.Diag" class="">Diag</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Diff/" title="examples.tensor_puzzles.proofs.Puzzles.Diff" class="">Diff</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Eye/" title="examples.tensor_puzzles.proofs.Puzzles.Eye" class="">Eye</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Heaviside/" title="examples.tensor_puzzles.proofs.Puzzles.Heaviside" class="">Heaviside</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Linspace/" title="examples.tensor_puzzles.proofs.Puzzles.Linspace" class="">Linspace</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Ones/" title="examples.tensor_puzzles.proofs.Puzzles.Ones" class="">Ones</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/PadTo/" title="examples.tensor_puzzles.proofs.Puzzles.PadTo" class="">PadTo</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Repeat/" title="examples.tensor_puzzles.proofs.Puzzles.Repeat" class="">Repeat</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Roll/" title="examples.tensor_puzzles.proofs.Puzzles.Roll" class="">Roll</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/ScatterAdd/" title="examples.tensor_puzzles.proofs.Puzzles.ScatterAdd" class="">ScatterAdd</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/SequenceMask/" title="examples.tensor_puzzles.proofs.Puzzles.SequenceMask" class="">SequenceMask</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Triu/" title="examples.tensor_puzzles.proofs.Puzzles.Triu" class="">Triu</a></div>
+                    <div class="leaf">
+                      <a href="examples/tensor_puzzles/proofs/Puzzles/Vstack/" title="examples.tensor_puzzles.proofs.Puzzles.Vstack" class="">Vstack</a></div>
+                    </details><div class="leaf">
+                    <a href="examples/tensor_puzzles/proofs/TensorLoopProofs/" title="examples.tensor_puzzles.proofs.TensorLoopProofs" class="">TensorLoopProofs</a></div>
+                  </details></details><details><summary>transformer</summary><details><summary>proofs</summary><div class="leaf">
+                    <a href="examples/transformer/proofs/TransformerProofs/" title="examples.transformer.proofs.TransformerProofs" class="">TransformerProofs</a></div>
+                  </details></details></details></nav>
+          </div>
+        </aside><main class="main-area" id="main-content"><header class="title-bar">
+          <ol class="breadcrumbs" aria-label="Breadcrumb">
+            <li>
+              <a href="examples/"><code>examples</code></a></li>
+            <li>
+              <a href="examples/tensor_puzzles/"><code>tensor_puzzles</code></a></li>
+            <li>
+              <a href="examples/tensor_puzzles/generated/"><code>generated</code></a></li>
+            <li>
+              <span class="current"><code>PuzzleOuterFlatten</code></span></li>
+            </ol>
+          </header>
+        <div class="content-wrapper">
+          <section class="code-content" id="examples___tensor_puzzles___generated___PuzzleOuterFlatten">
+            <code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Module.import-0">import</span><span class="inter-text"> </span><span class="module-name token" data-binding="module-name-JaxLean.Verification.Certificate">JaxLean.Verification.Certificate</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Module.import-40">import</span><span class="inter-text"> </span><span class="module-name token" data-binding="module-name-JaxLean.Core.RealOps">JaxLean.Core.RealOps</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Generated by jaxlean from JAX 0.8.0. Edit the source, not this file.</span><span class="inter-text">
+</span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Real arithmetic abstraction; no claim of IEEE-754 equivalence.</span><span class="inter-text">
+
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-208" data-verso-hover="1">open</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-221" data-verso-hover="1">open</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.openScoped-226">scoped</span><span class="inter-text"> </span><span class="unknown token" data-binding="">BigOperators</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-246" data-verso-hover="137">set_option</span><span class="inter-text"> </span><span class="option token" data-binding="option-linter.unusedVariables" data-verso-hover="336">linter.unusedVariables</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-246" data-verso-hover="137">false</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-286" data-verso-hover="0">namespace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-323">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer" data-verso-hover="93" id="JaxLean___PuzzleJax___puzzle_outer">puzzle_outer</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-344">{</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-344">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="338">Type</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-344">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-355">[</span><span class="const token" data-binding="const-Field" data-verso-hover="339">Field</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="337">R</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-355">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-365">(</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="340">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-365">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-383">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-383">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-365">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-388">(</span><span class="var token" data-binding="var-_uniq.36" data-verso-hover="341">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-388">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-406">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-406">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-388">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-411">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-422">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-422">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-422">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-429">:=</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> code.py:20 (puzzle_outer)</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> broadcast_in_dim</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-487" data-verso-hover="342">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.136" data-verso-hover="343">broadcast_in_dim_result</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-515">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-526">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-526">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">1</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-526">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-491">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor.reindex" data-verso-hover="153">Tensor.reindex</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-551">(</span><span class="unknown token" data-binding="">s</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-551">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-557">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-557">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-551">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-562">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-563">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="344">i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-567">=&gt;</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-572">(</span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="344">i</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-573">.</span><span class="const token" data-binding="const-Prod.fst" data-verso-hover="345">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-572">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-578">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-578">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-572">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-562">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="340">a</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> code.py:20 (puzzle_outer)</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> broadcast_in_dim</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-644" data-verso-hover="342">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.206" data-verso-hover="346">broadcast_in_dim_result_2</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-674">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-685">[</span><span class="literal number token" data-binding="" data-verso-hover="4">1</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-685">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-685">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-648">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor.reindex" data-verso-hover="153">Tensor.reindex</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-710">(</span><span class="unknown token" data-binding="">s</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-710">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-716">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-716">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-710">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-721">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-722">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.167" data-verso-hover="347">i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-726">=&gt;</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-731">(</span><span class="var token" data-binding="var-_uniq.167" data-verso-hover="347">i</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-732">.</span><span class="const token" data-binding="const-Prod.snd" data-verso-hover="348">2</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-732">.</span><span class="const token" data-binding="const-Prod.fst" data-verso-hover="345">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-731">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-739">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-739">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-731">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-721">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.36" data-verso-hover="341">b</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> code.py:20 (puzzle_outer)</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> mul</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-792" data-verso-hover="342">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.409" data-verso-hover="349">mul_result</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-807">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-818">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-818">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-818">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-796">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor.map₂" data-verso-hover="253">Tensor.map₂</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-842">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-843">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.228" data-verso-hover="350">a0</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.231" data-verso-hover="350">a1</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-847">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.228" data-verso-hover="350">a0</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_*_»-856">*</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.231" data-verso-hover="350">a1</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-842">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-865">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-866">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.337" data-verso-hover="95">i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-870">=&gt;</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-875">(</span><span class="var token" data-binding="var-_uniq.136" data-verso-hover="343">broadcast_in_dim_result</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-900">(</span><span class="var token" data-binding="var-_uniq.337" data-verso-hover="95">i</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-901">.</span><span class="const token" data-binding="const-Prod.fst" data-verso-hover="345">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-900">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="351">0</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-900">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-909">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-909">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-900">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-875">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-865">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-915">(</span><span class="const token" data-binding="const-JaxLean.Tensor.broadcastFirst" data-verso-hover="352">Tensor.broadcastFirst</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.206" data-verso-hover="346">broadcast_in_dim_result_2</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-915">)</span><span class="inter-text">
+  </span><span class="var token" data-binding="var-_uniq.409" data-verso-hover="349">mul_result</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-981" data-verso-hover="73">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-1089" data-verso-hover="0">namespace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-1125">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_ir" data-verso-hover="123" id="JaxLean___PuzzleJax___puzzle_outer_ir">puzzle_outer_ir</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1145">:</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program" title="Definition of `JaxLean.Jaxpr.Program`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program" data-verso-hover="353">Jaxpr.Program</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1161">[</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1162">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">.real</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-1162">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1170">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1170">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-1162">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1161">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1176">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">.real</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-1176">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1184">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1184">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-1176">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1161">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1190">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">.real</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-1190">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1198">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1198">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1198">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-1190">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-1206">:=</span><span class="inter-text">
+  </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___bind" title="Definition of `JaxLean.Jaxpr.Program.bind`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.bind" data-verso-hover="355">.bind</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1217">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Op___broadcast_in_dim" title="Definition of `JaxLean.Jaxpr.Op.broadcast_in_dim`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Op.broadcast_in_dim" data-verso-hover="356">.broadcast_in_dim</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1236">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1236">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">1</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1236">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1243">[</span><span class="literal number token" data-binding="" data-verso-hover="4">0</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1243">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1247">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1247">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1217">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<|_»-1211">&lt;|</span><span class="inter-text">
+  </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___bind" title="Definition of `JaxLean.Jaxpr.Program.bind`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.bind" data-verso-hover="355">.bind</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1272">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Op___broadcast_in_dim" title="Definition of `JaxLean.Jaxpr.Op.broadcast_in_dim`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Op.broadcast_in_dim" data-verso-hover="356">.broadcast_in_dim</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1291">[</span><span class="literal number token" data-binding="" data-verso-hover="4">1</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1291">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1291">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1298">[</span><span class="literal number token" data-binding="" data-verso-hover="4">1</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1298">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1302">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1308">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___there" title="Definition of `JaxLean.Jaxpr.Var.there`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.there" data-verso-hover="359">.there</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1316">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___there" title="Definition of `JaxLean.Jaxpr.Var.there`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.there" data-verso-hover="359">.there</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1316">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1308">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1302">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1272">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<|_»-1266">&lt;|</span><span class="inter-text">
+  </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___bind" title="Definition of `JaxLean.Jaxpr.Program.bind`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.bind" data-verso-hover="355">.bind</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1345">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Op___mul" title="Definition of `JaxLean.Jaxpr.Op.mul`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Op.mul" data-verso-hover="360">.mul</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1351">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1357">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___there" title="Definition of `JaxLean.Jaxpr.Var.there`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.there" data-verso-hover="359">.there</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1357">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1351">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1373">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1373">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1386">(</span><span class="unknown token" data-binding="">t</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1386">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1392">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-1392">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1392">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1386">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1345">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<|_»-1339">&lt;|</span><span class="inter-text">
+  </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___ret" title="Definition of `JaxLean.Jaxpr.Program.ret`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.ret" data-verso-hover="361">.ret</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1411">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1411">)</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-1505" data-verso-hover="137">set_option</span><span class="inter-text"> </span><span class="option token" data-binding="option-linter.unusedSimpArgs" data-verso-hover="362">linter.unusedSimpArgs</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-1505" data-verso-hover="137">false</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-1505">in</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-1547">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_translation_correct" data-verso-hover="125" id="JaxLean___PuzzleJax___puzzle_outer_translation_correct">puzzle_outer_translation_correct</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1588">(</span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1588">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1608">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1608">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1588">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1613">(</span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1613">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1633">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-1633">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-1613">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-1638">:</span><span class="inter-text">
+    </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1663">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-1676">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">.nil</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1676">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-1663">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_outer_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_ir" data-verso-hover="123">_root_.JaxLean.PuzzleJax.puzzle_outer_ir</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-1644">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer" title="Definition of `JaxLean.PuzzleJax.puzzle_outer`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer" data-verso-hover="93">_root_.JaxLean.PuzzleJax.puzzle_outer</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1797">(</span><span class="unknown token" data-binding="">R</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1797">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-1797">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-1820">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-17515792545339112042-1823-1825-819"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-1823" data-verso-hover="16">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-17515792545339112042-1823-1825-819"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_outer_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_ir" data-verso-hover="123">puzzle_outer_ir</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer" title="Definition of `JaxLean.PuzzleJax.puzzle_outer`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer" data-verso-hover="93">puzzle_outer</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-12032262808861254074-1828-1836-821"><span class="keyword token" data-binding="kw-occ-tacticFunext___-1828" data-verso-hover="78">funext</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1196.34" data-verso-hover="363">i</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-12032262808861254074-1828-1836-821"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1196.34" data-verso-hover="363">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Index" data-verso-hover="26">Index</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">Jaxpr.DType.real</span></a><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="unknown token" data-binding="">.2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_outer_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_ir" data-verso-hover="123">puzzle_outer_ir</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1196.34" data-verso-hover="363">i</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer" title="Definition of `JaxLean.PuzzleJax.puzzle_outer`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer" data-verso-hover="93">puzzle_outer</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1196.34" data-verso-hover="363">i</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-17105130345736340696-1839-1879-823"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.rcases-1839" data-verso-hover="96">rcases</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1196.34" data-verso-hover="363">i</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.rcases-1839" data-verso-hover="96">with</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-1853">⟨</span><span class="var token" data-binding="var-_uniq.1196.78" data-verso-hover="97">j0</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-1853">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-1860">⟨</span><span class="var token" data-binding="var-_uniq.1196.102" data-verso-hover="33">j1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-1860">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-1867">⟨</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-1867">⟩</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-1860">⟩</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-1853">⟩</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-17105130345736340696-1839-1879-823"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1196.78" data-verso-hover="97">j0</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-Fin" data-verso-hover="34">Fin</span><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1196.102" data-verso-hover="33">j1</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-Fin" data-verso-hover="34">Fin</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_outer_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_ir" data-verso-hover="123">puzzle_outer_ir</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.1196.78" data-verso-hover="97">j0</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1196.102" data-verso-hover="33">j1</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text">
+  </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer" title="Definition of `JaxLean.PuzzleJax.puzzle_outer`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer" data-verso-hover="93">puzzle_outer</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.951" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.965" data-verso-hover="92">b</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.1196.78" data-verso-hover="97">j0</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1196.102" data-verso-hover="33">j1</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-1882-2001-825"><span class="keyword token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-1882">jaxpr_certificate</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-1882">[</span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_outer_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_ir" data-verso-hover="123">_root_.JaxLean.PuzzleJax.puzzle_outer_ir</span></a><span class="punctuation separator token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-1882">,</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer" title="Definition of `JaxLean.PuzzleJax.puzzle_outer`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer" data-verso-hover="93">_root_.JaxLean.PuzzleJax.puzzle_outer</span></a><span class="punctuation bracket token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-1882">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-1882-2001-825"><span class="tactic-state">All goals completed! 🐙</span></span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-2003" data-verso-hover="73">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Generated by jaxlean from JAX 0.8.0. Edit the source, not this file.</span><span class="inter-text">
+</span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Real arithmetic abstraction; no claim of IEEE-754 equivalence.</span><span class="inter-text">
+
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-2173" data-verso-hover="1">open</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-2186" data-verso-hover="1">open</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.openScoped-2191">scoped</span><span class="inter-text"> </span><span class="unknown token" data-binding="">BigOperators</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-2211" data-verso-hover="137">set_option</span><span class="inter-text"> </span><span class="option token" data-binding="option-linter.unusedVariables" data-verso-hover="336">linter.unusedVariables</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-2211" data-verso-hover="137">false</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-2251" data-verso-hover="0">namespace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2288">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten" data-verso-hover="107" id="JaxLean___PuzzleJax___puzzle_flatten">puzzle_flatten</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-2311">{</span><span class="var token" data-binding="var-_uniq.1204" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-2311">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="338">Type</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-2311">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-2322">[</span><span class="const token" data-binding="const-Field" data-verso-hover="339">Field</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1204" data-verso-hover="337">R</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-2322">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2332">(</span><span class="var token" data-binding="var-_uniq.1229" data-verso-hover="349">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2332">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1204" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2350">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2350">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2350">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-2332">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2358">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1204" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2369">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2369">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2373">:=</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> code.py:30 (puzzle_flatten)</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> reshape</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-2424" data-verso-hover="342">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1278" data-verso-hover="364">reshape_result</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2443">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1204" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2454">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2454">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-2428">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor.reshape" data-verso-hover="365">Tensor.reshape</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2476">(</span><span class="unknown token" data-binding="">t</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2476">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2482">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2482">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2476">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2487">(</span><span class="tactic"><label for="tactic-state-6791365253970999583-2488-2490-826"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2488" data-verso-hover="16">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-6791365253970999583-2488-2490-826"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1204" data-verso-hover="337">R</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="338">Type</span><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1250" data-verso-hover="366">inst✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-Field" data-verso-hover="339">Field</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1204" data-verso-hover="337">R</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1229" data-verso-hover="349">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1204" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="inter-text"></span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-List.prod" data-verso-hover="367">prod</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">6</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-List.prod" data-verso-hover="367">prod</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-2491-2497-828"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.decide-2491" data-verso-hover="31">decide</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2491-2497-828"><span class="tactic-state">All goals completed! 🐙</span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2487">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2499">(</span><span class="var token" data-binding="var-_uniq.1229" data-verso-hover="349">a</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2499">)</span><span class="inter-text">
+  </span><span class="var token" data-binding="var-_uniq.1278" data-verso-hover="364">reshape_result</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-2525" data-verso-hover="73">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-2633" data-verso-hover="0">namespace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2669">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_ir" data-verso-hover="133" id="JaxLean___PuzzleJax___puzzle_flatten_ir">puzzle_flatten_ir</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-2691">:</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program" title="Definition of `JaxLean.Jaxpr.Program`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program" data-verso-hover="353">Jaxpr.Program</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2707">[</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2708">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">.real</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-2708">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2716">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2716">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2716">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-2708">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2707">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2725">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">.real</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-2725">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2733">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2733">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-2725">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-2738">:=</span><span class="inter-text">
+  </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___bind" title="Definition of `JaxLean.Jaxpr.Program.bind`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.bind" data-verso-hover="355">.bind</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2749">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Op___reshape" title="Definition of `JaxLean.Jaxpr.Op.reshape`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Op.reshape" data-verso-hover="368">.reshape</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2759">(</span><span class="unknown token" data-binding="">s</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2759">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2765">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2765">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2765">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2759">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2773">(</span><span class="unknown token" data-binding="">t</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2773">:=</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2779">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2779">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-2773">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2784">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2785">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1410" data-verso-hover="369">i</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.basicFun-2789">=&gt;</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2794">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2795">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2796">(</span><span class="const token" data-binding="const-JaxLean.Index.equivFin" data-verso-hover="370">Index.equivFin</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2812">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2812">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2812">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2796">)</span><span class="built-in delim token" data-binding="">.</span><span class="const token" data-binding="const-Equiv.symm" data-verso-hover="371">symm</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2825">(</span><span class="const token" data-binding="const-Fin.cast" data-verso-hover="372">Fin.cast</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2835">(</span><span class="tactic"><label for="tactic-state-15578741163585611696-2836-2838-829"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2836" data-verso-hover="16">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-15578741163585611696-2836-2838-829"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1410" data-verso-hover="369">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Index" data-verso-hover="26">Index</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">6</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="inter-text"></span><span class="unknown token" data-binding="">6</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-List.prod" data-verso-hover="367">prod</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-List.prod" data-verso-hover="367">prod</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-2839-2845-831"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.decide-2839" data-verso-hover="31">decide</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2839-2845-831"><span class="tactic-state">All goals completed! 🐙</span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2835">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2847">(</span><span class="const token" data-binding="const-JaxLean.Index.equivFin" data-verso-hover="370">Index.equivFin</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2863">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2863">]</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1410" data-verso-hover="369">i</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2847">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2825">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2795">)</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-2795">.</span><span class="const token" data-binding="const-Prod.fst" data-verso-hover="345">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-2794">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2875">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2876">(</span><span class="const token" data-binding="const-JaxLean.Index.equivFin" data-verso-hover="370">Index.equivFin</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2892">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-2892">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2892">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2876">)</span><span class="built-in delim token" data-binding="">.</span><span class="const token" data-binding="const-Equiv.symm" data-verso-hover="371">symm</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2905">(</span><span class="const token" data-binding="const-Fin.cast" data-verso-hover="372">Fin.cast</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2915">(</span><span class="tactic"><label for="tactic-state-15578741163585611696-2916-2918-832"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2916" data-verso-hover="16">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-15578741163585611696-2916-2918-832"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1410" data-verso-hover="369">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Index" data-verso-hover="26">Index</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">6</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="inter-text"></span><span class="unknown token" data-binding="">6</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-List.prod" data-verso-hover="367">prod</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-List.prod" data-verso-hover="367">prod</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-2919-2925-834"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.decide-2919" data-verso-hover="31">decide</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2919-2925-834"><span class="tactic-state">All goals completed! 🐙</span></span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2915">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2927">(</span><span class="const token" data-binding="const-JaxLean.Index.equivFin" data-verso-hover="370">Index.equivFin</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2943">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-2943">]</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1410" data-verso-hover="369">i</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2927">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2905">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2875">)</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-2875">.</span><span class="const token" data-binding="const-Prod.snd" data-verso-hover="348">2</span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.proj-2875">.</span><span class="const token" data-binding="const-Prod.fst" data-verso-hover="345">1</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-2794">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2957">(</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-2957">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-2794">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2784">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2962">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2962">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2749">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<|_»-2743">&lt;|</span><span class="inter-text">
+  </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___ret" title="Definition of `JaxLean.Jaxpr.Program.ret`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.ret" data-verso-hover="361">.ret</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-2986">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-2986">)</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3080" data-verso-hover="137">set_option</span><span class="inter-text"> </span><span class="option token" data-binding="option-linter.unusedSimpArgs" data-verso-hover="362">linter.unusedSimpArgs</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3080" data-verso-hover="137">false</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-3080">in</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-3122">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_translation_correct" data-verso-hover="135" id="JaxLean___PuzzleJax___puzzle_flatten_translation_correct">puzzle_flatten_translation_correct</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3165">(</span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3165">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-3185">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-3185">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-3185">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3165">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3193">:</span><span class="inter-text">
+    </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-3218">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">.nil</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-3218">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_ir" data-verso-hover="133">_root_.JaxLean.PuzzleJax.puzzle_flatten_ir</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-3199">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten" data-verso-hover="107">_root_.JaxLean.PuzzleJax.puzzle_flatten</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-3342">(</span><span class="unknown token" data-binding="">R</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-3342">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-3342">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3359">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2441784619342743057-3362-3364-835"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3362" data-verso-hover="16">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2441784619342743057-3362-3364-835"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_ir" data-verso-hover="133">puzzle_flatten_ir</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten" data-verso-hover="107">puzzle_flatten</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-17939491640439584777-3367-3375-837"><span class="keyword token" data-binding="kw-occ-tacticFunext___-3367" data-verso-hover="78">funext</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1972.32" data-verso-hover="373">i</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-17939491640439584777-3367-3375-837"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1972.32" data-verso-hover="373">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Index" data-verso-hover="26">Index</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">Jaxpr.DType.real</span></a><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">6</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="unknown token" data-binding="">.2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_ir" data-verso-hover="133">puzzle_flatten_ir</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1972.32" data-verso-hover="373">i</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten" data-verso-hover="107">puzzle_flatten</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1972.32" data-verso-hover="373">i</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-2684852422714359559-3378-3408-839"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.rcases-3378" data-verso-hover="96">rcases</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1972.32" data-verso-hover="373">i</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.rcases-3378" data-verso-hover="96">with</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-3392">⟨</span><span class="var token" data-binding="var-_uniq.1972.72" data-verso-hover="374">j0</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-3392">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-3399">⟨</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-3399">⟩</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-3392">⟩</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2684852422714359559-3378-3408-839"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1972.72" data-verso-hover="374">j0</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-Fin" data-verso-hover="34">Fin</span><span class="inter-text"> </span><span class="unknown token" data-binding="">6</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_ir" data-verso-hover="133">puzzle_flatten_ir</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.1972.72" data-verso-hover="374">j0</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text">
+  </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten" data-verso-hover="107">puzzle_flatten</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1833" data-verso-hover="106">a</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.1972.72" data-verso-hover="374">j0</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-3411-3534-841"><span class="keyword token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-3411">jaxpr_certificate</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-3411">[</span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_ir" data-verso-hover="133">_root_.JaxLean.PuzzleJax.puzzle_flatten_ir</span></a><span class="punctuation separator token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-3411">,</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten" data-verso-hover="107">_root_.JaxLean.PuzzleJax.puzzle_flatten</span></a><span class="punctuation bracket token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-3411">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3411-3534-841"><span class="tactic-state">All goals completed! 🐙</span></span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-3536" data-verso-hover="73">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Generated by jaxlean from JAX 0.8.0. Edit the source, not this file.</span><span class="inter-text">
+</span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Real arithmetic abstraction; no claim of IEEE-754 equivalence.</span><span class="inter-text">
+
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-3706" data-verso-hover="1">open</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-3719" data-verso-hover="1">open</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.openScoped-3724">scoped</span><span class="inter-text"> </span><span class="unknown token" data-binding="">BigOperators</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3744" data-verso-hover="137">set_option</span><span class="inter-text"> </span><span class="option token" data-binding="option-linter.unusedVariables" data-verso-hover="336">linter.unusedVariables</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3744" data-verso-hover="137">false</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-3784" data-verso-hover="0">namespace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3821">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten" data-verso-hover="375" id="JaxLean___PuzzleJax___outer_flatten">outer_flatten</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-3843">{</span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-3843">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="338">Type</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.implicitBinder-3843">}</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-3854">[</span><span class="const token" data-binding="const-Field" data-verso-hover="339">Field</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-3854">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-3864">[</span><span class="const token" data-binding="const-LinearOrder" data-verso-hover="376">LinearOrder</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.instBinder-3864">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3880">(</span><span class="var token" data-binding="var-_uniq.1999" data-verso-hover="340">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3880">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-3898">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-3898">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3880">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3903">(</span><span class="var token" data-binding="var-_uniq.2013" data-verso-hover="341">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3903">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-3921">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-3921">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-3903">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-3926">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-3937">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-3937">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-3941">:=</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> code.py:34 (outer_flatten)</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> call puzzle_outer</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-4001" data-verso-hover="342">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2071" data-verso-hover="349">call_puzzle_outer_result</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4030">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4041">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-4041">,</span><span class="inter-text"> </span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4041">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-4005">:=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer" title="Definition of `JaxLean.PuzzleJax.puzzle_outer`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer" data-verso-hover="93">_root_.JaxLean.PuzzleJax.puzzle_outer</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-4101">(</span><span class="unknown token" data-binding="">R</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-4101">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-4101">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4110">(</span><span class="var token" data-binding="var-_uniq.1999" data-verso-hover="340">a</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4110">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4118">(</span><span class="var token" data-binding="var-_uniq.2013" data-verso-hover="341">b</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4118">)</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> code.py:34 (outer_flatten)</span><span class="inter-text">
+  </span><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> call puzzle_flatten</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-4185" data-verso-hover="342">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2089" data-verso-hover="364">call_puzzle_flatten_result</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4216">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4227">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4227">]</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.letIdDecl-4189">:=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten" data-verso-hover="107">_root_.JaxLean.PuzzleJax.puzzle_flatten</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-4286">(</span><span class="unknown token" data-binding="">R</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-4286">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1980" data-verso-hover="337">R</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-4286">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4295">(</span><span class="var token" data-binding="var-_uniq.2071" data-verso-hover="349">call_puzzle_outer_result</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4295">)</span><span class="inter-text">
+  </span><span class="var token" data-binding="var-_uniq.2089" data-verso-hover="364">call_puzzle_flatten_result</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-4352" data-verso-hover="73">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> IMPORTED IR: the Python importer is trusted to encode the original Jaxpr.</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-4460" data-verso-hover="0">namespace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4496">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten_ir" data-verso-hover="377" id="JaxLean___PuzzleJax___outer_flatten_ir">outer_flatten_ir</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4517">:</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program" title="Definition of `JaxLean.Jaxpr.Program`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program" data-verso-hover="353">Jaxpr.Program</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4533">[</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4534">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">.real</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4534">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4542">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4542">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4534">)</span><span class="punctuation separator token" data-binding="kw-occ-«term[_]»-4533">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4548">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">.real</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4548">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4556">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4556">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4548">)</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4533">]</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4562">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">.real</span></a><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Term.tuple-4562">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4570">[</span><span class="literal number token" data-binding="" data-verso-hover="4">6</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4570">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.tuple-4562">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-4575">:=</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.call" data-verso-hover="378">.call</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_outer_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_ir" data-verso-hover="123">puzzle_outer_ir</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4602">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Args___cons" title="Definition of `JaxLean.Jaxpr.Args.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Args.cons" data-verso-hover="379">.cons</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4609">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4609">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4622">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Args___cons" title="Definition of `JaxLean.Jaxpr.Args.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Args.cons" data-verso-hover="379">.cons</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4629">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4635">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___there" title="Definition of `JaxLean.Jaxpr.Var.there`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.there" data-verso-hover="359">.there</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4635">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4629">)</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Args___nil" title="Definition of `JaxLean.Jaxpr.Args.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Args.nil" data-verso-hover="380">.nil</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4622">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4602">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<|_»-4580">&lt;|</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.call" data-verso-hover="378">.call</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten_ir" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_ir" data-verso-hover="133">puzzle_flatten_ir</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4687">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Args___cons" title="Definition of `JaxLean.Jaxpr.Args.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Args.cons" data-verso-hover="379">.cons</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4694">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4694">)</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Args___nil" title="Definition of `JaxLean.Jaxpr.Args.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Args.nil" data-verso-hover="380">.nil</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4687">)</span><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_<|_»-4663">&lt;|</span><span class="inter-text">
+  </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___ret" title="Definition of `JaxLean.Jaxpr.Program.ret`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.ret" data-verso-hover="361">.ret</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4723">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Atom___var" title="Definition of `JaxLean.Jaxpr.Atom.var`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Atom.var" data-verso-hover="357">.var</span></a><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Var___here" title="Definition of `JaxLean.Jaxpr.Var.here`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Var.here" data-verso-hover="358">.here</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4723">)</span></code><code class="hl lean block" data-lean-context="lean"><span class="comment delimiter token" data-binding="">--</span><span class="comment line token" data-binding=""> Relative to Jaxpr.Program.eval's real-arithmetic semantics, for every input.</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-4817" data-verso-hover="137">set_option</span><span class="inter-text"> </span><span class="option token" data-binding="option-linter.unusedSimpArgs" data-verso-hover="362">linter.unusedSimpArgs</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-4817" data-verso-hover="137">false</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-4817">in</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-4859">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten_translation_correct" data-verso-hover="381" id="JaxLean___PuzzleJax___outer_flatten_translation_correct">outer_flatten_translation_correct</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4901">(</span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4901">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4921">[</span><span class="literal number token" data-binding="" data-verso-hover="4">2</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4921">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4901">)</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4926">(</span><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4926">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4946">[</span><span class="literal number token" data-binding="" data-verso-hover="4">3</span><span class="punctuation bracket token" data-binding="kw-occ-«term[_]»-4946">]</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.explicitBinder-4926">)</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.typeSpec-4951">:</span><span class="inter-text">
+    </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4976">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.hygienicLParen-4989">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">.nil</span></a><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4989">)</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.paren-4976">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten_ir" title="Definition of `JaxLean.PuzzleJax.outer_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten_ir" data-verso-hover="377">_root_.JaxLean.PuzzleJax.outer_flatten_ir</span></a><span class="inter-text"> </span><span class="punctuation operator token" data-binding="kw-occ-«term_=_»-4957">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten" title="Definition of `JaxLean.PuzzleJax.outer_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten" data-verso-hover="375">_root_.JaxLean.PuzzleJax.outer_flatten</span></a><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-5112">(</span><span class="unknown token" data-binding="">R</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-5112">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Term.namedArgument-5112">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">b</span><span class="inter-text"> </span><span class="built-in delim token" data-binding="kw-occ-Lean.Parser.Command.declValSimple-5135">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-12062242017956498177-5138-5140-842"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-5138" data-verso-hover="16">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-12062242017956498177-5138-5140-842"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten_ir" title="Definition of `JaxLean.PuzzleJax.outer_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten_ir" data-verso-hover="377">outer_flatten_ir</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten" title="Definition of `JaxLean.PuzzleJax.outer_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten" data-verso-hover="375">outer_flatten</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-2423906030943572627-5143-5151-844"><span class="keyword token" data-binding="kw-occ-tacticFunext___-5143" data-verso-hover="78">funext</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2500.34" data-verso-hover="373">i</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2423906030943572627-5143-5151-844"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2500.34" data-verso-hover="373">i</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Index" data-verso-hover="26">Index</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___DType___real" title="Definition of `JaxLean.Jaxpr.DType.real`"><span class="const token" data-binding="const-JaxLean.Jaxpr.DType.real" data-verso-hover="354">Jaxpr.DType.real</span></a><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">6</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="unknown token" data-binding="">.2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten_ir" title="Definition of `JaxLean.PuzzleJax.outer_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten_ir" data-verso-hover="377">outer_flatten_ir</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2500.34" data-verso-hover="373">i</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten" title="Definition of `JaxLean.PuzzleJax.outer_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten" data-verso-hover="375">outer_flatten</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2500.34" data-verso-hover="373">i</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-1863556846691009333-5154-5184-846"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.rcases-5154" data-verso-hover="96">rcases</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2500.34" data-verso-hover="373">i</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.rcases-5154" data-verso-hover="96">with</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-5168">⟨</span><span class="var token" data-binding="var-_uniq.2500.78" data-verso-hover="374">j0</span><span class="punctuation separator token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-5168">,</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-5175">⟨</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-5175">⟩</span><span class="punctuation bracket token" data-binding="kw-occ-Lean.Parser.Tactic.rcasesPat.tuple-5168">⟩</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1863556846691009333-5154-5184-846"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">2</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-JaxLean.Tensor" data-verso-hover="6">Tensor</span><span class="inter-text"> </span><span class="const token" data-binding="const-Real" data-verso-hover="7">ℝ</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">[</span><span class="unknown token" data-binding="">3</span><span class="const token" data-binding="const-List.cons" data-verso-hover="27">]</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2500.78" data-verso-hover="374">j0</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="const token" data-binding="const-Fin" data-verso-hover="34">Fin</span><span class="inter-text"> </span><span class="unknown token" data-binding="">6</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Program___eval" title="Definition of `JaxLean.Jaxpr.Program.eval`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Program.eval" data-verso-hover="68">Jaxpr.Program.eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___cons" title="Definition of `JaxLean.Jaxpr.Env.cons`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.cons" data-verso-hover="69">Jaxpr.Env.cons</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span><span class="inter-text"> </span><a href="JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___Env___nil" title="Definition of `JaxLean.Jaxpr.Env.nil`"><span class="const token" data-binding="const-JaxLean.Jaxpr.Env.nil" data-verso-hover="70">Jaxpr.Env.nil</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten_ir" title="Definition of `JaxLean.PuzzleJax.outer_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten_ir" data-verso-hover="377">outer_flatten_ir</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.2500.78" data-verso-hover="374">j0</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span><span class="inter-text"> </span><span class="const token" data-binding="const-Eq" data-verso-hover="37">=</span><span class="inter-text">
+  </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten" title="Definition of `JaxLean.PuzzleJax.outer_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten" data-verso-hover="375">outer_flatten</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2248" data-verso-hover="91">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2262" data-verso-hover="92">b</span><span class="inter-text"> </span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">(</span><span class="var token" data-binding="var-_uniq.2500.78" data-verso-hover="374">j0</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="82">PUnit.unit</span><span class="const token" data-binding="const-Prod.mk" data-verso-hover="35">)</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-5187-5444-848"><span class="keyword token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-5187">jaxpr_certificate</span><span class="inter-text"> </span><span class="punctuation bracket token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-5187">[</span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten_ir" title="Definition of `JaxLean.PuzzleJax.outer_flatten_ir`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten_ir" data-verso-hover="377">_root_.JaxLean.PuzzleJax.outer_flatten_ir</span></a><span class="punctuation separator token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-5187">,</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___outer_flatten" title="Definition of `JaxLean.PuzzleJax.outer_flatten`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.outer_flatten" data-verso-hover="375">_root_.JaxLean.PuzzleJax.outer_flatten</span></a><span class="punctuation separator token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-5187">,</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_outer_translation_correct" title="Definition of `JaxLean.PuzzleJax.puzzle_outer_translation_correct`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_outer_translation_correct" data-verso-hover="125">_root_.JaxLean.PuzzleJax.puzzle_outer_translation_correct</span></a><span class="punctuation separator token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-5187">,</span><span class="inter-text"> </span><a href="examples/tensor_puzzles/generated/PuzzleOuterFlatten/#JaxLean___PuzzleJax___puzzle_flatten_translation_correct" title="Definition of `JaxLean.PuzzleJax.puzzle_flatten_translation_correct`"><span class="const token" data-binding="const-JaxLean.PuzzleJax.puzzle_flatten_translation_correct" data-verso-hover="135">_root_.JaxLean.PuzzleJax.puzzle_flatten_translation_correct</span></a><span class="punctuation bracket token" data-binding="kw-occ-«tacticJaxpr_certificate[_,,]»-5187">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5187-5444-848"><span class="tactic-state">All goals completed! 🐙</span></span></code><code class="hl lean block" data-lean-context="lean"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-5446" data-verso-hover="73">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">JaxLean.PuzzleJax</span></code></section>
+          </div>
+        </main></div>
+    </body>
+  </html>

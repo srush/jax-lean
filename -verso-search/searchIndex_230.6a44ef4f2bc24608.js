@@ -1,0 +1,1 @@
+window.docContents[230].resolve({"/JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___reverseIndex":{"contents":"Reverse exactly the axes named by the Jaxpr parameter.","context":"","header":"JaxLean.Jaxpr.reverseIndex","id":"/JaxLean/Core/Jaxpr/#JaxLean___Jaxpr___reverseIndex"}});

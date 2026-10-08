@@ -1,0 +1,1 @@
+window.docContents[15].resolve({"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___variance_eq_second_moment":{"contents":"Useful after a nonlinear operation: retain the second moment, not just the mean.","context":"","header":"JaxLean.FiniteLaw.variance_eq_second_moment","id":"/JaxLean/Stdlib/FiniteLaw/#JaxLean___FiniteLaw___variance_eq_second_moment"}});

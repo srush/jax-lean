@@ -1,0 +1,1 @@
+window.docContents[6].resolve({"/JaxLean/Core/Jaxpr/#mod-doc-JaxLean___Core___Jaxpr-1-0":{"contents":"One dtype- and shape-indexed Jaxpr. Floating arithmetic is interpreted over\nmathematical reals; integer indices use Int32 and predicates use Bool.","context":"","header":"JaxLean.Core.Jaxpr","id":"/JaxLean/Core/Jaxpr/#mod-doc-JaxLean___Core___Jaxpr-1-0"}});
