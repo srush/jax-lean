@@ -16,23 +16,18 @@ pages:
     blocks:
     - type: text
       text: |
-        A couple of years ago, [jxmnop](https://x.com/jxmnop) talked me
+        A couple of years ago, [@jxmnop](https://x.com/jxmnop) talked me
         into writing a collection of
         [tensor puzzles](https://github.com/srush/tensor-puzzles).
         Over time, they have become popular job interview prep
-        for wannabe Members of Technical Staff. The puzzles give the user a specification
-        written as an easy-to-read Python loop.
-        Here, the function is a cumulative sum.
+        for wannabe MsTS. The puzzles give the user a specification
+        written as easy-to-read Python and ask them to
+        generate a vectorized implementation.
 
     - type: python
       file: examples/tensor_puzzles/code.py
       name: loop_cumsum
       section: Pseudocode
-    - type: text
-      text: |
-        Given this code, the pre-MTS is tasked with generating a vectorized implementation.
-        Many of these are quite strange-looking as they use all the fun (or
-        horrible) NumPy tricks.
 
     - type: python
       file: examples/tensor_puzzles/code.py
@@ -41,13 +36,11 @@ pages:
     - type: text
       text: |
 
-        When I wrote the puzzles originally, the answers were checked using randomized
-        tests.
-        Recently, though, I have been thinking about a future where almost all code is
-        formally verified. This seems like a nice example for trying out that future.
-
-        In this blog, we are going to develop a library for
-        proving properties of arbitrary JAX code, [srush/jax-lean](https://github.com/srush/jax-lean).
+        Recently, I have been thinking about formally verification and
+        envisioning what it might look like for every day coders. This seemed like 
+        a good place to start. 
+        In this blog, we walkthrough how to do prove puzzle correct, 
+        and build a library for proving properties of arbitrary JAX code, [srush/jax-lean](https://github.com/srush/jax-lean).
         It was inspired by conversations with [pmocz](https://github.com/pmocz/), [nielstron](https://github.com/nielstron), and these projects:
 
         * [Noether on GitHub](https://github.com/pmocz/noether)
